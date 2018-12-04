@@ -13737,6 +13737,9 @@ class VisualizationsCanvas {
 			<div class="menu hidden">
 				<button type="button" class="edit"><i class="far fa-edit"></i> Edit</button>
 				<button type="button" class="reorder"><i class="fas fa-random"></i> Reorder</button>
+        container.innerHTML = `
+			<div class="menu">
+        		<button type="button" class="full-screen"><i class="fas fa-expand"></i> Full Screen</button>
 			</div>
 			<div class="list"></div>
 		`;
@@ -13746,13 +13749,54 @@ class VisualizationsCanvas {
 		if (this.page.user.privileges.has('report')) {
 
 			container.querySelector('.menu').classList.remove('hidden');
+	    	const menu = container.querySelector('.menu');
+
+	    	menu.insertAdjacentHTML('beforeend', `
+				<button type="button" class="edit"><i class="far fa-edit"></i> Edit</button>
+				<button type="button" class="reorder hidden"><i class="fas fa-random"></i> Reorder</button>
+			`);
 
 			container.querySelector('.edit').on('click', () => this.edit());
 			container.querySelector('.reorder').on('click', () => this.reorder());
 		}
 
-		return container;
-	}
+	    container.querySelector('.full-screen').on('click', () => {
+
+		    if(document.isFullScreen || document.webkitIsFullScreen || document.mozIsFullScreen) {
+
+			    if(document.exitFullscreen) {
+
+			    	document.exitFullscreen();
+			    }
+			    else if(document.webkitExitFullscreen) {
+
+			    	document.webkitExitFullscreen();
+			    }
+			    else if(document.mozExitFullscreen) {
+
+			    	document.mozExitFullscreen();
+			    }
+		    }
+
+		    else {
+
+			    if(this.list.requestFullscreen) {
+
+			    	this.list.requestFullscreen();
+			    }
+			    else if(this.list.webkitRequestFullscreen) {
+
+			    	this.list.webkitRequestFullscreen();
+			    }
+			    else if(this.list.mozRequestFullscreen) {
+
+			    	this.list.mozRequestFullscreen();
+			    }
+		    }
+	    });
+
+        return container;
+    }
 
 	lazyLoad(resize, offset = VisualizationsCanvas.screenHeightOffset) {
 
@@ -13895,6 +13939,7 @@ class VisualizationsCanvas {
 		edit.innerHTML = this.editing ? '<i class="fas fa-check"></i> Done' : '<i class="fas fa-edit"></i> Edit';
 
 		this.container.classList.toggle('editing', this.editing);
+        this.container.querySelector('.reorder').classList.toggle('hidden');
 
 		for (let {query: report} of this.loadedVisualizations.values()) {
 
