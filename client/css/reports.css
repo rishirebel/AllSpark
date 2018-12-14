@@ -1713,30 +1713,45 @@ button[disabled] {
 	transition: background var(--transition-duration);
 }
 	.visualization-canvas > .menu {
-		margin-left: auto;
 		display: grid;
 		grid-auto-flow: column;
 		grid-gap: calc(var(--gap) * 2);
+		margin: calc(var(--gap) * 2) 0;
+		grid-auto-columns: minmax(10px, max-content);
 	}
 		.visualization-canvas > .menu button {
 			outline: 0;
 			cursor: pointer;
 		}
+		.visualization-canvas.editing .menu .edit,
+		.visualization-canvas .menu .add-new.selected {
+			background: var(--color-secondary);
+			color: var(--color-secondary-text);
+			border-color: transparent;
+		}
+	.visualization-canvas > form {
+		grid-template-columns: 250px repeat(4, max-content);
+		background: var(--color-surface);
+		margin-bottom: calc(var(--gap) * 2);
+	}
+		.visualization-canvas > form label.visualization {
+			max-width: 250px;
+		}
+			.visualization-canvas > form label > input[type=number] {
+				width: 75px;
+			}
+			.visualization-canvas > form .multi-select .options {
+				z-index: 6;
+			}
 	.visualization-canvas > .list {
 		display: grid;
 		grid-template-columns: repeat(32, 1.25fr);
 		grid-auto-rows: calc(50px - (var(--gap) * 4));
 		grid-gap: calc(var(--gap) * 4);
-		padding-top: calc(var(--gap) * 2);
 		background: var(--color-background);
 	}
 	.visualization-canvas.editing > .list {
 		margin-bottom: 200px;
-	}
-	.visualization-canvas.editing .menu .edit {
-		background: var(--color-secondary);
-		color: var(--color-secondary-text);
-		border-color: transparent;
 	}
 		.visualization-canvas .list .resize-dimentions {
 			padding: calc(var(--gap) * 1);

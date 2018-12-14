@@ -914,6 +914,78 @@ Settings.list.set('cachedReports', class CachedReports extends SettingPage {
 	}
 });
 
+Settings.list.set('internalAnalytics', class InternalAnalytics extends SettingPage {
+
+	get name() {
+
+		return 'Analytics';
+	}
+
+	setup() {
+
+		if(this.page.querySelector('#analytics')) {
+
+			this.page.querySelector('#analytics').remove();
+		}
+
+		this.page.appendChild(this.container);
+
+	}
+
+	async load() {
+
+		const
+			list = await API.call('internal/reports/list'),
+			canvasVisualizations = [];
+		;
+
+		for(const row of list) {
+
+			const dataSource = new DataSource(row, page);
+
+			dataSource.visualizations.selected = dataSource.visualizations[0];
+			dataSource.visualizations.savedOnDashboard = dataSource.visualizations[0];
+
+			canvasVisualizations.push({
+				format: {
+					position: 1,
+					height: 10,
+					width: 32
+				},
+				report: dataSource,
+			});
+		}
+
+		this.visualizationCanvas = new VisualizationsCanvas(canvasVisualizations, this);
+		this.container.querySelector('#analytics').appendChild(this.visualizationCanvas.container);
+
+		await this.render()
+	}
+
+	get container() {
+
+		if(this.containerElement)
+			return this.containerElement;
+
+		const container = this.containerElement = document.createElement('div');
+		container.classList.add('setting-page', 'hidden');
+
+		container.innerHTML = `
+			<section class="section show" id="analytics">
+				<h1>Analytics</h1>
+			</section>
+		`;
+
+		return container;
+	}
+
+	async render() {
+
+		this.visualizationCanvas.render();
+		await Sections.show('analytics');
+	}
+})
+
 Settings.list.set('alerts', class Alerts extends SettingPage {
 
 	constructor(...params) {

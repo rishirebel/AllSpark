@@ -1274,12 +1274,15 @@ router.get('/settings/:tab?/:id?', API.serve(class extends HTMLAPI {
 
 		super();
 
-		this.stylesheets.push('/css/settings.css');
-		this.stylesheets.push('/css/settings-manager.css');
-		this.scripts.push('/js/reports.js');
-		this.scripts.push('/js/settings.js');
-		this.scripts.push('/js/settings-manager.js');
-		this.scripts.push('https://devpreview.tiny.cloud/demo/tinymce.min.js');
+		this.stylesheets.push('/css/settings.css', '/css/settings-manager.css', 'css/reports.css');
+
+		this.scripts = this.scripts.concat([
+			'/js/reports.js',
+			'/js/settings.js',
+			'/js/settings-manager.js',
+			'https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js',
+			'https://devpreview.tiny.cloud/demo/tinymce.min.js'
+		]);
 	}
 
 	async main() {
