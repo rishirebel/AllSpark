@@ -5,7 +5,7 @@ const internalReports = require('./queries').internalReports;
 
 class InternalAnalytics extends API {
 
-	async run({query_id, param_sdate, param_edate} = {}) {
+	async run({query_id} = {}) {
 
 		query_id = parseInt(query_id);
 
@@ -18,8 +18,8 @@ class InternalAnalytics extends API {
 		report.query = report.query
 			.replace(/{{account_id}}/g, this.account.account_id)
 			.replace(/{{logs_db}}/g, logsDb)
-			.replace(/{{sdate}}/g, `"${param_sdate}"`)
-			.replace(/{{edate}}/g, `"${param_edate}"`);
+			.replace(/{{sdate}}/g, `"${this.request.query[constants.filterPrefix.concat('sdate')]}"`)
+			.replace(/{{edate}}/g, `"${this.request.query[constants.filterPrefix.concat('edate')]}"`);
 
 		return {
 			data: await this.mysql.query(report.query, null)
