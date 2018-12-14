@@ -14270,6 +14270,12 @@ class Canvas extends VisualizationsCanvas {
 		this.container.querySelector('.reorder').classList.toggle('hidden', !this.editing);
 		this.container.querySelector('.add-new').classList.toggle('hidden', !this.editing);
 
+		if(this.addVisualizationForm) {
+
+			this.addVisualizationForm.classList.add('hidden');
+			this.container.querySelector('.add-new').classList.remove('selected');
+		}
+
 		for (let {query: report} of this.loadedVisualizations.values()) {
 
 			this.setReportEditMode(report);
@@ -14336,7 +14342,7 @@ class Canvas extends VisualizationsCanvas {
 
 		this.possibleVisualizations = [];
 
-		for(const visualization of this.visualizations.entries()) {
+		for(const [index, visualization] of this.visualizations.entries()) {
 
 			try {
 
@@ -14345,11 +14351,6 @@ class Canvas extends VisualizationsCanvas {
 			catch(e) {
 
 				visualization.format = {};
-			}
-
-			if (!DataSource.list.has(visualization.query_id)) {
-
-				continue;
 			}
 
 			if (!DataSource.list.has(visualization.query_id)) {
