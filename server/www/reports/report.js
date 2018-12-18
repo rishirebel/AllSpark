@@ -90,7 +90,46 @@ exports.list = class extends API {
                  AND d.status = 1
                  AND vd.owner = 'dashboard'
             GROUP BY query_id
-        `;
+		`;
+
+		const transformationQuery = `
+			SELECT
+				ot.id,
+				ot.owner,
+				ot.owner_id,
+				ot.type,
+				ot.title,
+				ot.options
+			FROM
+				demo_master.tb_object_transformation ot
+			JOIN
+				tb_query_visualizations qv
+				ON qv.visualization_id = ot.owner_id
+			JOIN
+				tb_query q
+				ON qv.query_id = q.query_id
+			WHERE
+				ot.is_enabled = 1
+				AND q.account_id = ?
+				AND ot.owner = 'visualization'
+			UNION ALL
+			SELECT
+				ot.id,
+				ot.owner,
+				ot.owner_id,
+				ot.type,
+				ot.title,
+				ot.options
+			FROM
+				demo_master.tb_object_transformation ot
+			JOIN
+				tb_query q
+				ON ot.owner_id = q.query_id
+			WHERE
+				ot.is_enabled = 1
+				AND q.account_id = ?
+				AND ot.owner = 'query'
+		`;
 
 		if (this.request.body.search) {
 			query = query.concat(`
@@ -182,7 +221,9 @@ exports.list = class extends API {
 
 			this.mysql.query(dashboardToReportAccessQuery, [this.user.user_id]),
 
-			credentialObjectRoles
+			credentialObjectRoles,
+
+			this.mysql.query(transformationQuery, [this.account.account_id, this.account.account_id]),
 		]);
 
 		const groupIdObject = {};
@@ -418,6 +459,11 @@ exports.list = class extends API {
 
 			row.flag = userSharedQueries.has(row.query_id) || dashboardSharedQueries.has(row.query_id);
 
+			if(results[6].some(el => query.query_id == el.owner_id ? true : false)) {
+
+				row.transformations = results[6];
+			}
+
 			if (!connectionMapping[row.connection_name]) {
 
 				row.connectionObj = {
@@ -550,8 +596,15 @@ exports.list = class extends API {
 				}
 
 				visualization.related_visualizations = relatedVisualizationMapping[visualization.visualization_id] ? relatedVisualizationMapping[visualization.visualization_id] : [];
-				row.visualizations.push(visualization);
 
+				if(results[6].some(el => visualization.visualization_id == el.owner_id ? true : false)) {
+
+					const visualization_options = JSON.parse(visualization.options);
+					visualization_options.transformations = results[6];
+					visualization.options = JSON.stringify(visualization_options);
+				}
+
+				row.visualizations.push(visualization);
 			}
 
 			row.href = `/report/${row.query_id}`;

@@ -6848,7 +6848,18 @@ class ReportTransformations extends Set {
 		this.container.querySelector('.list').innerHTML = '<div class="NA">Loading&hellip;</div>';
 	}
 
-	insert(e) {
+	// insert(e) {
+
+	// 	e.preventDefault();
+
+	// 	const type = this.container.querySelector('.add-transformation select').value;
+
+	// 	this.add(new (ReportTransformation.types.get(type))({type}, this));
+
+	// 	this.preview();
+	// }
+
+	async insert(e) {
 
 		e.preventDefault();
 
@@ -6856,7 +6867,49 @@ class ReportTransformations extends Set {
 
 		this.add(new (ReportTransformation.types.get(type))({type}, this));
 
-		this.preview();
+		if(!this.visualization.visualization_id) {
+
+			return new SnackBar({
+				message: 'Visualization Id cannot be empty',
+				type: 'warning'
+			})
+		}
+
+		const
+			option = {
+				method: 'POST',
+			},
+			parameters = {
+				owner: 'visualization',
+				owner_id: this.visualization.visualization_id,
+				options: "{}",
+				type: type,
+				title: ' ',
+			};
+
+		try {
+
+			await API.call('reports/transformations/insert', parameters, option);
+
+			await DataSource.load(true);
+
+			this.stage.load();
+
+			new SnackBar({
+				message: 'Transformation Added',
+				icon: 'far fa-save',
+			});
+
+		} catch(e) {
+
+			new SnackBar({
+				message: 'Request Failed',
+				subtitle: e.message,
+				type: 'error',
+			});
+
+			throw e;
+		}
 	}
 }
 
@@ -6896,17 +6949,28 @@ class ReportTransformation {
 			</div>
 			<legend class="interactive">${this.name}</legend>
 			<div class="ellipsis"><i class="fas fa-ellipsis-h"></i></div>
-			<div class="transformation ${this.key} hidden"></div>
+			<form class="update-transformation">
+				<label class="title hidden">
+					Title
+					<input type="text" class="transformation-title" value="${this.title || ''}">
+				</label>
+				<div class="transformation ${this.key} hidden"></div>
+				<button type="submit" class="save hidden"><i class="far fa-save"></i>Save</button>
+			</form>
 		`;
 
 		container.querySelector('legend').on('click', () => {
 			container.querySelector('.transformation').classList.toggle('hidden');
 			container.querySelector('.ellipsis').classList.toggle('hidden');
+			container.querySelector('.title').classList.toggle('hidden');
+			container.querySelector('.save').classList.toggle('hidden');
 		});
 
 		container.querySelector('.ellipsis').on('click', () => {
 			container.querySelector('.transformation').classList.toggle('hidden');
 			container.querySelector('.ellipsis').classList.toggle('hidden');
+			container.querySelector('.title').classList.toggle('hidden');
+			container.querySelector('.save').classList.toggle('hidden');
 		});
 
 		container.querySelector('.actions .move-up').on('click', () => {
@@ -6928,6 +6992,8 @@ class ReportTransformation {
 
 			this.transformations.preview();
 		});
+
+		container.querySelector('button.save').on('click', e => this.update(e));
 
 		container.querySelector('.actions .move-down').on('click', () => {
 
@@ -6958,12 +7024,86 @@ class ReportTransformation {
 			this.transformations.preview(position);
 		});
 
+		container.querySelector('.actions .remove').on('click', () => this.deleteTransformation(this.id));
+
 		container.querySelector('.actions .remove').on('click', () => {
 			this.transformations.delete(this);
 			this.transformations.preview();
 		});
 
 		return container;
+	}
+
+	async update(e) {
+
+		e.preventDefault();
+
+		const
+			option = {
+				method: 'POST',
+			},
+			parameters = {
+				owner: 'visualization',
+				id: this.id,
+				options: JSON.stringify(this.json),
+				type: this.type,
+				title: this.container.querySelector('.transformation-title').value,
+			};
+
+		try {
+
+			await API.call('reports/transformations/update', parameters, option);
+
+			await DataSource.load(true);
+
+			this.stage.load();
+
+			new SnackBar({
+				message: 'Transformation Added',
+				icon: 'far fa-save',
+			});
+
+		} catch(e) {
+
+			new SnackBar({
+				message: 'Request Failed',
+				subtitle: e.message,
+				type: 'error',
+			});
+
+			throw e;
+		}
+	}
+
+	async deleteTransformation(id) {
+
+		const option = {
+				method: 'POST',
+			};
+
+		try {
+
+			await API.call('reports/transformations/delete', {id}, option);
+
+			await DataSource.load(true);
+
+			this.stage.load();
+
+			new SnackBar({
+				message: 'Transformation Added',
+				icon: 'far fa-save',
+			});
+
+		} catch(e) {
+
+			new SnackBar({
+				message: 'Request Failed',
+				subtitle: e.message,
+				type: 'error',
+			});
+
+			throw e;
+		}
 	}
 
 	get incoming() {

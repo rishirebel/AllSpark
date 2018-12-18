@@ -727,6 +727,9 @@ main.preview-left #stages {
 		.visualization-form fieldset > .form {
 			padding: 0;
 		}
+		.visualization-form fieldset .form > .save {
+			margin-top: calc(var(--gap) * 2);
+		}
 	.visualization-form .subform {
 		display: grid;
 		padding: calc(var(--gap) * 2);
