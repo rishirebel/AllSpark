@@ -6919,9 +6919,6 @@ class ReportTransformation {
 		if(!this.options) {
 			this.options = {};
 		}
-		// else {
-		// 	this.options = JSON.parse(this.options);
-		// }
 	}
 
 	get container() {
@@ -7047,7 +7044,7 @@ class ReportTransformation {
 			this.stage.load();
 
 			new SnackBar({
-				message: 'Transformation Added',
+				message: 'Transformation Updated',
 				icon: 'far fa-save',
 			});
 
