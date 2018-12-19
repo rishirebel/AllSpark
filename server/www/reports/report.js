@@ -459,9 +459,14 @@ exports.list = class extends API {
 
 			row.flag = userSharedQueries.has(row.query_id) || dashboardSharedQueries.has(row.query_id);
 
-			if(results[6].some(el => query.query_id == el.owner_id ? true : false)) {
+			row.transformations = [];
 
-				row.transformations = results[6];
+			for(const result of results[6]) {
+
+				if(query.query_id == result.owner_id) {
+
+					row.transformations.push(result);
+				}
 			}
 
 			if (!connectionMapping[row.connection_name]) {
@@ -597,11 +602,26 @@ exports.list = class extends API {
 
 				visualization.related_visualizations = relatedVisualizationMapping[visualization.visualization_id] ? relatedVisualizationMapping[visualization.visualization_id] : [];
 
-				if(results[6].some(el => visualization.visualization_id == el.owner_id ? true : false)) {
+				let visualization_options = {};
 
-					const visualization_options = JSON.parse(visualization.options);
-					visualization_options.transformations = results[6];
-					visualization.options = JSON.stringify(visualization_options);
+				try {
+					visualization_options = JSON.parse(visualization.options);
+					visualization_options.transformations = [];
+				}
+				catch(e){}
+
+				for(const result of results[6]) {
+
+					if(visualization.visualization_id == result.owner_id) {
+
+						try {
+							result.options = JSON.parse(result.options);
+						}
+						catch(e){}
+
+						visualization_options.transformations.push(result);
+						visualization.options = JSON.stringify(visualization_options);
+					}
 				}
 
 				row.visualizations.push(visualization);

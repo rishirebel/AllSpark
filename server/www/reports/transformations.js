@@ -18,7 +18,7 @@ class Transformation extends API {
 	async update({id, owner, title, type, options = null} = {}) {
 
         this.assert(id && owner, 'Id or owner name is missing');
-		this.assert(title && type, 'Title or type is missing');
+		this.assert(type, 'Type is missing');
 
 		const
 			values = {id, owner, title, type, options},
