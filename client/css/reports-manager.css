@@ -727,7 +727,7 @@ main.preview-left #stages {
 		.visualization-form fieldset > .form {
 			padding: 0;
 		}
-		.visualization-form fieldset .form > .save {
+		.visualization-form fieldset form > .save {
 			margin-top: calc(var(--gap) * 2);
 		}
 	.visualization-form .subform {
@@ -870,7 +870,7 @@ main.preview-left #stages {
 				grid-template-columns: max-content;
 				grid-gap: calc(var(--gap) * 2);
 				align-items: flex-start;
-				margin-top: var(--gap);
+				margin-top: calc(var(--gap) * 2);
 			}
 				.visualization-form .transformations .transformation > div {
 					display: grid;

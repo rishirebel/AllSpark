@@ -6848,17 +6848,6 @@ class ReportTransformations extends Set {
 		this.container.querySelector('.list').innerHTML = '<div class="NA">Loading&hellip;</div>';
 	}
 
-	// insert(e) {
-
-	// 	e.preventDefault();
-
-	// 	const type = this.container.querySelector('.add-transformation select').value;
-
-	// 	this.add(new (ReportTransformation.types.get(type))({type}, this));
-
-	// 	this.preview();
-	// }
-
 	async insert(e) {
 
 		e.preventDefault();
@@ -6884,7 +6873,7 @@ class ReportTransformations extends Set {
 				owner_id: this.visualization.visualization_id,
 				options: "{}",
 				type: type,
-				title: ' ',
+				title: '',
 			};
 
 		try {
