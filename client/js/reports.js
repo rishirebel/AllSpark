@@ -4381,7 +4381,7 @@ class DataSourceTransformations extends Set {
 
 		for(const [i, transformation] of transformations.entries()) {
 
-			if(transformation && !DataSourceTransformation.types.has(transformation.type)) {
+			if(!DataSourceTransformation.types.has(transformation.type)) {
 				continue;
 			}
 
