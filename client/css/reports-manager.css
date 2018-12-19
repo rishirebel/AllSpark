@@ -24,6 +24,11 @@ main.preview-bottom {
 		justify-content: space-between;
 	}
 
+.notification-bar-container {
+	overflow: initial;
+	max-height: none;
+}
+
 #stage-switcher {
 	display: flex;
 	background: var(--color-surface);

@@ -1359,6 +1359,8 @@ body {
 .notification-bar-container {
 	width: 100%;
 	z-index: 6;
+	overflow: auto;
+    max-height: 100px;
 }
 	.notification-bar {
 		text-align: center;
