@@ -536,7 +536,7 @@ exports.refresh = class extends cycleDetection {
 			})
 		}
 
-		const token = commonFun.makeJWT(obj, Math.floor(Date.now() / 1000) + (10 * 60 * 60));
+		const token = commonFun.makeJWT(obj, Math.floor(Date.now() / 1000) + (10 * 60));
 
 		this.response.cookie('token', token, { maxAge: 365 * 24 * 60 * 60 * 1000, path: '/' });
 

@@ -3,7 +3,7 @@ const report = require('./report');
 
 class Transformation extends API {
 
-	async insert({owner_id, owner, title, type, options = null} = {}) {
+	async insert({owner_id, owner, title, type, options = '{}'} = {}) {
 
 		this.assert(owner_id && owner, 'Owner id or owner name is missing');
 		this.assert(type, 'Type is missing');
@@ -15,7 +15,7 @@ class Transformation extends API {
         return await this.mysql.query('INSERT INTO tb_object_transformation SET  ?', [values], 'write');
 	}
 
-	async update({id, owner, title, type, options = null} = {}) {
+	async update({id, owner, title, type, options = '{}'} = {}) {
 
         this.assert(id, 'Id is required');
 
@@ -27,12 +27,11 @@ class Transformation extends API {
 
 		this.assert(updatedRow, 'Invalid id');
 
-		this.assert(await this.checkPrivilege(owner, updatedRow.owner_id), "You don't have enough privileges", 401);
+		this.assert(await this.checkPrivilege(updatedRow.owner, updatedRow.owner_id), "You don't have enough privileges", 401);
 
 		for(const key in values) {
 
 			compareJson[key] = updatedRow[key] ? updatedRow[key].toString() : null;
-			updatedRow[key] = values[key];
 		}
 
 		try {
@@ -59,7 +58,7 @@ class Transformation extends API {
 
 		this.assert(await this.checkPrivilege(updatedRow.owner, updatedRow.owner_id), "You don't have enough privileges", 401);
 
-        return await this.mysql.query('DELETE FROM tb_object_transformation WHERE id = ?', [id]);
+        return await this.mysql.query('DELETE FROM tb_object_transformation WHERE id = ?', [id], 'write');
 	}
 
 	async checkPrivilege(owner, owner_id) {
@@ -74,13 +73,13 @@ class Transformation extends API {
 
 			for(const report of reportList){
 
-				report.visualizations.some(element => element.visualization_id == owner_id ? is_enabled = element.is_enabled : '');
+				report.visualizations.some(element => element.visualization_id == owner_id && element.is_enabled && element.editable);
 			}
 		}
 
 		else if(owner == 'query') {
 
-			reportList.some(element => element.query_id == owner_id ? is_enabled = element.is_enabled : '');
+			reportList.some(element => element.query_id == owner_id && element.is_enabled && element.editable);
 		}
 
 		return is_enabled;

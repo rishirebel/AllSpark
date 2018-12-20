@@ -611,31 +611,34 @@ exports.list = class extends API {
 					continue;
 				}
 
-				visualization.related_visualizations = relatedVisualizationMapping[visualization.visualization_id] ? relatedVisualizationMapping[visualization.visualization_id] : [];
+				visualization.related_visualizations = relatedVisualizationMapping[visualization.visualization_id]
+				? relatedVisualizationMapping[visualization.visualization_id]
+				: [];
 
-				const visualization_transformations = transformations['visualization'][visualization.visualization_id];
+				const visualization_transformations = transformations['visualization'][visualization.visualization_id]
+				? transformations['visualization'][visualization.visualization_id]
+				: [];
 
-				if(visualization_transformations && visualization_transformations.length) {
+				let visualization_options = {};
 
-					let visualization_options = {};
+				try {
+					visualization_options = JSON.parse(visualization.options);
+					visualization_options.transformations = []
+				}
+				catch(e) {}
+
+				for (const transformation of visualization_transformations) {
 
 					try {
-						visualization_options = JSON.parse(visualization.options);
-						visualization_options.transformations = [];
+
+						transformation.options = JSON.parse(transformation.options);
 					}
 					catch(e){}
 
-					for(const result of visualization_transformations) {
-
-						try {
-							result.options = JSON.parse(result.options);
-						}
-						catch(e){}
-
-						visualization_options.transformations.push(result);
-						visualization.options = JSON.stringify(visualization_options);
-					}
+					visualization_options.transformations.push(transformation);
 				}
+
+				visualization.options = JSON.stringify(visualization_options);
 
 				row.visualizations.push(visualization);
 			}
