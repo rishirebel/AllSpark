@@ -615,7 +615,7 @@ exports.list = class extends API {
 				? relatedVisualizationMapping[visualization.visualization_id]
 				: [];
 
-				const visualization_transformations = transformations['visualization'][visualization.visualization_id]
+				const visualization_transformations = transformations['visualization']
 				? transformations['visualization'][visualization.visualization_id]
 				: [];
 
