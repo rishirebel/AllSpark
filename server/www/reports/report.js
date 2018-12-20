@@ -101,7 +101,7 @@ exports.list = class extends API {
 				ot.title,
 				ot.options
 			FROM
-				demo_master.tb_object_transformation ot
+				tb_object_transformation ot
 			JOIN
 				tb_query_visualizations qv
 				ON qv.visualization_id = ot.owner_id
@@ -110,6 +110,7 @@ exports.list = class extends API {
 				ON qv.query_id = q.query_id
 			WHERE
 				ot.is_enabled = 1
+				AND q.is_deleted = 0
 				AND q.account_id = ?
 				AND ot.owner = 'visualization'
 			UNION ALL
@@ -121,12 +122,13 @@ exports.list = class extends API {
 				ot.title,
 				ot.options
 			FROM
-				demo_master.tb_object_transformation ot
+				tb_object_transformation ot
 			JOIN
 				tb_query q
 				ON ot.owner_id = q.query_id
 			WHERE
 				ot.is_enabled = 1
+				AND q.is_deleted = 0
 				AND q.account_id = ?
 				AND ot.owner = 'query'
 		`;
@@ -225,6 +227,23 @@ exports.list = class extends API {
 
 			this.mysql.query(transformationQuery, [this.account.account_id, this.account.account_id]),
 		]);
+
+		const transformations = {};
+
+		for (const row of results[6]) {
+
+			if (!transformations.hasOwnProperty(row.owner)) {
+
+				transformations[row.owner] = {};
+			}
+
+			if (!transformations[row.owner].hasOwnProperty(row.owner_id)) {
+
+				transformations[row.owner][row.owner_id] = [];
+			}
+
+			transformations[row.owner][row.owner_id].push(row);
+		}
 
 		const groupIdObject = {};
 
@@ -461,13 +480,15 @@ exports.list = class extends API {
 
 			row.transformations = [];
 
-			for(const result of results[6]) {
+			transformations['query'][row.query_id] ? row.transformations.push(transformations['query'][row.query_id]) : [];
 
-				if(query.query_id == result.owner_id) {
+			// for(const result of results[6]) {
 
-					row.transformations.push(result);
-				}
-			}
+			// 	if(row.query_id == result.owner_id) {
+
+			// 		row.transformations.push(result);
+			// 	}
+			// }
 
 			if (!connectionMapping[row.connection_name]) {
 
@@ -602,17 +623,19 @@ exports.list = class extends API {
 
 				visualization.related_visualizations = relatedVisualizationMapping[visualization.visualization_id] ? relatedVisualizationMapping[visualization.visualization_id] : [];
 
-				let visualization_options = {};
+				const visualization_transformations = transformations['visualization'][visualization.visualization_id];
 
-				try {
-					visualization_options = JSON.parse(visualization.options);
-					visualization_options.transformations = [];
-				}
-				catch(e){}
+				if(visualization_transformations && visualization_transformations.length) {
 
-				for(const result of results[6]) {
+					let visualization_options = {};
 
-					if(visualization.visualization_id == result.owner_id) {
+					try {
+						visualization_options = JSON.parse(visualization.options);
+						visualization_options.transformations = [];
+					}
+					catch(e){}
+
+					for(const result of visualization_transformations) {
 
 						try {
 							result.options = JSON.parse(result.options);

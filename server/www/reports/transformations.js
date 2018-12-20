@@ -12,19 +12,18 @@ class Transformation extends API {
 
         const values = {owner_id, owner, title, type, options};
 
-        return await this.mysql.query('INSERT INTO demo_master.tb_object_transformation SET  ?', [values], 'write');
+        return await this.mysql.query('INSERT INTO tb_object_transformation SET  ?', [values], 'write');
 	}
 
 	async update({id, owner, title, type, options = null} = {}) {
 
-        this.assert(id && owner, 'Id or owner name is missing');
-		this.assert(type, 'Type is missing');
+        this.assert(id, 'Id is required');
 
 		const
 			values = {id, owner, title, type, options},
 			compareJson = {};
 
-		const [updatedRow] =  await this.mysql.query('SELECT * FROM demo_master.tb_object_transformation WHERE id = ? and is_enabled = 1', [id]);
+		const [updatedRow] =  await this.mysql.query('SELECT * FROM tb_object_transformation WHERE id = ? and is_enabled = 1', [id]);
 
 		this.assert(updatedRow, 'Invalid id');
 
@@ -32,29 +31,35 @@ class Transformation extends API {
 
 		for(const key in values) {
 
-			compareJson[key] = updatedRow[key] == null ? null : updatedRow[key].toString();
+			compareJson[key] = updatedRow[key] ? updatedRow[key].toString() : null;
 			updatedRow[key] = values[key];
 		}
 
+		try {
+			compareJson.options = JSON.parse(compareJson.options);
+			values.options = JSON.parse(values.options);
+		}
+		catch(e){}
+
         if(JSON.stringify(compareJson) == JSON.stringify(values)) {
 
-        	return "0 rows affected";
+        	return 'Unchanged';
 		}
 
-    	return await this.mysql.query('UPDATE demo_master.tb_object_transformation SET ? WHERE id = ?', [values, id], 'write');
+    	return await this.mysql.query('UPDATE tb_object_transformation SET ? WHERE id = ?', [values, id], 'write');
 	}
 
 	async delete({id} = {}) {
 
 		this.assert(id, 'Id is required');
 
-		const [updatedRow] =  await this.mysql.query('SELECT * FROM demo_master.tb_object_transformation WHERE id = ? and is_enabled = 1', [id]);
+		const [updatedRow] =  await this.mysql.query('SELECT * FROM tb_object_transformation WHERE id = ? and is_enabled = 1', [id]);
 
 		this.assert(updatedRow, 'Invalid id');
 
 		this.assert(await this.checkPrivilege(updatedRow.owner, updatedRow.owner_id), "You don't have enough privileges", 401);
 
-        return await this.mysql.query('DELETE FROM demo_master.tb_object_transformation WHERE id = ?', [id]);
+        return await this.mysql.query('DELETE FROM tb_object_transformation WHERE id = ?', [id]);
 	}
 
 	async checkPrivilege(owner, owner_id) {
