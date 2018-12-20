@@ -627,7 +627,7 @@ exports.list = class extends API {
 				}
 				catch(e) {}
 
-				for (const transformation of visualization_transformations) {
+				for (const transformation of visualization_transformations || []) {
 
 					try {
 
