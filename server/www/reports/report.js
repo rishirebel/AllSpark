@@ -482,14 +482,6 @@ exports.list = class extends API {
 
 			transformations['query'][row.query_id] ? row.transformations.push(transformations['query'][row.query_id]) : [];
 
-			// for(const result of results[6]) {
-
-			// 	if(row.query_id == result.owner_id) {
-
-			// 		row.transformations.push(result);
-			// 	}
-			// }
-
 			if (!connectionMapping[row.connection_name]) {
 
 				row.connectionObj = {
