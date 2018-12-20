@@ -478,7 +478,7 @@ exports.list = class extends API {
 
 			row.flag = userSharedQueries.has(row.query_id) || dashboardSharedQueries.has(row.query_id);
 
-			row.transformations = transformations['query'][row.query_id] ? transformations['query'][row.query_id] : [];
+			row.transformations = transformations['query'] ? transformations['query'][row.query_id] : [];
 
 			if (!connectionMapping[row.connection_name]) {
 
