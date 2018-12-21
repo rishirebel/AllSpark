@@ -76,9 +76,7 @@ class Transformation extends API {
 
 				for(const visualization of report.visualizations) {
 
-					if(visualization.visualization_id == owner_id && visualization.is_enabled && visualization.editable) {
-						return true;
-					}
+					return visualization.visualization_id == owner_id && visualization.is_enabled && visualization.editable;
 				}
 			}
 		}
@@ -87,9 +85,7 @@ class Transformation extends API {
 
 			for(const report of reportList) {
 
-				if(report.query_id == owner_id && report.is_enabled && report.editable) {
-					return true;
-				}
+				return report.query_id == owner_id && report.is_enabled && report.editable;
 			}
 		}
 	}
