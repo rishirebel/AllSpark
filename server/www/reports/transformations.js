@@ -35,6 +35,7 @@ class Transformation extends API {
 		}
 
 		try {
+
 			compareJson.options = JSON.parse(compareJson.options);
 			values.options = JSON.parse(values.options);
 		}
@@ -44,6 +45,8 @@ class Transformation extends API {
 
         	return 'Unchanged';
 		}
+
+		values.options = JSON.stringify(values.options);
 
     	return await this.mysql.query('UPDATE tb_object_transformation SET ? WHERE id = ?', [values, id], 'write');
 	}
@@ -67,22 +70,28 @@ class Transformation extends API {
 			reports = new report.list(this),
 			reportList = await reports.list();
 
-		let is_enabled;
-
 		if(owner == 'visualization') {
 
-			for(const report of reportList){
+			for(const report of reportList) {
 
-				report.visualizations.some(element => element.visualization_id == owner_id && element.is_enabled && element.editable);
+				for(const visualization of report.visualizations) {
+
+					if(visualization.visualization_id == owner_id && visualization.is_enabled && visualization.editable) {
+						return true;
+					}
+				}
 			}
 		}
 
 		else if(owner == 'query') {
 
-			reportList.some(element => element.query_id == owner_id && element.is_enabled && element.editable);
-		}
+			for(const report of reportList) {
 
-		return is_enabled;
+				if(report.query_id == owner_id && report.is_enabled && report.editable) {
+					return true;
+				}
+			}
+		}
 	}
 }
 
