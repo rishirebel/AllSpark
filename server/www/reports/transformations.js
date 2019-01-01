@@ -76,10 +76,9 @@ class Transformation extends API {
 
 				for(const visualization of report.visualizations) {
 
-					console.log(visualization.visualization_id, '===', owner_id ,'=====', visualization.is_enabled, '----', visualization.editable,'---valuess');
-
-					console.log((visualization.visualization_id == owner_id) && (visualization.is_enabled && visualization.editable),'---check true or false')
-					return (visualization.visualization_id == owner_id) && (visualization.is_enabled && visualization.editable);
+					if((visualization.visualization_id == owner_id) && (visualization.is_enabled && visualization.editable)) {
+						return true;
+					}
 				}
 			}
 		}
@@ -88,7 +87,9 @@ class Transformation extends API {
 
 			for(const report of reportList) {
 
-				return (report.query_id == owner_id) && (report.is_enabled && report.editable);
+				if((report.query_id == owner_id) && (report.is_enabled && report.editable)) {
+					return true;
+				}
 			}
 		}
 	}
