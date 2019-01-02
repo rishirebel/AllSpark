@@ -6876,6 +6876,8 @@ class ReportTransformations extends Set {
 
 			await this.stage.load();
 
+			this.stage.container.querySelector('.transformations .body').classList.remove('hidden');
+
 			new SnackBar({
 				message: 'Transformation Added',
 				icon: 'far fa-save',
@@ -7028,6 +7030,8 @@ class ReportTransformation {
 
 			await this.stage.load();
 
+			this.stage.container.querySelector('.transformations .body').classList.remove('hidden');
+
 			new SnackBar({
 				message: 'Transformation Updated',
 				icon: 'far fa-save',
@@ -7059,8 +7063,10 @@ class ReportTransformation {
 
 			await this.stage.load();
 
+			this.stage.container.querySelector('.transformations .body').classList.remove('hidden');
+
 			new SnackBar({
-				message: 'Transformation Added',
+				message: 'Transformation Deleted',
 				icon: 'far fa-save',
 			});
 
@@ -7479,13 +7485,13 @@ ReportTransformation.types.set('autofill', class ReportTransformationAutofill ex
 		container.insertAdjacentHTML('beforeend', `
 
 			<label>
-				<span>Column</span>
-				<select name="column"></select>
+				<span>Column <span class="red">*</span></span>
+				<select name="column" required></select>
 			</label>
 
 			<label>
-				<span>Granularity</span>
-				<select name="granularity">
+				<span>Granularity <span class="red">*</span></span>
+				<select name="granularity" required>
 					<option value=""></option>
 					<option value="number">Number</option>
 					<option value="second">Second</option>
@@ -7498,8 +7504,8 @@ ReportTransformation.types.set('autofill', class ReportTransformationAutofill ex
 			</label>
 
 			<label>
-				<span>Fill With</span>
-				<input type="text" name="content" value="${this.options.content || ''}">
+				<span>Fill With <span class="red">*</span></span>
+				<input type="text" name="content" required value="${this.options.content || ''}">
 			</label>
 
 			<label>
@@ -8213,13 +8219,13 @@ ReportTransformation.types.set('custom-column', class ReportTransformationMultip
 		container.innerHTML = `
 
 			<label>
-				<span>Column Name</span>
-				<input type="text" name="column" value="${this.options.column || ''}">
+				<span>Column Name <span class="red">*</span></span>
+				<input type="text" name="column" required value="${this.options.column || ''}">
 			</label>
 
 			<label>
-				<span>Formula</span>
-				<textarea name="formula">${this.options.formula || ''}</textarea>
+				<span>Formula <span class="red">*</span></span>
+				<textarea name="formula" required>${this.options.formula || ''}</textarea>
 				<small class="error"></small>
 			</label>
 		`;
@@ -8295,8 +8301,8 @@ ReportTransformation.types.set('row-limit', class RowLimitTransformation extends
 		container.innerHTML = `
 			<div>
 				<label>
-					<span>Row Limit</span>
-					<input type="number" name="rowLimit">
+					<span>Row Limit <span class="red">*</span></span>
+					<input type="number" name="rowLimit" required>
 				</label>
 			</div>
 		`;

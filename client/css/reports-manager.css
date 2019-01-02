@@ -870,6 +870,9 @@ main.preview-left #stages {
 				.visualization-form .transformations fieldset > .actions > div:active {
 					box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.25);
 				}
+			.visualization-form .transformations .title {
+				grid-template-columns: max-content;
+			}
 			.visualization-form .transformations .transformation {
 				display: grid;
 				grid-template-columns: max-content;
