@@ -6953,47 +6953,11 @@ class ReportTransformation {
 			container.querySelector('form').classList.toggle('hidden');
 		});
 
-		container.querySelector('.actions .move-up').on('click', () => {
-
-			const
-				list = Array.from(this.transformations),
-				position = list.indexOf(this);
-
-			if(position == 0)
-				return;
-
-			list.splice(position, 1);
-			list.splice(position - 1, 0, this);
-
-			this.transformations.clear();
-
-			for(const transformation of list)
-				this.transformations.add(transformation);
-
-			this.transformations.preview();
-		});
+		container.querySelector('.actions .move-up').on('click', () => this.moveUp());
 
 		container.querySelector('.update-transformation').on('submit', e => this.update(e));
 
-		container.querySelector('.actions .move-down').on('click', () => {
-
-			const
-				list = Array.from(this.transformations),
-				position = list.indexOf(this);
-
-			if(position == list.length - 1)
-				return;
-
-			list.splice(position, 1);
-			list.splice(position + 1, 0, this);
-
-			this.transformations.clear();
-
-			for(const transformation of list)
-				this.transformations.add(transformation);
-
-			this.transformations.preview();
-		});
+		container.querySelector('.actions .move-down').on('click', () => this.moveDown());
 
 		container.querySelector('.actions .preview').on('click', () => {
 
@@ -7009,9 +6973,65 @@ class ReportTransformation {
 		return container;
 	}
 
+	async moveUp() {
+
+		const
+			list = Array.from(this.transformations),
+			position = list.indexOf(this);
+
+		if(position == 0) {
+			return;
+		}
+
+		this.transformations.clear();
+
+		const order = list[position].order;
+
+		list[position].order = list[position - 1].order;
+		list[position - 1].order = order;
+
+		for(const [key, transformation] of list.entries()) {
+
+			this.transformations.add(transformation);
+
+			if(key == position || key == position - 1) {
+				await transformation.update();
+			}
+		}
+	}
+
+	async moveDown() {
+
+		const
+			list = Array.from(this.transformations),
+			position = list.indexOf(this);
+
+		if(position == list.length - 1) {
+			return;
+		}
+
+		this.transformations.clear();
+
+		const order = list[position].order;
+
+		list[position].order = list[position + 1].order;
+		list[position + 1].order = order;
+
+		for(const [key, transformation] of list.entries()) {
+
+			this.transformations.add(transformation);
+
+			if(key == position || key == position + 1) {
+				await transformation.update();
+			}
+		}
+	}
+
 	async update(e) {
 
-		e.preventDefault();
+		if(e) {
+			e.preventDefault();
+		}
 
 		const
 			option = {
@@ -7114,6 +7134,7 @@ class ReportTransformation {
 		const response = {
 			type: this.key,
 			owner: 'visualization',
+			order: this.order,
 			id: this.id,
 			title: this.container.querySelector('.transformation-title').value
 		};

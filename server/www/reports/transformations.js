@@ -12,15 +12,19 @@ class Transformation extends API {
 
         const values = {owner_id, owner, title, type, options};
 
-        return await this.mysql.query('INSERT INTO tb_object_transformation SET  ?', [values], 'write');
+		const newTransformation = await this.mysql.query('INSERT INTO tb_object_transformation SET ?', [values], 'write');
+
+		await this.mysql.query('UPDATE tb_object_transformation AS t SET t.order = ? where t.id = ?', [newTransformation.insertId, newTransformation.insertId], 'write');
+
+        return newTransformation;
 	}
 
-	async update({id, owner, title, type, options = '{}'} = {}) {
+	async update({id, owner, title, type, order, options = '{}'} = {}) {
 
         this.assert(id, 'Id is required');
 
 		const
-			values = {id, owner, title, type, options},
+			values = {id, owner, title, type, order, options},
 			compareJson = {};
 
 		const [updatedRow] =  await this.mysql.query('SELECT * FROM tb_object_transformation WHERE id = ? and is_enabled = 1', [id]);
