@@ -53,7 +53,12 @@ internalReports.set(1, class ActiveUsers extends InternalReport {
 					description: null,
 					order: 0,
 					default_value: '',
-					offset: -15,
+					offset: [{
+						"value":15,
+						"unit":"day",
+						"direction":-1,
+						"snap":true
+					}],
 					multiple: 0,
 					type: 'date',
 					dataset: null
@@ -66,10 +71,15 @@ internalReports.set(1, class ActiveUsers extends InternalReport {
 					description: null,
 					order: 0,
 					default_value: '',
-					offset: 0,
+					offset: [{
+						"value": 0,
+						"unit":"day",
+						"direction":1,
+						"snap":true
+					}],
 					multiple: 0,
 					type: 'date',
-					dataset: null
+					dataset: null,
 				}
 			],
 			visualizations: [
