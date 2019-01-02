@@ -14349,13 +14349,23 @@ class DataSourceFilterForm {
 			container.querySelector('label.dataset').appendChild(this.datasetMultiSelect.container);
 
 			this.datasetMultiSelect.value = this.filter.dataset;
-			this.datasetMultiSelect.on('change', () => this.updateFormFields());
+			this.datasetMultiSelect.on('change', async () => {
+
+				await this.addDefaultValueMultiselect();
+				this.updateFormFields();
+			});
 		}
 
 		{
-			const default_value = container.default_value.value;
+			if(this.filter.dataset) {
 
-			if(container.default_value.value) {
+				container.default_type.value = 'default_value';
+
+				(async () => {
+					await this.addDefaultValueMultiselect();
+				})();
+			}
+			else if(container.default_value.value) {
 				container.default_type.value = 'default_value';
 			}
 
@@ -14370,6 +14380,12 @@ class DataSourceFilterForm {
 			container.type.on('change', () => this.changeFilterType());
 
 			container.default_type.on('change', () => this.updateFormFields());
+
+			container.multiple.on('change', async () => {
+
+				await this.addDefaultValueMultiselect();
+				this.updateFormFields();
+			});
 
 			this.changeFilterType();
 			this.updateFormFields();
@@ -14441,8 +14457,11 @@ class DataSourceFilterForm {
 		if(response.order != '')
 			response.order = parseFloat(response.order);
 
-		if(response.dataset != '')
+		if(response.dataset != '') {
+
 			response.dataset = parseFloat(response.dataset);
+			response.default_value = this.defaultValueMultiSelect.value.length == this.defaultValueMultiSelect.datalist.length ? 'VALUES:ALL' : JSON.stringify(this.defaultValueMultiSelect.value);
+		}
 
 		return response;
 	}
@@ -14474,11 +14493,59 @@ class DataSourceFilterForm {
 		}
 	}
 
+	async addDefaultValueMultiselect() {
+
+		if(!this.datasetMultiSelect.value.length) {
+
+			return;
+		}
+
+		if(!this.defaultValueMultiSelect) {
+
+			this.defaultValueMultiSelect = new MultiSelect({multiple: this.container.multiple.value ? true : false});
+			this.container.querySelector('.label').appendChild(this.defaultValueMultiSelect.container);
+		}
+
+		const datasource = new DataSource(DataSource.list.get(parseInt(this.datasetMultiSelect.value[0])), page);
+
+		await datasource.fetch();
+
+		this.defaultValueMultiSelect.datalist = datasource.originalResponse.data;
+		this.defaultValueMultiSelect.multiple = parseInt(this.container.multiple.value) ? true : false;
+
+		if(parseInt(this.datasetMultiSelect.value[0]) == this.filter.dataset) {
+
+			if(this.filter.default_value == 'VALUES:ALL') {
+
+				this.datasetMultiSelect.all();
+			}
+			else {
+
+				try{
+
+					this.datasetMultiSelect.value = JSON.parse(this.filter.default_value);
+				}
+				catch(e) {
+
+					this.datasetMultiSelect.value = [];
+				}
+			}
+		}
+
+		this.defaultValueMultiSelect.render();
+	}
+
 	updateFormFields() {
 
 		this.container.default_value.classList.toggle('hidden', this.container.default_type.value != 'default_value');
-		this.container.querySelector('.offsets').classList.toggle('hidden', this.container.default_type.value != 'offset');
+		this.container.default_value.classList.toggle('hidden', this.datasetMultiSelect.value.length);
 
+		if(this.defaultValueMultiSelect) {
+
+			this.defaultValueMultiSelect.container.classList.toggle('hidden', !this.datasetMultiSelect.value.length || this.container.default_type.value != 'default_value')
+		}
+
+		this.container.querySelector('.offsets').classList.toggle('hidden', this.container.default_type.value != 'offset');
 		this.container.querySelector('.multiple').classList.toggle('hidden', !this.datasetMultiSelect.value.length);
 
 		this.offsetChange();
