@@ -632,10 +632,9 @@ exports.list = class extends API {
 					try {
 
 						transformation.options = JSON.parse(transformation.options);
+						visualization_options.transformations.push(transformation);
 					}
 					catch(e){}
-
-					visualization_options.transformations.push(transformation);
 				}
 
 				visualization.options = JSON.stringify(visualization_options);
