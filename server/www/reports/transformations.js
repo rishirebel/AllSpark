@@ -19,7 +19,7 @@ class Transformation extends API {
         return newTransformation;
 	}
 
-	async update({id, owner, title, type, order, options} = {}) {
+	async update({id, owner, title, type, order, options = '{}'} = {}) {
 
         this.assert(id, 'Id is required');
 
