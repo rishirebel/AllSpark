@@ -634,8 +634,10 @@ exports.list = class extends API {
 				}
 				catch(e) {
 
-					visualization_options = {};
-					visualization_options.transformations = [];
+					if(!visualization_options) {
+						visualization_options = {};
+						visualization_options.transformations = [];
+					}
 				}
 
 				for (const transformation of visualization_transformations || []) {
