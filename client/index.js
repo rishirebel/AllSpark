@@ -1015,15 +1015,47 @@ router.get('/reports/:stage?/:id?', API.serve(class extends HTMLAPI {
 	}
 }));
 
-router.get('/visualizations-manager/:id?', API.serve(class extends HTMLAPI {
+router.get('/visualizations-manager/:stage?/:id?', API.serve(class extends HTMLAPI {
 
 	constructor() {
 
 		super();
 
-		this.stylesheets.push('/css/visualizations-manager.css');
-		this.scripts.push('/js/reports.js');
-		this.scripts.push('/js/visualizations-manager.js');
+		this.stylesheets = this.stylesheets.concat([
+			'/css/reports.css',
+			'/css/visualizations-manager.css',
+		]);
+
+		this.scripts = this.scripts.concat([
+			'/js/reports.js',
+			'/js/visualizations-manager.js',
+
+			'https://cdnjs.cloudflare.com/ajax/libs/ace/1.3.3/ext-language_tools.js',
+
+			'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js" defer f="',
+			'https://maps.googleapis.com/maps/api/js?key=AIzaSyA_9kKMQ_SDahk1mCM0934lTsItV0quysU&libraries=visualization" defer f="',
+
+			'https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js',
+			'https://devpreview.tiny.cloud/demo/tinymce.min.js',
+		]);
+	}
+
+	async main() {
+		return `
+
+			<section class="section" id="stage-configure-visualization">
+
+				<div class="toolbar">
+					<button type="button" id="configure-visualization-back"><i class="fa fa-arrow-left"></i> Back</button>
+					<button type="submit" form="configure-visualization-form" class="right"><i class="far fa-save"></i> Save</button>
+					<button type="button" id="preview-configure-visualization"><i class="fa fa-eye"></i> Preview</button>
+					<button type="button" id="history-configure-visualization"><i class="fa fa-history"></i> History</button>
+				</div>
+
+			</section>
+
+			<div id="preview" class="hidden"></div>
+		`;
 	}
 }));
 
