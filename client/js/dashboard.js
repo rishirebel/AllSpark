@@ -1,4 +1,4 @@
-Page.class = class Dashboards extends Page {
+class Dashboards extends Page {
 
 	constructor() {
 
@@ -611,7 +611,9 @@ Page.class = class Dashboards extends Page {
 
 		await Sections.show('reports');
 	}
-};
+}
+
+Page.class = Dashboards;
 
 class Dashboard {
 
