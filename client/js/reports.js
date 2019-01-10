@@ -837,7 +837,7 @@ class DataSource {
 		}
 
 		this.resetError();
-		debugger
+
 		if(!this.originalResponse || !this.originalResponse.data) {
 			return [];
 		}
@@ -1116,7 +1116,6 @@ class DataSource {
 
 	render() {
 
-		debugger
 		const drilldown = [];
 
 		for(const column of this.columns.values()) {
