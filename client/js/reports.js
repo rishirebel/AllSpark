@@ -837,7 +837,7 @@ class DataSource {
 		}
 
 		this.resetError();
-
+		debugger
 		if(!this.originalResponse || !this.originalResponse.data) {
 			return [];
 		}
@@ -1116,6 +1116,7 @@ class DataSource {
 
 	render() {
 
+		debugger
 		const drilldown = [];
 
 		for(const column of this.columns.values()) {
@@ -5489,12 +5490,8 @@ DataSourcePostProcessors.processors.set('CollapseToAverage', class extends DataS
 
 			for(const [key, value] of row) {
 
-				if(!isNaN(value)) {
+				if(!isNaN(parseFloat(value))) {
 					newRow.set(key, newRow.get(key) + parseFloat(value));
-				}
-
-				else {
-					newRow.set(key, value);
 				}
 			}
 
@@ -5624,12 +5621,8 @@ DataSourcePostProcessors.processors.set('CollapseTo', class extends DataSourcePo
 
 			for(const [key, value] of row) {
 
-				if(!isNaN(value)) {
+				if(!isNaN(parseFloat(value))) {
 					newRow.set(key, newRow.get(key) + parseFloat(value));
-				}
-
-				else {
-					newRow.set(key, value);
 				}
 			}
 
