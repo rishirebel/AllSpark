@@ -1023,11 +1023,13 @@ router.get('/visualizations-manager/:stage?/:id?', API.serve(class extends HTMLA
 
 		this.stylesheets = this.stylesheets.concat([
 			'/css/reports.css',
+			'/css/reports-manager.css',
 			'/css/visualizations-manager.css',
 		]);
 
 		this.scripts = this.scripts.concat([
 			'/js/reports.js',
+			'/js/reports-manager.js',
 			'/js/visualizations-manager.js',
 
 			'https://cdnjs.cloudflare.com/ajax/libs/ace/1.3.3/ext-language_tools.js',
@@ -1038,24 +1040,6 @@ router.get('/visualizations-manager/:stage?/:id?', API.serve(class extends HTMLA
 			'https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js',
 			'https://devpreview.tiny.cloud/demo/tinymce.min.js',
 		]);
-	}
-
-	async main() {
-		return `
-
-			<section class="section" id="stage-configure-visualization">
-
-				<div class="toolbar">
-					<button type="button" id="configure-visualization-back"><i class="fa fa-arrow-left"></i> Back</button>
-					<button type="submit" form="configure-visualization-form" class="right"><i class="far fa-save"></i> Save</button>
-					<button type="button" id="preview-configure-visualization"><i class="fa fa-eye"></i> Preview</button>
-					<button type="button" id="history-configure-visualization"><i class="fa fa-history"></i> History</button>
-				</div>
-
-			</section>
-
-			<div id="preview" class="hidden"></div>
-		`;
 	}
 }));
 

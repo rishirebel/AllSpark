@@ -203,6 +203,7 @@ main.preview-left #stages {
 		#stage-pick-report table thead tr.search th input {
 			width: 100%;
 		}
+	section#list table tbody tr .tag,
 	#stage-pick-report table tbody tr .tag,
 	#stage-pick-visualization table tbody tr .tag {
 		background: var(--color-secondary);
@@ -215,6 +216,7 @@ main.preview-left #stages {
 		margin: 2px;
 		border-radius: 2px;
 		font-size: 80%;
+		user-select: none;
 	}
 
 #stage-define-report.show {
