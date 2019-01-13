@@ -2215,10 +2215,13 @@ class HTMLEditor {
 		this.container.querySelector('.code-editor').classList.toggle('hidden', this.visualEditor);
 		this.container.querySelector('.code-toggle').classList.toggle('hidden', !this.visualEditor);
 
-		if(this.visualEditor)
+		if(this.visualEditor && this.editor) {
 			this.editor.setContent(this.codeEditor.value);
-		else
+		}
+
+		else if(!this.visualEditor) {
 			this.codeEditor.value = this.editor.getContent();
+		}
 	}
 
 	/**
@@ -2227,8 +2230,9 @@ class HTMLEditor {
 	 */
 	async setup() {
 
-		if(this.editor)
+		if(this.editor) {
 			return;
+		}
 
 		this.codeEditor = new CodeEditor({mode: 'html'});
 
@@ -2263,8 +2267,9 @@ class HTMLEditor {
 	 */
 	get value() {
 
-		if(this.visualEditor && this.editor)
+		if(this.visualEditor && this.editor) {
 			return this.editor.getContent();
+		}
 
 		return this.codeEditor.value;
 	}
@@ -2274,19 +2279,24 @@ class HTMLEditor {
 	 */
 	set value(value = '') {
 
-		if(!value)
+		if(!value) {
 			value = '';
+		}
 
 		this.codeEditor.value = value;
-		this.editor.setContent(value);
+
+		if(this.editor) {
+			this.editor.setContent(value);
+		}
 
 		return true;
 	}
 
 	on(event, callback) {
 
-		if(!this.editor)
+		if(!this.editor) {
 			return;
+		}
 
 		this.editor.on(event, callback);
 	}
@@ -3876,7 +3886,7 @@ class SearchColumnFilter {
 			return true;
 		}
 
-		const [columnValue] = this.searchColumns.filters.filter(f => f.key == values.columnName).map(m => m.rowValue(row));
+		const [columnValue] = this.searchColumns.filters.filter(f => f.key == values.searchValue).map(m => m.rowValue(row));
 
 		if(!columnValue || !columnValue.length) {
 			return false;
@@ -3902,7 +3912,7 @@ class SearchColumnFilter {
 	get json() {
 
 		return {
-			columnName: this.container.querySelector('select.searchValue').value,
+			searchValue: this.container.querySelector('select.searchValue').value,
 			functionName: this.container.querySelector('select.searchType').value,
 			query: this.container.querySelector('.searchQuery').value,
 		};
@@ -3946,7 +3956,6 @@ class GlobalColumnSearchFilter extends SearchColumnFilter {
 			container.querySelector('.advanced').on('click', () => {
 				this.searchColumns.container.classList.toggle('hidden');
 				container.querySelector('.advanced').classList.toggle('selected');
-
 			});
 		}
 		return container;

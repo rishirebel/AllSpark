@@ -238,17 +238,23 @@ class PreviewTabsManager extends Array {
 		container.classList.add('tabs');
 
 		container.innerHTML = `
+
 			<div class="tabs-header">
+
 				<div class="headers"></div>
+
 				<div class="icons">
+
 					<button type="button" class="add-tab">
 						<i class="fa fa-plus icon"></i>
 					</button>
+
 					<button type="button" class="close-all-tabs" title="Close All">
 						<i class="fas fa-times-circle icon"></i>
 					</button>
 				</div>
 			</div>
+
 			<div class="tabs-body"></div>
 		`;
 
@@ -379,19 +385,22 @@ class PreviewTabsManager extends Array {
 
 		this.page.container.classList.remove('preview-top', 'preview-right', 'preview-bottom', 'preview-left');
 
-		if(this.hidden || !this.report)
+		if(this.hidden || !this.report) {
 			return;
+		}
 
 		this.page.container.classList.add('preview-' + this._position);
 
-		if(render)
+		if(render) {
 			await this.report.visualizations.selected.render({resize: true});
+		}
 	}
 
 	addTab(title) {
 
-		if(!title)
+		if(!title) {
 			this.previewCount++;
+		}
 
 		this.selected = new PreviewTab(this, title);
 
@@ -3173,18 +3182,15 @@ class VisualizationManager {
 		this.descriptionEditor = new HTMLEditor();
 
 		if(!this.options) {
-
 			this.options = {};
 		}
 
 		if(typeof this.options == 'string') {
 
 			try {
-
 				this.options = JSON.parse(this.options) || {};
 			}
 			catch(e) {
-
 				this.options = {};
 			}
 		}

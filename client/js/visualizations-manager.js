@@ -5,11 +5,22 @@ Page.class = class extends Page {
 		super();
 
 		this.visualizationsManager = new VisualizationsManager(this);
+		this.preview = new PreviewTabsManager(this);
+
+		window.on('popstate', () => {
+
+			const id = parseFloat(window.location.pathname.split('/').pop());
+
+			if(window.location.pathname.includes('/visualizations-manager/configure/') && this.visualizationsManager.has(id)) {
+				this.visualizationsManager.get(id).configure();
+			} else {
+				Sections.show('list');
+			}
+		});
 
 		this.visualizationsManager.load();
 	}
 }
-
 
 class VisualizationsManager extends Map {
 
@@ -33,6 +44,10 @@ class VisualizationsManager extends Map {
 			{
 				key: 'Visualization Type',
 				rowValue: row => MetaData.visualizations.has(row.type) ? [MetaData.visualizations.get(row.type).name] : [],
+			},
+			{
+				key: 'Visualization Tags',
+				rowValue: row => row.tags ? row.tags.split(',').map(t => t.trim()) : [],
 			},
 			{
 				key: 'Visualization Created By',
@@ -68,7 +83,7 @@ class VisualizationsManager extends Map {
 			},
 			{
 				key: 'Report Connection ID',
-				rowValue: row => [row.connection_name],
+				rowValue: row => row.connection ? [row.connection.id] : [],
 			},
 		];
 
@@ -84,6 +99,12 @@ class VisualizationsManager extends Map {
 
 		this.process(connections);
 		this.render();
+
+		const id = parseFloat(window.location.pathname.split('/').pop());
+
+		if(window.location.pathname.includes('/visualizations-manager/configure/') && this.has(id)) {
+			this.get(id).configure();
+		}
 	}
 
 	async fetch() {
@@ -107,7 +128,11 @@ class VisualizationsManager extends Map {
 
 		this.clear();
 
-		for(const report of DataSource.list.values()) {
+		let reports = Array.from(DataSource.list.values());
+
+		reports	= JSON.parse(JSON.stringify(reports))
+
+		for(const report of reports) {
 
 			// *_id is depreciated
 			if('query_id' in report) {
@@ -130,7 +155,7 @@ class VisualizationsManager extends Map {
 					visualization.connection.datasource = MetaData.datasources.get(visualization.connection.type);
 				}
 
-				this.set(visualization.id, new VisualizationsManagerRow(visualization))
+				this.set(visualization.id, new VisualizationsManagerRow(visualization, this))
 			}
 		}
 
@@ -138,6 +163,10 @@ class VisualizationsManager extends Map {
 	}
 
 	async render() {
+
+		for(const section of this.page.container.querySelectorAll('.section.configuration')) {
+			section.remove();
+		}
 
 		const tbody = this.container.querySelector('table tbody');
 
@@ -152,6 +181,37 @@ class VisualizationsManager extends Map {
 		}
 
 		Sections.show('list');
+	}
+
+	/**
+	 * Set the search interface to search a column for a specific value.
+	 *
+	 * @param string	column	The column to search in.
+	 * @param string	query	The search query.
+	 */
+	searchColumn(column, query) {
+
+		this.search.clear();
+
+		const advanced = this.search.globalSearch.container.querySelector('.advanced');
+
+		if(!advanced.classList.contains('selected')) {
+			advanced.click();
+		}
+
+		const filter = new SearchColumnFilter(this.search);
+
+		this.search.add(filter);
+
+		this.search.render();
+
+		filter.json = {
+			searchQuery: query,
+			searchValue: column,
+			searchType: 'equalto',
+		};
+
+		this.search.changed();
 	}
 
 	get container() {
@@ -199,8 +259,23 @@ class VisualizationsManager extends Map {
 
 class VisualizationsManagerRow {
 
-	constructor(visualization) {
+	constructor(visualization, visualizations) {
+
 		Object.assign(this, visualization);
+
+		this.visualizations = visualizations;
+		this.page = visualizations.page;
+
+		// Temporary maps until classes are moved permanently
+		{
+			visualizations.report = visualization.report;
+			this.visualizations.visualization = this;
+			this.visualizations.dashboards = this.dashboards;
+			this.visualization_id = this.id;
+		}
+
+		this.manager = new VisualizationManager(this, visualizations);
+		this.dashboards = new ReportVisualizationDashboards(visualizations);
 	}
 
 	get row() {
@@ -209,44 +284,78 @@ class VisualizationsManagerRow {
 			return this.rowElement;
 		}
 
-		const container = this.rowElement = document.createElement('tr');
+		const
+			container = this.rowElement = document.createElement('tr'),
+			connectionName = this.connection ? this.connection.connection_name : '',
+			connectionType = this.connection && this.connection.datasource ? this.connection.datasource.name : '',
+			visualizationType = MetaData.visualizations.has(this.type) ? MetaData.visualizations.get(this.type).name : '';
 
 		container.innerHTML = `
 
 			<td class="name">
 				<a href="/visualization/${this.id}" target="_blank">${this.name}</a>
-				<span class="NA id">#${this.id}</span>
+				<span class="NA">#${this.id}</span>
 			</td>
 
-			<td>
+			<td class="report">
 				<a href="/report/${this.report.id}" target="_blank">${this.report.name}</a>
-				<span class="NA id">#${this.report.id}</span>
+				<span class="NA search-text" title="See all visualizations of this report">
+					#${this.report.id}
+				</span>
 			</td>
 
-			<td>
-				${this.connection ? this.connection.connection_name : '<span class="NA">Invalid Connection</span>'}
-				(${this.connection && this.connection.datasource ? this.connection.datasource.name : `<span class="NA">Invalid Datasource: ${this.connection ? this.connection.type : ''}</span>`})
-				<span class="NA id">#${this.connection.id}</span>
+			<td class="connection">
+
+				<span class="name search-text" title="See all visualizations that use ${connectionName}">
+					${connectionName || '<span class="NA">Invalid Connection</span>'}
+				</span>
+
+				&middot;
+
+				<span class="type search-text" title="See all visualizations that use a ${connectionType} type connection">
+					${connectionType || `<span class="NA">Invalid Datasource: ${this.connection ? this.connection.type : ''}</span>`}
+				</span>
+
+				<span class="NA">#${this.connection.id}</span>
 			</td>
 
 			<td class="type">
-				${MetaData.visualizations.has(this.type) ? MetaData.visualizations.get(this.type).name : `<span class="NA">Invalid Type: ${this.type}</span>`}
+				<span class="search-text" title="See all ${visualizationType} type visualizations">
+					${visualizationType ||  `<span class="NA">Invalid Type: ${this.type}</span>`}
+				</span>
 			</td>
 
 			<td class="tags"></td>
-			<td class="action green">Configure</td>
-			<td class="action red">Delete</td>
+			<td class="action green configure">Configure</td>
+			<td class="action red delete">Delete</td>
 		`;
 
 		container.querySelector('.tags').appendChild(this.tagsList);
 
-		container.querySelector('.type').on('click', ()=> {
-
-			this.search.clear();
-
-			this.search.add()
-
+		container.querySelector('td.report .search-text').on('click', () => {
+			this.visualizations.searchColumn('Report ID', this.report.id);
 		});
+
+		container.querySelector('td.type .search-text').on('click', () => {
+			this.visualizations.searchColumn('Visualization Type', visualizationType);
+		});
+
+		container.querySelector('td.connection .name').on('click', () => {
+			this.visualizations.searchColumn('Report Connection ID', this.connection.id);
+		});
+
+		container.querySelector('td.connection .type').on('click', () => {
+			this.visualizations.searchColumn('Report Connection Type', connectionType);
+		});
+
+		container.querySelector('td.configure').on('click', () => {
+
+			window.history.pushState({}, '', '/visualizations-manager/configure/' + this.id);
+
+			this.configure();
+		});
+
+		container.querySelector('td.delete').on('click', () => this.delete());
 
 		return container;
 	}
@@ -269,11 +378,211 @@ class VisualizationsManagerRow {
 
 			tagContainer.textContent = tag;
 
-			tagContainer.on('click', () => {});
+			tagContainer.on('click', () => this.visualizations.searchColumns('Visualization Tags', tag));
 
 			container.appendChild(tagContainer);
 		}
 
 		return container;
+	}
+
+	get configuration() {
+
+		if(this.configurationElement) {
+			return this.configurationElement;
+		}
+
+		const container = this.configurationElement = document.createElement('section');
+
+		container.classList.add('section', 'configuration');
+		container.id = 'configuration-' + this.id;
+
+		container.innerHTML = `
+			<h1>Configure ${this.name} <span class="NA">#${this.id}</span></h1>
+			<div class="toolbar">
+				<button type="button" class="back"><i class="fa fa-arrow-left"></i> Back</button>
+				<button type="submit" class="save"><i class="far fa-save"></i> Save</button>
+				<button type="button" class="preview"><i class="fa fa-eye"></i> Preview</button>
+			</div>
+		`;
+
+		container.querySelector('.back').on('click', () => {
+
+			if(window.history.state) {
+				window.history.back();
+				return;
+			}
+
+			history.pushState({}, '', '/visualizations-manager');
+			Sections.show('list');
+		});
+
+		container.querySelector('.preview').on('click', () => this.manager.preview());
+		container.querySelector('.save').on('click', () => this.update());
+
+		container.appendChild(this.manager.container);
+		container.querySelector('.visualization-form').insertBefore(this.dashboards.container, container.querySelector('.visualization-form .filters'));
+
+		this.loadShare();
+
+		return container;
+	}
+
+	async configure() {
+
+		this.visualizations.container.parentElement.appendChild(this.configuration);
+
+		this.configuration.appendChild(this.page.preview.container);
+
+		Sections.show('configuration-' + this.id);
+
+		if(!this.page.preview.report || this.page.preview.report.visualizations.selected.visualization_id != this.id) {
+
+			await this.page.preview.loadTab({
+				query_id: this.report.id,
+				visualization: {
+					id: this.id
+				},
+				tab: 'current',
+				position: 'right',
+			});
+		}
+
+		this.dashboards.load();
+		this.manager.load();
+
+		this.loadShare();
+	}
+
+	async loadShare() {
+
+		if(!account.settings.get('visualization_roles_from_query')) {
+			return;
+		}
+
+		const allowedTargets = ['role'];
+
+		if(this.page.user.privileges.has('user.list') || this.page.user.privileges.has('report')) {
+			allowedTargets.push('user');
+		}
+
+		const objectRoles = new ObjectRoles('visualization', this.visualization.visualization_id, allowedTargets);
+
+		await objectRoles.load();
+
+		const objectRolesContainer = document.createElement('div');
+
+		objectRolesContainer.classList.add('configuration-section');
+
+		objectRolesContainer.innerHTML = `
+			<h3>
+				<i class="fas fa-angle-right"></i>
+				<i class="fas fa-angle-down hidden"></i>
+				Share <span class="count"></span>
+			</h3>
+			<div id="share-visualization" class="hidden"></div>
+		`;
+
+		const h3 = objectRolesContainer.querySelector('h3');
+
+		h3.on('click', () => {
+			objectRolesContainer.querySelector('#share-visualization').classList.toggle('hidden');
+			objectRolesContainer.querySelector('.fa-angle-right').classList.toggle('hidden');
+			objectRolesContainer.querySelector('.fa-angle-down').classList.toggle('hidden');
+		});
+
+		objectRolesContainer.querySelector('#share-visualization').appendChild(objectRoles.container);
+		this.configuration.querySelector('.visualization-form').appendChild(objectRolesContainer);
+	}
+
+	async update() {
+
+		this.manager.form.tags.value = this.manager.form.tags.value.split(',').map(t => t.trim()).filter(t => t).join(', ');
+
+		const
+			parameters = {
+				visualization_id: this.id,
+				description: this.manager.descriptionEditor.value,
+			},
+			options = {
+				method: 'POST',
+				form: new FormData(this.manager.form),
+			};
+
+		options.form.set('options', JSON.stringify(this.manager.json.options));
+
+		try {
+
+			await API.call('reports/visualizations/update', parameters, options);
+
+			await this.visualizations.load();
+
+			await this.page.preview.loadTab({
+				query_id: this.report.id,
+				visualization: {
+					id: this.id
+				},
+				tab: 'current',
+				position: 'right',
+			});
+
+			const type = MetaData.visualizations.get(this.type);
+
+			new SnackBar({
+				message: `${type ? type.name : ''} Visualization Saved`,
+				subtitle: `${this.name} #${this.id}`,
+				icon: 'far fa-save',
+			});
+
+		} catch(e) {
+
+			new SnackBar({
+				message: 'Request Failed',
+				subtitle: e.message,
+				type: 'error',
+			});
+
+			throw e;
+		}
+	}
+
+	async delete() {
+
+		if(!confirm('Are you sure?')) {
+			return;
+		}
+
+		const
+			parameters = {
+				visualization_id: this.id,
+			},
+			options = {
+				method: 'POST',
+			};
+
+		try {
+
+			const response = await API.call('reports/visualizations/delete', parameters, options);
+
+			await this.visualizations.load();
+
+			const type = MetaData.visualizations.get(this.type);
+
+			new SnackBar({
+				message: `${type ? type.name : ''} Visualization Deleted`,
+				subtitle: `${this.name} #${this.id}`,
+				icon: 'far fa-trash-alt',
+			});
+
+		} catch(e) {
+
+			new SnackBar({
+				message: 'Request Failed',
+				subtitle: e.message,
+				type: 'error',
+			});
+
+			throw e;
+		}
 	}
 }

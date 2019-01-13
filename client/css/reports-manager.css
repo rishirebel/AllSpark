@@ -950,36 +950,36 @@ main.preview-left #stages {
 			padding-top: 15px;
 		}
 
-	#stage-configure-visualization .dashboards .list {
+	.configuration-section.dashboards .list {
 		grid-gap: calc(var(--gap) * 2);
 		display: grid;
 	}
-		#stage-configure-visualization .dashboards .form {
+		.configuration-section.dashboards .form {
 			grid-template-columns: repeat(7, max-content);
 			grid-gap: calc(var(--gap) * 2);
 		}
-		#stage-configure-visualization .dashboards .add-dashboard .form {
+		.configuration-section.dashboards .add-dashboard .form {
 			grid-template-columns: repeat(6, max-content);
 			background: transparent;
 			padding: 0;
 		}
-			#stage-configure-visualization .dashboards .delete:hover {
+			.configuration-section.dashboards .delete:hover {
 				background: #c33;
 				border-color: transparent;
 			}
-				#stage-configure-visualization .dashboards .save button > i,
-				#stage-configure-visualization .dashboards .delete > i,
-				#stage-configure-visualization .dashboards .view-dashboard > i {
+				.configuration-section.dashboards .save button > i,
+				.configuration-section.dashboards .delete > i,
+				.configuration-section.dashboards .view-dashboard > i {
 					margin: 0;
 				}
-			#stage-configure-visualization .dashboards .dashboard_id {
+			.configuration-section.dashboards .dashboard_id {
 				width: 200px;
 			}
-			#stage-configure-visualization .dashboards input[type=number] {
+			.configuration-section.dashboards input[type=number] {
 				width: 75px;
 			}
-			#stage-configure-visualization .dashboards button[disabled],
-			#stage-configure-visualization .dashboards button[disabled]:hover {
+			.configuration-section.dashboards button[disabled],
+			.configuration-section.dashboards button[disabled]:hover {
 				background: var(--color-hover);
 				color: var(--color-hover-text);
 				opacity: 0.5;
@@ -1294,7 +1294,7 @@ main .tabs .tabs-header {
 		flex: 1;
 		display: flex;
 		max-height: 600px;
-		height: 100%;
+		height: calc(100% - 31px);
 	}
 		main .tabs .tabs-body .tab-body {
 			width: 100%;
