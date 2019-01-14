@@ -91,6 +91,8 @@ class VisualizationsManager extends Map {
 		this.search.on('change', () => this.render());
 
 		this.page.container.appendChild(this.container);
+
+		this.insertVisualizationReport = new MultiSelect({multiple: false});
 	}
 
 	async load() {
@@ -230,6 +232,7 @@ class VisualizationsManager extends Map {
 			<h1>Visualizations Manager</h1>
 
 			<div class="toolbar">
+				<button type="button" class="add-visualization"><i class="fa fa-plus"></i> Add New Report</button>
 			</div>
 
 			<table class="block">
@@ -240,6 +243,7 @@ class VisualizationsManager extends Map {
 						<th>Connection</th>
 						<th>Type</th>
 						<th>Tags</th>
+						<th>Added</th>
 						<th class="action">Configure</th>
 						<th class="action">Delete</th>
 					</tr>
@@ -248,11 +252,157 @@ class VisualizationsManager extends Map {
 			</table>
 		`;
 
+		container.querySelector('.add-visualization').on('click', () => this.add());
 		container.querySelector('.toolbar').appendChild(this.search.globalSearch.container);
 
-		container.insertBefore(this.search.container, container.querySelector('.table-container'));
+		container.insertBefore(this.search.container, container.querySelector('table'));
 
 		return container;
+	}
+
+	async add() {
+
+		this.page.container.appendChild(this.insertForm);
+		Sections.show('insert-visualization');
+	}
+
+	get insertForm() {
+
+		if(this.insertFormContainer) {
+			return this.insertFormContainer;
+		}
+
+		const container = this.insertFormContainer = document.createElement('section');
+
+		container.classList.add('section');
+		container.id = 'insert-visualization';
+
+		container.innerHTML = `
+
+			<h1>Add New Visualization</h1>
+
+			<div class="toolbar">
+				<button type="button" class="back"><i class="fas fa-arrow-left"></i> Back</button>
+			</div>
+
+			<form id="add-visualization-form" class="form">
+
+				<div class="report">
+					<label>
+						<span>Report</span>
+					</label>
+				</div>
+			</form>
+		`;
+
+		container.querySelector('.back').on('click', () => Sections.show('list'));
+
+		{
+			const datalist = [];
+
+			for(const report of DataSource.list.values()) {
+
+				datalist.push({
+					name: report.name,
+					value: report.query_id,
+					subtitle: '#' + report.query_id,
+				});
+			}
+
+			this.insertVisualizationReport.datalist = datalist;
+			this.insertVisualizationReport.render();
+
+			container.querySelector('label').appendChild(this.insertVisualizationReport.container);
+		}
+
+		const form = container.querySelector('form');
+
+		for(const visualization of MetaData.visualizations.values()) {
+
+			const label = document.createElement('label');
+			label.name = visualization.name;
+
+			label.innerHTML = `
+				<figure>
+					<img alt="${visualization.name}">
+					<span class="loader"><i class="fa fa-spinner fa-spin"></i></span>
+					<span class="NA hidden">Preview not available!</span>
+					<figcaption>${visualization.name}</figcaption>
+				</figure>
+			`;
+
+			const
+				img = label.querySelector('img'),
+				loader = label.querySelector('.loader'),
+				NA = label.querySelector('.NA');
+
+			img.on('load', () => {
+				img.classList.add('show');
+				loader.classList.add('hidden');
+			});
+
+			img.on('error', () => {
+				NA.classList.remove('hidden');
+				loader.classList.add('hidden');
+			});
+
+			img.src = visualization.image;
+
+			label.on('click', label.clickListener = () => this.insert(visualization));
+
+			form.appendChild(label);
+		}
+
+		return container;
+	}
+
+	async insert(visualization) {
+
+		const [report] = this.insertVisualizationReport.value;
+
+		if(!report) {
+
+			return new SnackBar({
+				message: 'Report is Required!',
+				type: 'warning',
+			});
+		}
+
+		const
+			parameters = {
+				query_id: report,
+				name: DataSource.list.get(parseInt(report)).name,
+				type: visualization.slug,
+			},
+			options = {
+				method: 'POST',
+			};
+
+		try {
+
+			const response = await API.call('reports/visualizations/insert', parameters, options);
+
+			await this.load();
+
+			window.history.pushState({}, '', '/visualizations-manager/configure/' + response.insertId);
+			this.get(response.insertId).configure();
+
+			new SnackBar({
+				message: `${visualization.name} Visualization Added`,
+				subtitle: `${this.report.name} #${response.insertId}`,
+				icon: 'fas fa-plus',
+			});
+
+		} catch(e) {
+
+			new SnackBar({
+				message: 'Request Failed',
+				subtitle: e.message,
+				type: 'error',
+			});
+
+			throw e;
+		}
 	}
 }
 
@@ -325,6 +475,10 @@ class VisualizationsManagerRow {
 			</td>
 
 			<td class="tags"></td>
+			<td>
+				<span title="${Format.dateTime(this.created_at)}">${Format.ago(this.created_at)}</span> by
+				${this.added_by_name ? `<a href="/user/profile/${this.added_by}" target="_blank">${this.added_by_name}</a>` : 'Unknown User'}
+			</td>
 			<td class="action green configure">Configure</td>
 			<td class="action red delete">Delete</td>
 		`;
