@@ -230,7 +230,6 @@ class VisualizationsManager extends Map {
 			<h1>Visualizations Manager</h1>
 
 			<div class="toolbar">
-				<button><i class="fa fa-plus"></i> Add New Report</button>
 			</div>
 
 			<table class="block">
@@ -251,7 +250,7 @@ class VisualizationsManager extends Map {
 
 		container.querySelector('.toolbar').appendChild(this.search.globalSearch.container);
 
-		container.insertBefore(this.search.container, container.querySelector('table'));
+		container.insertBefore(this.search.container, container.querySelector('.table-container'));
 
 		return container;
 	}
@@ -378,7 +377,7 @@ class VisualizationsManagerRow {
 
 			tagContainer.textContent = tag;
 
-			tagContainer.on('click', () => this.visualizations.searchColumns('Visualization Tags', tag));
+			tagContainer.on('click', () => this.visualizations.searchColumn('Visualization Tags', tag));
 
 			container.appendChild(tagContainer);
 		}
