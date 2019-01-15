@@ -914,6 +914,65 @@ Settings.list.set('cachedReports', class CachedReports extends SettingPage {
 	}
 });
 
+Settings.list.set('alerts', class Alerts extends SettingPage {
+
+	constructor(...params) {
+
+		super(...params);
+
+		this.alerts = [
+			{
+				name: 'Datasets having no redis',
+				api: ''
+			}
+		];
+
+		this.alerts = new Map();
+	}
+
+	get name() {
+
+		return 'Alerts';
+	}
+
+	setup() {
+
+		if(this.page.querySelector('.alerts')) {
+			this.page.querySelector('.alerts').remove();
+		}
+
+		this.page.appendChild(this.container);
+	}
+
+	get container() {
+
+		if(this.alertContainer) {
+
+			return this.alertContainer;
+		}
+
+		const container = this.alertContainer = document.createElement('div');
+		container.classList.add('setting-page', 'alerts');
+
+		container.innerHTML = `
+			<section class="section show" id="alerts">
+				<h1>Alerts</h1>
+			</section>
+		`;
+
+		return container;
+	}
+
+	async load() {
+
+	}
+
+	async render() {
+
+	}
+
+});
+
 Settings.list.set('about', class About extends SettingPage {
 
 	get name() {
