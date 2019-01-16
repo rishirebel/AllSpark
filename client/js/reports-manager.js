@@ -271,7 +271,7 @@ class PreviewTabsManager extends Array {
 	async loadTab(options = {}) {
 
 		this.container.classList.add('hidden');
-		debugger
+
 		if(!Object.keys(options).length) {
 			return;
 		}
@@ -301,6 +301,7 @@ class PreviewTabsManager extends Array {
 			this.report.visualizations = this.report.visualizations.filter(f => options.visualization ? f.visualization_id == options.visualization.id : f.type == 'table');
 		}
 		else {
+
 			this.report.visualizations = [];
 		}
 
@@ -325,7 +326,6 @@ class PreviewTabsManager extends Array {
 		}
 
 		this.report = new DataSource(this.report);
-
 		this.report.container;
 		this.report.visualizations.selected.container.classList.toggle('unsaved', this.report.definitionOverride ? 1 : 0);
 

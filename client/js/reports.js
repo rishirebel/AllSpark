@@ -831,6 +831,10 @@ class DataSource {
 			return [];
 		}
 
+		if(page.stages.selected.key == 'define-report') {
+			implied = true;
+		}
+
 		const data = await this.transformations.run(this.originalResponse.data, implied);
 
 		if(!this.columns.list.size) {
@@ -841,7 +845,7 @@ class DataSource {
 			response.push(new DataSourceRow(row, this));
 		}
 
-		if(this.postProcessors.selected) {
+		if(this.postProcessors.selected && page.stages.selected.key != 'define-report') {
 
 			const time = performance.now();
 
