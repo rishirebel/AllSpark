@@ -798,7 +798,10 @@ class Dashboard {
 
 		const
 			download = page.container.querySelector('.download'),
-			downloadOptions = download.querySelector('.options');
+			downloadOptions = download.querySelector('.options'),
+			features = page.account.accountFeatures.features;
+
+		download.classList.toggle('hidden', !features.has('export_headless'));
 
 		download.querySelector('button').on('click', (e) => {
 
