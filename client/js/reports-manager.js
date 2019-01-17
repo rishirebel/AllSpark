@@ -6885,10 +6885,6 @@ class ReportTransformations extends Set {
 
 		} catch(e) {
 
-			if(move) {
-				return;
-			}
-
 			new SnackBar({
 				message: 'Request Failed',
 				subtitle: e.message,
@@ -7005,7 +7001,7 @@ class ReportTransformation {
 			this.stage.container.querySelector('.transformations .body').classList.remove('hidden');
 
 			new SnackBar({
-				message: 'Transformation Updated',
+				message: `${this.type} transformation moved up`,
 				icon: 'far fa-save',
 			});
 		}
@@ -7051,7 +7047,7 @@ class ReportTransformation {
 			this.stage.container.querySelector('.transformations .body').classList.remove('hidden');
 
 			new SnackBar({
-				message: 'Transformation Updated',
+				message: `${this.type} transformation moved down`,
 				icon: 'far fa-save',
 			});
 		}
@@ -7570,8 +7566,8 @@ ReportTransformation.types.set('autofill', class ReportTransformationAutofill ex
 			</label>
 
 			<label>
-				<span>Fill With <span class="red">*</span></span>
-				<input type="text" name="content" required value="${this.options.content || ''}">
+				<span>Fill With</span>
+				<input type="text" name="content" value="${this.options.content || ''}">
 			</label>
 
 			<label>
