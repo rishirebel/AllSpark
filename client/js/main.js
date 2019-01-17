@@ -1133,17 +1133,20 @@ class Account {
 
 	constructor(account) {
 
-		for(const key in account)
+		for(const key in account) {
 			this[key] = account[key];
+		}
 
 		this.settings = new Map;
 		this.accountFeatures = new AccountFeatures();
 
-		if(!Array.isArray(account.settings))
+		if(!Array.isArray(account.settings)) {
 			return;
+		}
 
-		for(const setting of account.settings)
+		for(const setting of account.settings) {
 			this.settings.set(setting.key, setting.value);
+		}
 	}
 }
 
