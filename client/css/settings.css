@@ -217,3 +217,32 @@ main .documentation-page form .body.preview-mode {
 		overflow: auto;
 		padding: calc(var(--gap) * 2);
 	}
+	main .documentation-page form .body .html-editor {
+		grid-column: 1;
+	}
+
+main #alerts > .list {
+	margin-top: 15px;
+	display: grid;
+	grid-gap: calc(var(--gap) * 3);
+}
+	main #alerts > .list .alert {
+		display: grid;
+		grid-gap: calc(var(--gap) * 2);
+	}
+		main #alerts > .list .alert h2 {
+			margin: 0;
+			padding: 5px 10px 5px 5px;
+			font-size: 110%;
+			background: var(--color-primary);
+			color: var(--color-primary-text);
+			font-weight: normal;
+			letter-spacing: 0.3px;
+			cursor: pointer;
+			display: flex;
+			justify-content: space-between;
+		}
+		main #alerts > .list .alert .alert-data {
+			max-height: 300px;
+			overflow: auto;
+		}
