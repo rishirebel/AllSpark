@@ -91,8 +91,8 @@ internalReports.set(1, class ActiveUsers extends InternalReport {
 					description: '',
 					options: '{"axes":[{"label":"Timing","columns":[{"key":"timing"}],"restcolumns":false,"position":"bottom", "format": ""},{"label":"Active Users","columns":[{"key":"active_users"}],"restcolumns":false,"position":"left"}],"hideLegend":false,"showValues":false}',
 					added_by: 1,
-					editable: true,
-					deletable: true,
+					editable: false,
+					deletable: false,
 					visibilityReason: "superadmin user",
 					related_visualizations: []
 				}
