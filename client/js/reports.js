@@ -14553,8 +14553,7 @@ class DataSourceFilterForm {
 
 	updateFormFields() {
 
-		this.container.default_value.classList.toggle('hidden', this.container.default_type.value != 'default_value');
-		this.container.default_value.classList.toggle('hidden', this.datasetMultiSelect.value.length);
+		this.container.default_value.classList.toggle('hidden', this.container.default_type.value != 'default_value' || this.datasetMultiSelect.value.length);
 
 		if(this.defaultValueMultiSelect) {
 
