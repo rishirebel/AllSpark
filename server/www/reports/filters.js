@@ -56,16 +56,17 @@ class Filters extends API {
 		return insertResponse;
 	}
 
-	async update({filter_id, name, placeholder, description = null, order, default_value = '', offset, type = null, dataset, multiple = null} = {}) {
+	async update({filter_id, name, placeholder, description = null, order, default_value = null, offset, type = null, dataset, multiple = null} = {}) {
 
 		this.assert(filter_id, 'Filter id is required');
 		this.assert(name && placeholder, 'Name or placeholder is missing');
 
 		let
 			values = {
-				name, placeholder, type, multiple, default_value, description, offset,
+				name, placeholder, type, default_value, description, offset,
 				order: isNaN(parseInt(order)) ? null : parseInt(order),
 				dataset: isNaN(parseInt(dataset)) ? null : parseInt(dataset),
+				multiple: isNaN(parseInt(multiple)) ? 0 : parseInt(multiple),
 			},
 			[filterQuery] = await this.mysql.query('SELECT * FROM tb_query_filters WHERE filter_id = ?', [filter_id]),
 			compareJson = {};
@@ -91,7 +92,7 @@ class Filters extends API {
 
 		for (const key in values) {
 
-			compareJson[key] = filterQuery[key] == null ? null : filterQuery[key].toString();
+			compareJson[key] = filterQuery[key] == null ? null : filterQuery[key];
 			filterQuery[key] = values[key];
 		}
 

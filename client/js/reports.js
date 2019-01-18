@@ -14374,7 +14374,7 @@ class DataSourceFilterForm {
 		}
 
 		{
-			if(this.filter.dataset) {
+			if(this.filter.dataset && this.filter.default_value != null) {
 
 				container.default_type.value = 'default_value';
 
@@ -14396,7 +14396,15 @@ class DataSourceFilterForm {
 
 			container.type.on('change', () => this.changeFilterType());
 
-			container.default_type.on('change', () => this.updateFormFields());
+			container.default_type.on('change', async () => {
+
+				if(this.datasetMultiSelect.value.length && container.default_type.value == 'default_value') {
+
+					await this.addDefaultValueMultiselect();
+				}
+
+				this.updateFormFields()
+			});
 
 			container.multiple.on('change', async () => {
 
@@ -14444,8 +14452,8 @@ class DataSourceFilterForm {
 		}
 
 		response.multiple = parseInt(response.multiple) || 0;
+		delete response['default_value'];
 
-		response.default_value = '';
 		response.offset = [];
 
 		if(this.container.default_type.value == 'offset') {
@@ -14474,7 +14482,7 @@ class DataSourceFilterForm {
 		if(response.order != '')
 			response.order = parseFloat(response.order);
 
-		if(response.dataset != '') {
+		if(response.dataset != '' && this.container.default_type.value == 'default_value') {
 
 			response.dataset = parseFloat(response.dataset);
 			response.default_value = this.defaultValueMultiSelect.value.length == this.defaultValueMultiSelect.datalist.length ? '' : JSON.stringify(this.defaultValueMultiSelect.value);
