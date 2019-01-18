@@ -2652,6 +2652,11 @@ class MultiSelect {
 	 */
 	set value(values = []) {
 
+		if(!(this.datalistMap && this.datalistMap.size)) {
+
+			return;
+		}
+
 		this.selectedValues.clear();
 
 		if(!Array.isArray(values))
@@ -2659,15 +2664,16 @@ class MultiSelect {
 
 		for(const value of values) {
 
-			if(this.datalist && this.datalist.some(r => r.value == value)) {
+			if(!this.datalistMap.has(value)) {
 
-				this.selectedValues.add(value.toString());
+				continue;
+			}
 
-				if (!this.multiple) {
+			this.selectedValues.add(value.toString());
 
-					break;
-				}
+			if (!this.multiple) {
 
+				break;
 			}
 		}
 
@@ -2760,7 +2766,7 @@ class MultiSelect {
 
 		this.container.querySelector('input[type=search]').disabled = this.disabled || false;
 
-		if(!this.optionsContainer) {
+		if(!this.optionsContainer || !this.datalistMap || !this.datalistMap.size) {
 
 			return this.recalculate();
 		}
@@ -2878,8 +2884,10 @@ class MultiSelect {
 	 */
 	recalculate() {
 
-		if(!this.containerElement)
+		if(!this.containerElement || !this.datalistMap) {
+
 			return;
+		}
 
 		const search = this.container.querySelector('input[type=search]');
 
@@ -2971,10 +2979,10 @@ class MultiSelect {
 	 */
 	all() {
 
-		if(!this.multiple || this.disabled || !this.datalist)
+		if(!this.multiple || this.disabled || !this.datalistMap)
 			return;
 
-		for(const data of this.datalist) {
+		for(const data of this.datalistMap.values()) {
 
 			if(data.value != null && !data.hide)
 				this.selectedValues.add(data.value.toString())
@@ -3005,6 +3013,21 @@ class MultiSelect {
 
 		this.expandDialog.container.querySelector('header .operation').innerHTML = this.multiple && this.selectedValues.size == this.datalist.length ?
 			'<i class="fas fa-check-square"></i> All' :  this.selectedValues.size ? '<i class="far fa-minus-square"></i>' : '<i class="far fa-square"></i> Clear';
+	}
+
+	get datalist() {
+
+		return this.datalistMap ? [...this.datalistMap.values()] : [];
+	}
+
+	set datalist(datalist) {
+
+		if(!Array.isArray(datalist)) {
+
+			throw new Error('Datalist must be an array');
+		}
+
+		this.datalistMap = new Map(datalist.map(x => [x.value, x]));
 	}
 }
 
