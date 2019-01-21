@@ -5,7 +5,7 @@ services:
     container_name: <node-test>
     build:
       context: .
-      dockerfile: nodeupdate.dockerfile
+      dockerfile: node.dockerfile
     command: bash startpm2.sh <env variable>
     ports:
        - "3001:3001"
