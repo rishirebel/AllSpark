@@ -1138,7 +1138,6 @@ class Account {
 		}
 
 		this.settings = new Map;
-		this.accountFeatures = new AccountFeatures();
 
 		if(!Array.isArray(account.settings)) {
 			return;
@@ -1152,9 +1151,9 @@ class Account {
 
 class AccountFeatures extends Map {
 
-	get features() {
+	get selected_features() {
 
-		for(const [key, feature] of MetaData.features) {
+		for(const [key, feature] of MetaData.features || []) {
 
 			if(account.features.includes(JSON.stringify(key))) {
 				this.set(feature.slug, feature);
@@ -1351,6 +1350,9 @@ class MetaData {
 		MetaData.features = new Map(metadata.features ? metadata.features.map(f => [f.feature_id, f]) : []);
 		MetaData.globalFilters = new Map(metadata.globalFilters ? metadata.globalFilters.map(d => [d.id, d]) : []);
 		user.settings = new Map(metadata.userSettings ? metadata.userSettings.map(us => [us.key, us.value]) : []);
+
+		const accountFeatures = new AccountFeatures();
+		account.selectedFeatures = accountFeatures.selected_features;
 	}
 }
 

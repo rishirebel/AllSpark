@@ -1034,9 +1034,7 @@ class DataSource {
 
 	get xlsxDownloadable() {
 
-		const features = account.accountFeatures.features;
-
-		if(!features.has('export_xlsx') || !this.visualizations.selected || !MetaData.visualizations.has(this.visualizations.selected.type)) {
+		if(!account.selectedFeatures.has('export_xlsx') || !this.visualizations.selected || !MetaData.visualizations.has(this.visualizations.selected.type)) {
 			return false;
 		}
 
