@@ -1327,14 +1327,7 @@ ReportsManger.stages.set('define-report', class DefineReport extends ReportsMang
 			this.container.querySelector('#schema-toggle').classList.remove('hidden');
 		}
 
-		let saveContainer = this.container.querySelector('#save-container > button');
-
-		if(!this.report.editable) {
-			saveContainer.disabled = true;
-		}
-		else {
-			saveContainer.disabled = false;
-		}
+		this.container.querySelector('#save-container > button').disabled = !this.report.editable;
 
 		if(!user.privileges.has('report.insert')) {
 			this.container.querySelector('#save-container #save-more').disabled = true;
