@@ -89,11 +89,11 @@ exports.resetlink = class extends API {
 					<a href="https://${emailUrl}/login/reset?reset_token=${token}&email=${this.request.body.email}&account=${account.name}" style="display: flex;font-size:14px; text-decoration: none; margin: 10px 0;" target="_blank">
 						Please click here.
 					</a>
-					<div style="display:flex; margin: 10px 0; font-size:14px;">Please do not forget that your password is case sensitive.</div>
-					<div style="font-size:14px;display:flex; margin: 10px 0;">If you did not ask for a password change, kindly ignore this email.</div>
+					<div style="display:flex; margin: 10px 0;color:#666; font-size:14px;">Please do not forget that your password is case sensitive.</div>
+					<div style="font-size:14px;display:flex; margin: 10px 0;color:#666;">If you did not ask for a password change, kindly ignore this email.</div>
 					<div style="font-size:14px;color:#666; padding: 15px 0;">
 						<div>Thank You,</div>
-						<div><a href="https://jungleworks.com/kato" style="text-decoration: none;">Kato</a> team.</div>
+						<div><a href="https://jungleworks.com/kato" style="text-decoration: none;" target="_blank">Kato</a> team.</div>
 					</div>
 				</div>
 
