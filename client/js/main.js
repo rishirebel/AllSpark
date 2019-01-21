@@ -1151,7 +1151,9 @@ class Account {
 
 class AccountFeatures extends Map {
 
-	get selected_features() {
+	constructor() {
+
+		super();
 
 		for(const [key, feature] of MetaData.features || []) {
 
@@ -1159,8 +1161,6 @@ class AccountFeatures extends Map {
 				this.set(feature.slug, feature);
 			}
 		}
-
-		return this;
 	}
 }
 
@@ -1351,8 +1351,7 @@ class MetaData {
 		MetaData.globalFilters = new Map(metadata.globalFilters ? metadata.globalFilters.map(d => [d.id, d]) : []);
 		user.settings = new Map(metadata.userSettings ? metadata.userSettings.map(us => [us.key, us.value]) : []);
 
-		const accountFeatures = new AccountFeatures();
-		account.features = accountFeatures.selected_features;
+		account.features = new AccountFeatures();
 	}
 }
 
