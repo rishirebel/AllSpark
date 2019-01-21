@@ -153,6 +153,7 @@ class XLSX(API, object):
                 start_row += len(refined_data) + 13
                 fuse_to_break_printing_same_data += 1
 
+        workbook.close()
         return excel_file
 
 
