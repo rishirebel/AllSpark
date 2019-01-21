@@ -44,7 +44,6 @@ exports.resetlink = class extends API {
 
 		user = user[0];
 		const user_id = user['user_id'];
-		const full_name = user['first_name'] + (user['last_name'] ? ' ' + user['last_name'] : '');
 
 		await this.mysql.query('update tb_password_reset set status = 0 where status = 1 and user_id = ?', [user_id], 'write');
 		const query = `INSERT INTO tb_password_reset(user_id, reset_token, status) values ?`;
@@ -78,7 +77,7 @@ exports.resetlink = class extends API {
 
 				<div>
 					<div style="font-size:14px;color:#666">
-						Dear ${full_name},
+						Dear ${user['first_name']},
 						<br/><br/>
 					</div>
 
