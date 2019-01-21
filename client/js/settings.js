@@ -420,11 +420,24 @@ Settings.list.set('documentation', class Documentations extends SettingPage {
 	async setup() {
 
 		this.container = this.page.querySelector('.documentation-page');
-		this.container.appendChild(this.addForm);
+
+		this.list.clear();
 
 		this.sortTable = new SortTable({
 			table: this.section.querySelector('table'),
 		});
+
+		if(this.container.querySelector('#documentation-list')) {
+			this.container.querySelector('#documentation-list').remove();
+		}
+
+		this.container.textContent = null;
+
+		if(this.addFormElement) {
+			this.addFormElement = null;
+		}
+
+		this.container.appendChild(this.addForm);
 	}
 
 	async load(force) {
@@ -499,7 +512,7 @@ Settings.list.set('documentation', class Documentations extends SettingPage {
 				</label>
 
 				<label>
-					<span>Slug <span class="red">*</span><a class="generate-slug">Generate</a></span>
+					<span>Slug <span class="red">*</span><a data-tooltip="Auto generate the slug from heading." class="generate-slug">Generate</a></span>
 					<input type="text" name="slug" required>
 				</label>
 
@@ -514,8 +527,8 @@ Settings.list.set('documentation', class Documentations extends SettingPage {
 
 				<div class="body">
 					<span>Body</span>
-					<span>Preview</span>
-					<div class="preview"></div>
+					<span class="preview-label">Preview</span>
+					<div class="preview documentation"></div>
 				</div>
 			</form>
 		`;
@@ -539,7 +552,7 @@ Settings.list.set('documentation', class Documentations extends SettingPage {
 
 		form.querySelector('.parent').appendChild(this.parentMultiSelect.container);
 
-		this.bodyEditior = new HTMLEditor();
+		this.bodyEditor = new HTMLEditor();
 
 		form.on('submit', e => this.insert(e));
 
@@ -548,7 +561,7 @@ Settings.list.set('documentation', class Documentations extends SettingPage {
 
 	async add() {
 
-		this.form.reset();
+		this.addForm.querySelector('form').reset();
 
 		Sections.show('documentation-form-add');
 
@@ -562,18 +575,41 @@ Settings.list.set('documentation', class Documentations extends SettingPage {
 
 		if(!bodyEditor.querySelector('.html-editor')) {
 
-			bodyEditor.appendChild(this.bodyEditior.container);
+			bodyEditor.appendChild(this.bodyEditor.container);
 
-			await this.bodyEditior.setup();
+			await this.bodyEditor.setup();
 
-			this.bodyEditior.on('keyup', () => {
-				bodyEditor.querySelector('.preview').innerHTML = this.bodyEditior.value;
+			this.bodyEditor.container.querySelector('.editor-toggle').insertAdjacentHTML('beforeend', `
+				<button type="button" class="preview-enable">
+					<i class="far fa-eye"></i>
+					<span>Preview</span>
+				</button>
+				<button type="button" class="preview-disable hidden">
+					<i class="far fa-eye-slash"></i>
+					<span>Exit Preview</span>
+				</button>
+			`);
+
+			this.bodyEditor.on('keyup', () => {
+				bodyEditor.querySelector('.preview').innerHTML = this.bodyEditor.value;
+			});
+
+			this.bodyEditor.container.querySelector('.preview-enable').on('click', () => {
+				this.form.querySelector('.body').classList.add('preview-mode');
+				this.bodyEditor.container.querySelector('.preview-disable').classList.remove('hidden');
+				this.bodyEditor.container.querySelector('.preview-enable').classList.add('hidden');
+			});
+
+			this.bodyEditor.container.querySelector('.preview-disable').on('click', () => {
+				this.form.querySelector('.body').classList.remove('preview-mode');
+				this.bodyEditor.container.querySelector('.preview-enable').classList.remove('hidden');
+				this.bodyEditor.container.querySelector('.preview-disable').classList.add('hidden');
 			});
 		}
 
-		this.bodyEditior.value = '';
+		this.bodyEditor.value = '';
 
-		bodyEditor.querySelector('.preview').innerHTML = this.bodyEditior.value;
+		bodyEditor.querySelector('.preview').innerHTML = this.bodyEditor.value;
 
 		this.form.heading.focus();
 	}
@@ -585,7 +621,7 @@ Settings.list.set('documentation', class Documentations extends SettingPage {
 		const
 			parameters = {
 				parent: this.parentMultiSelect.value[0] || '',
-				body: this.bodyEditior.value || '',
+				body: this.bodyEditor.value || '',
 			},
 			options = {
 				method: 'POST',
@@ -596,7 +632,7 @@ Settings.list.set('documentation', class Documentations extends SettingPage {
 
 			const response = await API.call('documentation/insert', parameters, options);
 
-			await this.load();
+			await this.load(true);
 
 			new SnackBar({
 				message: `Documentation for ${this.form.heading.value} Added`,
@@ -606,7 +642,7 @@ Settings.list.set('documentation', class Documentations extends SettingPage {
 		} catch(e) {
 
 			if(e.message.includes('ER_DUP_ENTRY')) {
-				e.message = 'Duplicate entry for chapter found.';
+				e.message = 'Duplicate entry for slug found.';
 			}
 
 			new SnackBar({
@@ -1958,8 +1994,8 @@ class Documentation {
 
 				<div class="body">
 					<span>Body</span>
-					<span>Preview</span>
-					<div class="preview"></div>
+					<span class="preview-label">Preview</span>
+					<div class="preview documentation"></div>
 				</div>
 			</form>
 		`;
@@ -1981,7 +2017,7 @@ class Documentation {
 
 		container.querySelector('.parent').appendChild(this.parentMultiSelect.container);
 
-		this.bodyEditior = new HTMLEditor();
+		this.bodyEditor = new HTMLEditor();
 
 		container.querySelector('.form').on('submit', e => {
 			this.update(e);
@@ -2015,18 +2051,41 @@ class Documentation {
 
 		if(!bodyEditior.querySelector('.html-editor')) {
 
-			bodyEditior.appendChild(this.bodyEditior.container);
+			bodyEditior.appendChild(this.bodyEditor.container);
 
-			await this.bodyEditior.setup();
+			await this.bodyEditor.setup();
 
-			this.bodyEditior.on('keyup', () => {
-				bodyEditior.querySelector('.preview').innerHTML = this.bodyEditior.value;
+			this.bodyEditor.container.querySelector('.editor-toggle').insertAdjacentHTML('beforeend', `
+				<button type="button" class="preview-enable">
+					<i class="far fa-eye"></i>
+					<span>Preview</span>
+				</button>
+				<button type="button" class="preview-disable hidden">
+					<i class="far fa-eye-slash"></i>
+					<span>Exit Preview</span>
+				</button>
+			`);
+
+			this.bodyEditor.on('keyup', () => {
+				bodyEditior.querySelector('.preview').innerHTML = this.bodyEditor.value;
+			});
+
+			this.bodyEditor.container.querySelector('.preview-enable').on('click', () => {
+				this.form.querySelector('.body').classList.add('preview-mode');
+				this.bodyEditor.container.querySelector('.preview-disable').classList.remove('hidden');
+				this.bodyEditor.container.querySelector('.preview-enable').classList.add('hidden');
+			});
+
+			this.bodyEditor.container.querySelector('.preview-disable').on('click', () => {
+				this.form.querySelector('.body').classList.remove('preview-mode');
+				this.bodyEditor.container.querySelector('.preview-enable').classList.remove('hidden');
+				this.bodyEditor.container.querySelector('.preview-disable').classList.add('hidden');
 			});
 		}
 
-		this.bodyEditior.value = this.body;
+		this.bodyEditor.value = this.body;
 
-		bodyEditior.querySelector('.preview').innerHTML = this.bodyEditior.value;
+		bodyEditior.querySelector('.preview').innerHTML = this.bodyEditor.value;
 	}
 
 	async update(e) {
@@ -2037,7 +2096,7 @@ class Documentation {
 			parameter = {
 				id: this.id,
 				parent: this.parentMultiSelect.value[0] || '',
-				body: this.bodyEditior.value || '',
+				body: this.bodyEditor.value || '',
 			},
 			options = {
 				method: 'POST',
@@ -2089,7 +2148,7 @@ class Documentation {
 
 			await API.call('documentation/delete', parameter, options);
 
-			await this.page.load();
+			await this.page.load(true);
 
 			new SnackBar({
 				message: `Documentation for ${this.heading} Deleted`,

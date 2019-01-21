@@ -169,20 +169,31 @@ main .documentation-page .generate-slug:hover {
 }
 main .documentation-page form .body {
 	display: grid;
-	grid-template-columns: 1fr 1fr;
+	grid-template-columns: 1fr;
 	grid-gap: calc(var(--gap) * 2);
 }
 	main .documentation-page form .body > span {
 		grid-row: 1;
 	}
+	main .documentation-page form .body .html-editor {
+		grid-column: 1;
+	}
+	main .documentation-page form .body .preview-label,
 	main .documentation-page form .body .preview {
+		display: none;
+	}
+main .documentation-page form .body.preview-mode {
+	grid-template-columns: 1fr 1fr;
+}
+	main .documentation-page form .body.preview-mode .preview-label {
+		display: initial;
+	}
+	main .documentation-page form .body.preview-mode .preview {
+		display: initial;
 		grid-row: 2;
 		grid-column: 2;
 		background: var(--color-background);
 		max-height: 400px;
 		overflow: auto;
 		padding: calc(var(--gap) * 2);
-	}
-	main .documentation-page form .body .html-editor {
-		grid-column: 1;
 	}

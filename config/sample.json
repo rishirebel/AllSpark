@@ -2,7 +2,7 @@
   "port": 8080,
   "http": false,
   "bigquery_files_destination": "bigquery_files/",
-  "secret_key": "<secret-key>",
+  "secret_key": "secret-key",
   "ga_id": "",
   "sql_db": {
     "read": {
@@ -31,7 +31,7 @@
   "setup": {
     "account": {
       "name": "Setup Account Name",
-      "url": "<analytics.foo-bar.com>",
+      "url": "analytics.foo-bar.com",
       "icon": "https://foo-bar.com/images/icon.png",
       "logo": "https://foo-bar.com/images/logo.png",
       "auth_api": "External Login api",
@@ -41,10 +41,10 @@
       "first_name": "First Name",
       "middle_name": "Middle Name",
       "last_name": "Last Name",
-      "email": "<foo@bar.com>",
-      "password": "<asd>",
+      "email": "foo@bar.com",
+      "password": "asd",
       "phone": "123456"
     }
   },
-  "superAdmin_users": ["<foo@bar.com>"]
+  "superAdmin_users": ["foo@bar.com"]
 }
