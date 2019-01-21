@@ -2495,7 +2495,7 @@ class MultiSelect {
 
 			if(!container.classList.contains('stretched')) {
 
-				for(const option of document.querySelectorAll('.multi-select .options')){
+				for(const option of document.querySelectorAll('.multi-select .options')) {
 
 					if(!option.parentElement.classList.contains('stretched')) {
 

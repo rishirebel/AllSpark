@@ -781,7 +781,7 @@ body {
 		}
 			.multi-select .options header .mode {
 				margin-left: auto;
-                grid-column: 3;
+				grid-column: 3;
 			}
 		.multi-select .options > .NA,
 		.multi-select .options .list > .NA {
