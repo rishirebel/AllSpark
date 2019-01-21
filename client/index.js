@@ -442,8 +442,10 @@ router.get('/user/settings/:id?', API.serve(class extends HTMLAPI {
 
 		this.stylesheets.push('/css/user/settings.css');
 		this.stylesheets.push('/css/settings-manager.css');
-		this.scripts.push('/js/user/settings.js');
-		this.scripts.push('/js/settings-manager.js');
+		this.scripts.push(
+			'/js/user/settings.js',
+			'/js/settings-manager.js',
+			'/js/reports.js');
 	}
 
 	async main() {
@@ -1023,7 +1025,7 @@ router.get('/users-manager/:id?', API.serve(class extends HTMLAPI {
 		super();
 
 		this.stylesheets.push('/css/users-manager.css');
-		this.scripts.push('/js/users-manager.js');
+		this.scripts.push('/js/users-manager.js', '/js/reports.js');
 	}
 
 	async main() {
@@ -1075,7 +1077,7 @@ router.get('/users-manager/:id?', API.serve(class extends HTMLAPI {
                     </label>
 
                     <label>
-                        <span></span>
+                        <span>&nbsp;</span>
                         <button type="submit">Apply</button>
                     </label>
                 </form>
@@ -1177,7 +1179,7 @@ router.get('/connections-manager/:id?/:type?', API.serve(class extends HTMLAPI {
 		super();
 
 		this.stylesheets.push('/css/connections-manager.css');
-		this.scripts.push('/js/connections-manager.js');
+		this.scripts.push('/js/connections-manager.js', '/js/reports.js');
 	}
 
 	async main() {

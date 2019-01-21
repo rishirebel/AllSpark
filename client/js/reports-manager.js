@@ -1736,8 +1736,8 @@ ReportsManger.stages.set('define-report', class DefineReport extends ReportsMang
 			dialogBox.body.classList.add('fork-report');
 
 			dialogBox.multiSelect = {
-				filters: new MultiSelect({multiple: true, expand: true}),
-				visualizations: new MultiSelect({multiple: true, expand: true}),
+				filters: new MultiSelect({multiple: true, mode: 'stretch'}),
+				visualizations: new MultiSelect({multiple: true, mode: 'stretch'}),
 			};
 		}
 
@@ -4591,11 +4591,7 @@ class Axis {
 
 		this.position = this.position || 'top';
 
-		container.multiSelectColumns = new MultiSelect({datalist, expand: true, multiple: this.position != 'bottom' && this.axes.checkMultiple});
-
-		const axisColumn = container.multiSelectColumns.container;
-
-		container.multiSelectColumns.value = this.columns ? this.columns.map(x => x.key) : [];
+		container.multiSelectColumns = new MultiSelect({datalist, mode: 'stretch', multiple: this.position != 'bottom' && this.axes.checkMultiple});
 
 		container.innerHTML = `
 
@@ -4648,25 +4644,33 @@ class Axis {
 			}
 
 			for(const axis of this.axes) {
+
 				for(const item of axis.container.multiSelectColumns.datalist) {
-					if(!freeColumns.some(c => c.value.includes(item.value)) && !usedColumns.includes(item.value))
-						freeColumns.push(item);
+
+					if(!freeColumns.some(c => c.value.includes(item.value)) && !usedColumns.includes(item.value)) {
+
+						freeColumns.push({
+							name: item.name,
+							value: item.value
+						});
+					}
 				}
 			}
 
 			for(const axis of this.axes) {
 
-				if(axis == this) {
-					continue;
-				}
-
-				const selected = axis.container.multiSelectColumns.value;
-
-				var newDataList = [];
+				const
+					selected = axis.container.multiSelectColumns.value,
+					newDataList = [];
 
 				for(const data of axis.container.multiSelectColumns.datalist) {
+
 					if(!usedColumns.includes(data.value) || selected.includes(data.value)) {
-						newDataList.push(data);
+
+						newDataList.push({
+							name: data.name,
+							value: data.value
+						});
 					}
 				}
 
@@ -4684,6 +4688,10 @@ class Axis {
 				axis.container.multiSelectColumns.render();
 			}
 		});
+
+		const axisColumn = container.multiSelectColumns.container;
+
+		container.multiSelectColumns.value = this.columns ? this.columns.map(x => x.key) : [];
 
 		const restColumns = container.querySelector('.restcolumns');
 
@@ -4820,10 +4828,10 @@ class LinearAxes extends Set {
 			position = this.container.querySelector('.add-axis select').value,
 			axis = new LinearAxis({position}, this);
 
+		this.add(axis);
+
 		// Open the newly added axis
 		axis.container.querySelector('legend').click();
-
-		this.add(axis);
 		this.render();
 	}
 }
@@ -4873,11 +4881,7 @@ class LinearAxis {
 
 		this.position = this.position || 'top';
 
-		container.multiSelectColumns = new MultiSelect({datalist: datalist, expand: true});
-
-		const axisColumn = container.multiSelectColumns.container;
-
-		container.multiSelectColumns.value = this.columns ? this.columns.map(x => x.key) : [];
+		container.multiSelectColumns = new MultiSelect({datalist: datalist, mode: 'stretch'});
 
 		container.innerHTML = `
 
@@ -5043,40 +5047,51 @@ class LinearAxis {
 			const freeColumns = [];
 
 			for(const axis of this.axes) {
+
 				usedColumns = usedColumns.concat(axis.container.multiSelectColumns.value);
 			}
 
 			for(const axis of this.axes) {
+
 				for(const item of axis.container.multiSelectColumns.datalist) {
+
 					if(!freeColumns.some(c => c.value.includes(item.value)) && !usedColumns.includes(item.value)) {
-						freeColumns.push(item);
+
+						freeColumns.push({
+							name: item.name,
+							value: item.value
+						});
 					}
 				}
 			}
 
 			for(const axis of this.axes) {
-
-				if(axis == this) {
-					continue;
-				}
 
 				const selected = axis.container.multiSelectColumns.value;
 
 				var newDataList = [];
 
 				for(const data of axis.container.multiSelectColumns.datalist) {
+
 					if(!usedColumns.includes(data.value) || selected.includes(data.value)) {
-						newDataList.push(data);
+
+						newDataList.push({
+							name: data.name,
+							value: data.value
+						});
 					}
 				}
 
 				for(const value of freeColumns) {
+
 					if(!newDataList.some(k => k.value.includes(value.value))) {
+
 						newDataList.push(value);
 					}
 				}
 
 				if(axis.container.multiSelectColumns.datalist.map(x => x.value).sort().join() == newDataList.map(x => x.value).sort().join()) {
+
 					continue;
 				}
 
@@ -5084,6 +5099,10 @@ class LinearAxis {
 				axis.container.multiSelectColumns.render();
 			}
 		});
+
+		const axisColumn = container.multiSelectColumns.container;
+
+		container.multiSelectColumns.value = this.columns ? this.columns.map(x => x.key) : [];
 
 		const restColumns = container.querySelector('.restcolumns');
 
@@ -6222,7 +6241,7 @@ ConfigureVisualization.types.set('bigtext', class BigTextOptions extends ReportV
 		for(const [key, column] of this.page.preview.report.columns)
 			datalist.push({name: column.name, value: key});
 
-		this.bigReportsColumns = new MultiSelect({datalist: datalist, expand: true, multiple: false});
+		this.bigReportsColumns = new MultiSelect({datalist: datalist, mode: 'stretch', multiple: false});
 
 		container.innerHTML = `
 			<div class="configuration-section">
@@ -7670,7 +7689,7 @@ ReportTransformation.types.set('restrict-columns', class ReportTransformationRes
 
 		super(...parameters);
 
-		this.multiSelect = new MultiSelect({multiple: true, expand: true});
+		this.multiSelect = new MultiSelect({multiple: true, mode: 'stretch'});
 	}
 
 	get key() {
@@ -7924,8 +7943,8 @@ ReportTransformation.types.set('linear-regression', class ReportTransformationRe
 
 		super(...parameters);
 
-		this.multiSelectX = new MultiSelect({multiple: false, expand: true});
-		this.multiSelectY = new MultiSelect({multiple: false, expand: true});
+		this.multiSelectX = new MultiSelect({multiple: false, mode: 'stretch'});
+		this.multiSelectY = new MultiSelect({multiple: false, mode: 'stretch'});
 
 		if (!this.options.columns) {
 
@@ -8024,7 +8043,19 @@ ReportTransformation.types.set('linear-regression', class ReportTransformationRe
 			}
 
 			const multiselectXValue = this.multiSelectX.value;
-			this.multiSelectY.datalist = this.multiSelectX.datalist.filter(x => x.value != multiselectXValue);
+
+			this.multiSelectY.datalist = this.multiSelectX.datalist.reduce((acc, obj) => {
+
+				if(obj.value != multiselectXValue) {
+
+					acc.push({
+						name:obj.name,
+						value: obj.value
+					});
+				}
+				return acc;
+
+			}, []);
 
 			this.multiSelectY.render();
 			this.multiSelectY.value = this.multiSelectY.value || this.options.columns.y;

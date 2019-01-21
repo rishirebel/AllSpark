@@ -736,6 +736,7 @@ body {
 .multi-select {
 	width: 100%;
 	position: relative;
+	display: grid;
 }
 	.multi-select > input {
 		width: 100%;
@@ -760,21 +761,28 @@ body {
 	.multi-select.bottom .options {
 		border-top: 0;
 	}
-	.multi-select.expanded .options {
+	.multi-select.stretched .options {
 		position: initial;
 		height: 220px;
 		box-shadow: none;
+	}
+	.multi-select.top.stretched .options {
+		position:absolute;
 	}
 		.multi-select .options header {
 			border-bottom: 1px dashed #999;
 			font-size: 85%;
 			padding: var(--gap);
 			display: grid;
-			grid-template-columns: auto auto;
+			grid-template-columns: auto auto 1fr;
 			grid-gap: calc(var(--gap) * 2);
 			justify-content: flex-start;
 			color: #999;
 		}
+			.multi-select .options header .mode {
+				margin-left: auto;
+				grid-column: 3;
+			}
 		.multi-select .options > .NA,
 		.multi-select .options .list > .NA {
 			padding: calc(var(--gap) * 2);
@@ -785,34 +793,44 @@ body {
 			max-height: 200px;
 			overflow: auto;
 		}
-			.multi-select .options .list label {
+			.multi-select .options .list label,
+			.multi-select-expanded > .list label {
 				display: grid;
 				grid-template-columns: auto 1fr;
+				grid-gap: var(--gap);
 				align-items: center;
 				padding: calc(var(--gap) * 2);
 				margin: 0;
 				max-width: inherit;
 				overflow: hidden;
 				white-space: initial;
+				box-shadow: 0 0 1px rgba(0, 0, 0, 0.1);
 				transition: background var(--transition-duration),
-				box-shadow var(--transition-duration);
+							box-shadow var(--transition-duration);
+				background: var(--color-surface);
+				color: var(--color-surface-text);
 			}
-			.multi-select .options .list label:hover {
+			.multi-select .options .list label:hover,
+			.multi-select-expanded > .list label:hover {
 				background: var(--color-hover);
 				color: var(--color-hover-text);
 				cursor: pointer;
 			}
-			.multi-select .options .list label:active {
+			.multi-select .options .list label:active,
+			.multi-select-expanded > .list label:active {
 				box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.3);
 			}
-			.multi-select .options .list label.selected {
+			.multi-select .options .list label.selected,
+			.multi-select-expanded > .list label.selected {
 				background: var(--color-selected);
 				color: var(--color-selected-text);
 			}
-				.multi-select .options .list label .option-name {
+				.multi-select .options .list label .option-name,
+				.multi-select-expanded > .list label .option-name {
 					display: grid;
 				}
-					.multi-select .options .list label .option-name .subtitle {
+					.multi-select .options .list label .option-name .subtitle,
+					.multi-select-expanded > .list label .option-name .subtitle {
 						color: var(--color-grey);
 						font-size: 90%;
 						margin-top: var(--gap);
@@ -832,6 +850,56 @@ body {
 			.multi-select footer > span strong {
 				margin-left: 3px;
 			}
+		.multi-select .modes-drop-down {
+			display: flex;
+			flex-direction:column;
+			position: absolute;
+			padding: var(--gap) 0;
+			font-size: 90%;
+			background: var(--color-background);
+			box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+			right: 0;
+			margin-right: var(--gap);
+		}
+			.multi-select .modes-drop-down span {
+				padding: 5px 10px;
+				cursor: pointer;
+			}
+			.multi-select .modes-drop-down span:hover {
+				background: var(--color-hover);
+			}
+.multi-select-expanded {
+    padding: calc(var(--gap) * 2);
+}
+    .multi-select-expanded header {
+        margin-bottom: calc(var(--gap) * 2);
+        display: grid;
+        grid-template-columns: auto auto 1fr;
+        grid-gap: calc(var(--gap) * 2);
+    }
+        .multi-select-expanded header .search-column-filters {
+            grid-column: 1 / 4;
+            grid-row: 2;
+        }
+        .multi-select-expanded header > .search-column-filter {
+            grid-column: 3;
+            margin-left: auto;
+        }
+		.multi-select-expanded header > .operation > i.fa-minus-square {
+			margin-right: 0;
+		}
+    .multi-select-expanded > .list {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-gap: calc(var(--gap) * 2);
+    }
+        .multi-select-expanded > .list label {
+            height: 55px;
+        }
+    .multi-select-expanded .no-matches {
+        padding: calc(var(--gap) * 2);
+        background: var(--color-surface);
+    }
 
 .object-roles {
 	min-height: 300px;
