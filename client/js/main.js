@@ -2324,7 +2324,7 @@ class DialogBox {
 			heading.innerHTML = dialogHeading;
 
 		else
-			throw Page.exception('Invalid heading format');
+			throw new Page.exception('Invalid heading format');
 	}
 
 	/**
@@ -3936,8 +3936,10 @@ class FormatSQL {
 class Documnetation {
 
 	constructor(slug) {
+		(async () => {
 
-		this.load(slug);
+			await this.load(slug);
+		})();
 	}
 
 	async load(slug) {
