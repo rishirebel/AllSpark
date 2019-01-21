@@ -3933,28 +3933,18 @@ class FormatSQL {
 	}
 }
 
-class Documnetation extends Map {
+class Documnetation {
 
 	constructor(slug) {
-
-		super();
 
 		this.load(slug);
 	}
 
 	async load(slug) {
 
-		if(this.has(slug)) {
-			return this.get(slug);
-		}
+		const response = await API.call('documentation/getDocumentation', {slug});
 
-		this.response = await API.call('documentation/getDocumentation', {slug});
-
-		this.set(slug, this.response);
-	}
-
-	process(response) {
-
+		Object.assign(this, response);
 	}
 
 	async open() {
@@ -3981,10 +3971,6 @@ class Documnetation extends Map {
 		return container;
 	}
 
-	set containerText(text) {
-
-	}
-
 	get infoContainer() {
 
 		if(this.infoContainerElement) {
@@ -3995,7 +3981,18 @@ class Documnetation extends Map {
 
 		container.innerHTML = `<i class="fa fa-question-circle"></i>`;
 
-		container.on('click', () => {})
+		container.on('click', e => {
+
+			e.stopPropagation();
+
+			if(!this.dialogBox) {
+				this.dialogBox = new DialogBox();
+				this.dialogBox.heading = this.heading;
+				this.dialogBox.body.innerHTML = this.body
+			}
+
+			this.dialogBox.show();
+		});
 
 		return container;
 	}

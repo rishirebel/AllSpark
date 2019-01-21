@@ -1267,6 +1267,9 @@ class Dashboard {
 
         dashboardName.querySelector('.toggle-dashboard-toolbar').on('click', () => Dashboard.toolbar.classList.toggle('hidden'));
 
+		const doc = new Documnetation('dashboard');
+		dashboardName.appendChild(doc.infoContainer);
+
 		this.page.render({dashboardId: this.id, renderNav: false, updateNav: true, reloadDashboard: false});
 
 		const main = document.querySelector('main');
