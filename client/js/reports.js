@@ -2571,7 +2571,7 @@ class DataSourceColumn {
 			list.push({name: report.name, value: report.query_id});
 		}
 
-		this.drilldownQuery = new MultiSelect({datalist: list, multiple: false, expand: true});
+		this.drilldownQuery = new MultiSelect({datalist: list, multiple: false, mode: 'stretch'});
 
 		this.form.querySelector('.drilldown-dropdown').appendChild(this.drilldownQuery.container);
 

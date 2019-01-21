@@ -44,7 +44,6 @@ exports.resetlink = class extends API {
 
 		user = user[0];
 		const user_id = user['user_id'];
-		const full_name = user['first_name'] + (user['last_name'] ? ' ' + user['last_name'] : '');
 
 		await this.mysql.query('update tb_password_reset set status = 0 where status = 1 and user_id = ?', [user_id], 'write');
 		const query = `INSERT INTO tb_password_reset(user_id, reset_token, status) values ?`;
@@ -73,19 +72,29 @@ exports.resetlink = class extends API {
 			<div style="height:300px;width: 750px;margin:0 auto;border: 1px solid #ccc;padding: 20px 40px; box-shadow: 0 0 25px rgba(0, 0, 0, 0.1);">
 
 				<div style="height:40px; background-image:url('${this.account.logo}'); display: flex; border-bottom:1px solid #999; background-repeat:no-repeat; margin-bottom: 25px; background-size:250px; background-position:left; font-size: 125%; padding: 10px 0;">
-					<div style="margin-left: auto; padding: 20px 0; font-size: 14px; color:#666;">JungleWorks</div>
+					<div style="margin-left: auto; padding: 20px 0; font-size: 14px; color:#666;">KATO</div>
 				</div>
 
 				<div>
 					<div style="font-size:14px;color:#666">
-						Hi ${full_name}, <br/><br/>
-						<span style="color: #666;"> Please click on the link below to reset your password.</span>
+						Dear ${user['first_name']},
+						<br/><br/>
 					</div>
-					<a href="https://${emailUrl}/login/reset?reset_token=${token}&email=${this.request.body.email}&account=${account.name}" style="font-size: 16px; text-decoration: none; padding: 20px;display:block;background: #eee;border: 1px solid #ccc;margin: 20px 0;text-align: center; " target="_blank">
-						https://${emailUrl}/login/reset?reset_token=${token}&email=${this.request.body.email}&account=${account.name}
-					</a>
 
-					<div style="font-size:14px;color:#666">Thank You.</div>
+					<div style="font-size:14px;">
+						<span style="color: #666;">
+							We understand you'd like to change your password. Just click on the link below to reset your password.
+						</span>
+					</div>
+					<a href="https://${emailUrl}/login/reset?reset_token=${token}&email=${this.request.body.email}&account=${account.name}" style="display: flex;font-size:14px; text-decoration: none; margin: 10px 0;" target="_blank">
+						Please click here.
+					</a>
+					<div style="display:flex; margin: 10px 0;color:#666; font-size:14px;">Please do not forget that your password is case sensitive.</div>
+					<div style="font-size:14px;display:flex; margin: 10px 0;color:#666;">If you did not ask for a password change, kindly ignore this email.</div>
+					<div style="font-size:14px;color:#666; padding: 15px 0;">
+						<div>Thank You,</div>
+						<div><a href="https://jungleworks.com/kato" style="text-decoration: none;" target="_blank">Kato</a> team.</div>
+					</div>
 				</div>
 
 			</div>

@@ -120,6 +120,9 @@ main .settings-manager.aside-hidden {
 				align-items: center;
 				padding: calc(var(--gap) * 2);
 			}
+main .feature-form .form label {
+	grid-template-rows: max-content max-content;
+}
 @media (max-width: 750px) {
 	main .settings-manager {
 		display: flex;

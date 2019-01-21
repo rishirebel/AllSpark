@@ -257,6 +257,8 @@ Page.class = class Dashboards extends Page {
 
 		this.listContainer.querySelector('h2').textContent = this.list.has(this.currentDashboard) ? this.list.get(this.currentDashboard).name : 'Dashboard';
 
+		this.searchBar.data = [];
+
 		const
 			thead = this.listContainer.querySelector('thead'),
 			tbody = this.listContainer.querySelector('tbody');

@@ -2438,15 +2438,24 @@ class MultiSelect {
 	 * @param  String	options.dropDownPosition	The position for the dropdown, can be 'top' or 'bottom'.
 	 * @return MultiSelect							The object reference for MultiSelect
 	 */
-	constructor({datalist = [], multiple = true, expand = false, dropDownPosition = 'bottom'} = {}) {
+	constructor({datalist = [], multiple = true, dropDownPosition = 'bottom', mode = 'collapse', name = ''} = {}) {
 
 		this.datalist = datalist;
 		this.multiple = multiple;
-		this.expand = expand;
 		this.dropDownPosition = ['top', 'bottom'].includes(dropDownPosition) ? dropDownPosition : 'bottom';
 
 		this.selectedValues = new Set();
 		this.inputName = 'multiselect-' + Math.floor(Math.random() * 10000);
+		this.name = name || '';
+
+		if(['collapse', 'stretch'].includes(mode)) {
+
+			this.mode = mode;
+		}
+		else {
+
+			throw new Page.exception('Invalid multiselect mode');
+		}
 
 		this.callbacks = new Set;
 	}
@@ -2471,10 +2480,10 @@ class MultiSelect {
 
 		const search = container.querySelector('input[type=search]');
 
-		if(this.expand) {
+		if(this.mode == 'stretch') {
 
 			container.appendChild(this.options);
-			container.classList.add('expanded');
+			container.classList.add('stretched');
 		}
 
 		container.classList.add(this.dropDownPosition);
@@ -2491,10 +2500,15 @@ class MultiSelect {
 				this.render();
 			}
 
-			if(!container.classList.contains('expanded')) {
+			if(!container.classList.contains('stretched')) {
 
-				for(const option of document.querySelectorAll('.multi-select .options'))
-					option.classList.add('hidden');
+				for(const option of document.querySelectorAll('.multi-select .options')) {
+
+					if(!option.parentElement.classList.contains('stretched')) {
+
+						option.classList.add('hidden');
+					}
+				}
 			}
 
 			this.options.classList.remove('hidden');
@@ -2503,25 +2517,129 @@ class MultiSelect {
 
 		search.on('dblclick', () => {
 
-			if(!this.expand && this.optionsContainer)
+			if(this.mode != 'stretch' && this.optionsContainer) {
+
 				this.options.classList.add('hidden');
+			}
 
 			search.value = '';
-			this.recalculate();
 		});
 
 		search.on('keyup', () => this.recalculate());
 
 		document.body.on('click', () => {
 
-			if(!this.expand && this.optionsContainer)
-				this.options.classList.add('hidden');
-
 			search.value = '';
-			this.recalculate();
+			this.setPlaceholderText();
+
+			if(!this.optionsContainer) {
+
+				return;
+			}
+
+			this.options.classList.toggle('hidden', this.mode != 'stretch');
+			this.options.querySelector('.modes-drop-down').classList.add('hidden');
 		});
 
 		return container;
+	}
+
+	dualMode() {
+
+		if(this.disabled) {
+
+			return;
+		}
+
+		this.mode = this.mode == 'stretch' ? 'collapse' : 'stretch';
+
+		this.options.querySelector('.dual').textContent = this.mode == 'stretch' ? 'Collapse' : 'Stretch';
+		this.options.querySelector('.mode').textContent = this.mode == 'stretch' ? 'Stretch' : 'Collapse';
+		this.container.classList.toggle('stretched', this.mode == 'stretch');
+		this.options.classList.toggle('hidden', this.mode == 'collapse');
+	}
+
+	expand() {
+
+		if(this.disabled || !this.datalist) {
+
+			return;
+		}
+
+		if(this.expandDialog) {
+
+			this.setDialogButtonInnerText();
+			return this.expandDialog.show();
+		}
+
+		this.expandDialog = new DialogBox();
+
+		this.expandDialog.heading = this.name;
+
+		const dialogBody = document.createElement('div');
+		dialogBody.classList.add('multi-select-expanded');
+
+		dialogBody.innerHTML = `
+			<header>
+				<button type="button" class="operation"></button>
+			</header>
+			<div class="list"></div>
+			<div class="no-matches NA hidden">No data found</div>
+		`;
+
+		const header = dialogBody.querySelector('header');
+
+		this.dialogSearch= new SearchColumnFilters({
+			data: this.datalist,
+			filters: [
+				{
+					key: 'Name',
+					rowValue: row => [row.name],
+				},
+				{
+					key: 'Value',
+					rowValue: row => [row.value],
+				},
+				{
+					key: 'Subtitle',
+					rowValue: row => row.subtitle ? [row.subtitle] : [],
+				},
+			],
+			advancedSearch: true
+		});
+
+		header.appendChild(this.dialogSearch.container);
+		header.appendChild(this.dialogSearch.globalSearch.container);
+
+		const operation = header.querySelector('.operation');
+
+		operation.on('click', () => {
+
+			if(!this.selectedValues.size && this.multiple) {
+
+				operation.innerHTML = '<i class="fas fa-check-square"></i> All';
+				this.all();
+			}
+			else {
+
+				operation.innerHTML = '<i class="far fa-square"></i> Clear';
+				this.clear();
+			}
+		});
+
+		this.loadList(dialogBody.querySelector('.list'));
+
+		this.expandDialog.body.appendChild(dialogBody);
+		this.setDialogButtonInnerText();
+
+		this.dialogSearch.on('change', () => {
+
+			this.loadList(dialogBody.querySelector('.list'), this.dialogSearch.filterData);
+			dialogBody.querySelector('.no-matches').classList.toggle('hidden', this.dialogSearch.filterData.length);
+		});
+
+		this.expandDialog.show();
+
 	}
 
 	/**
@@ -2552,7 +2670,6 @@ class MultiSelect {
 		}
 
 		this.recalculate();
-		this.fireCallback('change');
 	}
 
 	/**
@@ -2596,17 +2713,39 @@ class MultiSelect {
 
 		options.innerHTML = `
 			<header>
-				<a class="all">All</a>
-				<a class="clear">Clear</a>
-			</header>
-			<div class="list"></div>
-			<div class="no-matches NA hidden">No data found</div>
-			<footer class="hidden"></footer>
+					<a class="all">All</a>
+					<a class="clear">Clear</a>
+					<a class="mode">${this.mode == 'stretch' ? 'Stretch' : 'Collapse'}</a>
+				</header>
+				<div class="list"></div>
+				<div class="no-matches NA hidden">No data found</div>
+				<footer class="hidden"></footer>
+				<div class="modes-drop-down hidden">
+					<span class="dual">${this.mode == 'stretch' ? 'Collapse' : 'Stretch'}</span>
+					<span class="expand">Expand</span>
+				</div>
 		`;
 
 		options.on('click', e => e.stopPropagation());
+		options.querySelector('header').on('click', e => e.preventDefault());
+		options.querySelector('.modes-drop-down').on('click', e => e.preventDefault());
+
 		options.querySelector('header .all').on('click', () => this.all());
 		options.querySelector('header .clear').on('click', () => this.clear());
+
+		options.querySelector('header .mode').addEventListener('click', () => options.querySelector('.modes-drop-down').classList.toggle('hidden'));
+
+		options.querySelector('.modes-drop-down .dual').on('click', () => {
+
+			this.dualMode();
+			options.querySelector('.modes-drop-down').classList.add('hidden');
+		});
+
+		options.querySelector('.modes-drop-down .expand').on('click', () => {
+
+			this.expand();
+			options.querySelector('.modes-drop-down').classList.add('hidden');
+		});
 
 		return options;
 	}
@@ -2630,13 +2769,24 @@ class MultiSelect {
 
 		optionList.textContent = null;
 
-		if(!this.datalist || !this.datalist.length)
+		if(!this.datalist || !this.datalist.length) {
+
 			return this.recalculate();
+		}
 
 		if(this.datalist.length != (new Set(this.datalist.map(x => x.value))).size)
 			throw new Error('Invalid datalist format. Datalist values must be unique.');
 
-		for(const row of this.datalist) {
+		this.expandDialog = null;
+
+		this.loadList(this.options.querySelector('.list'));
+	}
+
+	loadList(list, data = this.datalist) {
+
+		list.textContent = null;
+
+		for(const row of data) {
 
 			const
 				label = document.createElement('label'),
@@ -2667,18 +2817,29 @@ class MultiSelect {
 			input.on('change', () => {
 
 				if(!this.multiple) {
+
 					this.selectedValues.clear();
 					this.selectedValues.add(input.value.toString());
 				}
 				else {
+
 					input.checked ? this.selectedValues.add(input.value.toString()) : this.selectedValues.delete(input.value.toString());
 				}
 
+				this.setDialogButtonInnerText();
+
 				this.recalculate();
-				this.fireCallback('change');
 			});
 
-			row.input = input;
+			if(this.expandDialog) {
+
+				row.dialogInput = input;
+			}
+			else {
+
+				row.input = input;
+			}
+
 			if(this.disabled)
 				input.disabled = true;
 
@@ -2690,10 +2851,24 @@ class MultiSelect {
 				label.click();
 			});
 
-			optionList.appendChild(label);
+			list.appendChild(label);
 		}
 
 		this.recalculate();
+	}
+
+	setPlaceholderText() {
+
+		const search = this.container.querySelector('input[type=search]');
+
+		if(!this.selectedValues.size) {
+
+			return search.placeholder = 'Search...';
+		}
+
+		const [first] =  this.datalist.filter(x => x.value == this.selectedValues.values().next().value);
+		search.placeholder = first ? this.selectedValues.size > 1 ? `${first.name} and ${this.selectedValues.size - 1} more` : first.name : 'Search...';
+
 	}
 
 	/**
@@ -2706,20 +2881,24 @@ class MultiSelect {
 
 		const search = this.container.querySelector('input[type=search]');
 
-		if(!this.datalist && !this.datalist.length)
+		if(!this.datalist || !this.datalist.length)
 			return;
 
 		if(!this.optionsContainer) {
 
-			const [first] =  this.datalist.filter(x => x.value == this.selectedValues.values().next().value);
-			search.placeholder = first ? this.selectedValues.size > 1 ? `${first.name} and ${this.selectedValues.size - 1} more` : first.name : 'Search...';
-
+			this.setPlaceholderText();
 			return;
 		}
 
-		for(const row of this.datalist) {
+		for(const row of this.datalist || []) {
 
 			row.input.checked = this.selectedValues.has(row.input.value);
+
+			if(this.expandDialog) {
+
+				row.dialogInput.checked = this.selectedValues.has(row.dialogInput.value);
+				row.dialogInput.parentElement.classList.toggle('selected', row.dialogInput.checked);
+			}
 
 			row.hide = false;
 
@@ -2760,6 +2939,8 @@ class MultiSelect {
 		`;
 
 		this.options.querySelector('.no-matches').classList.toggle('hidden', total != hidden);
+
+		this.fireCallback('change');
 	}
 
 	/**
@@ -2769,6 +2950,7 @@ class MultiSelect {
 	 * @param  Function	callback	The callback to call when the selected value in the multiselect changes.
 	 */
 	on(event, callback) {
+
 		this.callbacks.add({event, callback});
 	}
 
@@ -2797,7 +2979,6 @@ class MultiSelect {
 		}
 
 		this.recalculate();
-		this.fireCallback('change');
 	}
 
 	/**
@@ -2811,7 +2992,17 @@ class MultiSelect {
 		this.selectedValues.clear();
 
 		this.recalculate();
-		this.fireCallback('change');
+	}
+
+	setDialogButtonInnerText() {
+
+		if(!this.expandDialog) {
+
+			return;
+		}
+
+		this.expandDialog.container.querySelector('header .operation').innerHTML = this.multiple && this.selectedValues.size == this.datalist.length ?
+			'<i class="fas fa-check-square"></i> All' :  this.selectedValues.size ? '<i class="far fa-minus-square"></i>' : '<i class="far fa-square"></i> Clear';
 	}
 }
 

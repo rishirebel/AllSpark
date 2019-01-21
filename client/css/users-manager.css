@@ -52,6 +52,7 @@ main .user-search {
 	main .user-search label {
 		padding: var(--gap);
 		flex: 1;
+		grid-template-rows: max-content max-content;
 	}
 		main .user-search button {
 			cursor: pointer;

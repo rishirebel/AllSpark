@@ -159,6 +159,13 @@ main .cached-reports table {
 		height: 400px;
 	}
 
+main #global-filters-form .multi-select.top.stretched .options {
+	grid-row: 1;
+	border-top: 1px solid #ccc;
+	border-bottom: 0;
+	position: initial;
+}
+
 main .documentation-page .generate-slug {
 	margin-left: auto;
 	cursor: pointer;

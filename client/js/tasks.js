@@ -403,8 +403,8 @@ Task.types.set('google-analytics', class GoogleAnalyticsTask extends Task {
 
 	async loadMetadata() {
 
-		this.metricsMultiSelect = new MultiSelect({multiple: true, expand: true});
-		this.dimensionsMultiSelect = new MultiSelect({multiple: true, expand: true});
+		this.metricsMultiSelect = new MultiSelect({multiple: true, mode: 'stretch'});
+		this.dimensionsMultiSelect = new MultiSelect({multiple: true, mode: 'stretch'});
 
 		this.form.querySelector('.metrics').appendChild(this.metricsMultiSelect.container);
 		this.form.querySelector('.dimensions').appendChild(this.dimensionsMultiSelect.container);
