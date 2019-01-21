@@ -1155,7 +1155,7 @@ class AccountFeatures extends Map {
 
 		for(const [key, feature] of MetaData.features || []) {
 
-			if(account.features.includes(JSON.stringify(key))) {
+			if(account.selected_features.includes(JSON.stringify(key))) {
 				this.set(feature.slug, feature);
 			}
 		}
@@ -1352,7 +1352,7 @@ class MetaData {
 		user.settings = new Map(metadata.userSettings ? metadata.userSettings.map(us => [us.key, us.value]) : []);
 
 		const accountFeatures = new AccountFeatures();
-		account.selectedFeatures = accountFeatures.selected_features;
+		account.features = accountFeatures.selected_features;
 	}
 }
 
