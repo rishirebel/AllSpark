@@ -1327,8 +1327,13 @@ ReportsManger.stages.set('define-report', class DefineReport extends ReportsMang
 			this.container.querySelector('#schema-toggle').classList.remove('hidden');
 		}
 
+		let saveContainer = this.container.querySelector('#save-container > button');
+
 		if(!this.report.editable) {
-			this.container.querySelector('#save-container > button').disabled = true;
+			saveContainer.disabled = true;
+		}
+		else {
+			saveContainer.disabled = false;
 		}
 
 		if(!user.privileges.has('report.insert')) {
