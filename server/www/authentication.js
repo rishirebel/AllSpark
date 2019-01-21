@@ -73,19 +73,29 @@ exports.resetlink = class extends API {
 			<div style="height:300px;width: 750px;margin:0 auto;border: 1px solid #ccc;padding: 20px 40px; box-shadow: 0 0 25px rgba(0, 0, 0, 0.1);">
 
 				<div style="height:40px; background-image:url('${this.account.logo}'); display: flex; border-bottom:1px solid #999; background-repeat:no-repeat; margin-bottom: 25px; background-size:250px; background-position:left; font-size: 125%; padding: 10px 0;">
-					<div style="margin-left: auto; padding: 20px 0; font-size: 14px; color:#666;">JungleWorks</div>
+					<div style="margin-left: auto; padding: 20px 0; font-size: 14px; color:#666;">KATO</div>
 				</div>
 
 				<div>
 					<div style="font-size:14px;color:#666">
-						Hi ${full_name}, <br/><br/>
-						<span style="color: #666;"> Please click on the link below to reset your password.</span>
+						Dear ${full_name},
+						<br/><br/>
 					</div>
-					<a href="https://${emailUrl}/login/reset?reset_token=${token}&email=${this.request.body.email}&account=${account.name}" style="font-size: 16px; text-decoration: none; padding: 20px;display:block;background: #eee;border: 1px solid #ccc;margin: 20px 0;text-align: center; " target="_blank">
-						https://${emailUrl}/login/reset?reset_token=${token}&email=${this.request.body.email}&account=${account.name}
-					</a>
 
-					<div style="font-size:14px;color:#666">Thank You.</div>
+					<div style="font-size:14px;">
+						<span style="color: #666;">
+							We understand you'd like to change your password. Just click on the link below to reset your password.
+						</span>
+					</div>
+					<a href="https://${emailUrl}/login/reset?reset_token=${token}&email=${this.request.body.email}&account=${account.name}" style="display: flex;font-size: 16px; text-decoration: none; margin: 10px 0;" target="_blank">
+						Please click here.
+					</a>
+					<div style="display:flex; margin: 10px 0;">Please do not forget that your password is case sensitive.</div>
+					<div style="display:flex; margin: 10px 0;">If you did not ask for a password change, kindly ignore this email.</div>
+					<div style="font-size:14px;color:#666; padding: 15px 0;">
+						<div>Thank You,</div>
+						<div><a href="https://jungleworks.com/kato" style="text-decoration: none;">Kato</a> team.</div>
+					</div>
 				</div>
 
 			</div>
