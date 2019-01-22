@@ -1196,7 +1196,7 @@ router.get('/connections-manager/:id?/:type?', API.serve(class extends HTMLAPI {
 
 			<section class="section" id="list">
 
-				<h1>OAuth Connections</h1>
+				<h1 class="oauth-heading">OAuth Connections</h1>
 
 				<div class="oauth-connections">
 

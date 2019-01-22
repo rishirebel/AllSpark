@@ -11,6 +11,10 @@ class Connections extends Page {
 		this.container.querySelector('#add-oauth-connection').on('submit', e => OAuthConnection.insert(e));
 		OAuthConnection.validate();
 
+		this.container.querySelector('.oauth-heading').classList.toggle('hidden', !this.account.features.has('oauth'));
+
+		this.container.querySelector('.oauth-connections').classList.toggle('hidden', !this.account.features.has('oauth'));
+
 		(async () => {
 
 			await this.load();
