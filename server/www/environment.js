@@ -34,7 +34,10 @@ class About extends API {
 				time:  parseFloat(performance.now() - start).toFixed(2)
 			}
 		}
-		catch(e) {}
+		catch(e) {
+
+			mysqlResponse.message = e.message;
+		}
 
 		if(!config.has("allspark_python_base_api")) {
 
@@ -60,7 +63,7 @@ class About extends API {
 			}
 			catch(e) {
 
-				pythonResponse.message = 'Response not found.';
+				pythonResponse.message = e.message;
 			}
 		}
 
@@ -71,11 +74,12 @@ class About extends API {
 			await headlessChrome.setup();
 			await headlessChrome.browser.close();
 
-			chromeResponse = {
-				status: true
-			}
+			chromeResponse.status = true
 		}
-		catch(e) {}
+		catch(e) {
+
+			chromeResponse.message = e.message;
+		}
 
 		try {
 
@@ -88,7 +92,10 @@ class About extends API {
 
 			await redis.del(`key${this.environment.name}`);
 		}
-		catch(e) {}
+		catch(e) {
+
+			redisResponse.message = e.message;
+		}
 
 		return {
 			...this.environment,
