@@ -111,7 +111,7 @@ exports.get = class extends API {
 
 			try {
 				account.settings = JSON.parse(a.value);
-				account.features = (a.features || '').split(',').filter(a => parseInt(a));
+				account.features = (a.features || '').split(',').map(a => parseFloat(a));
 			}
 			catch (e) {
 			}

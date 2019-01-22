@@ -1638,6 +1638,8 @@ class download extends API {
 
 	async download() {
 
+		this.account.features.needs('export_xlsx');
+
 		let queryData = this.request.body.data;
 
 		this.assert(this.request.body.visualization);

@@ -7,7 +7,7 @@ exports.pdf = class DownloadPdf extends API {
 
 	async pdf() {
 
-		this.assert(!this.account.features.has('export_headless'), `You don't have enough privileges`);
+		this.account.features.needs('export_headless');
 
 		const chrome = new headlessChrome();
 
