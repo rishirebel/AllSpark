@@ -6865,6 +6865,7 @@ class ReportTransformations extends Set {
 				owner_id: this.visualization.visualization_id,
 				options: '{}',
 				type: type,
+				order: Math.max.apply(Math, this.visualization.options.transformations.map(o => o.order)) + 1,
 				title: '',
 			};
 
