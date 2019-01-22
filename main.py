@@ -1,4 +1,5 @@
 import config
+import json
 from server.utils.Application import *
 from server.www.xlsx import xlsx
 from server.www.oauth.googleAdwords import ga
@@ -17,7 +18,10 @@ for blueprint in BLUEPRINTS:
 
 @application.route('/')
 def hello_world():
-    return app.send_response('Hello world')
+    return app.send_response(json.dumps({
+        "message": "Hello world",
+        "port": config.PORT
+    }))
 
 
 @application.errorhandler(Exception)

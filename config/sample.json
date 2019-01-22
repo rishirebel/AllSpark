@@ -46,5 +46,6 @@
       "phone": "123456"
     }
   },
-  "superAdmin_users": ["foo@bar.com"]
+  "superAdmin_users": ["foo@bar.com"],
+  "allspark_python_base_api" : "http://foo.bar/"
 }
