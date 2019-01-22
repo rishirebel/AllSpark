@@ -1117,8 +1117,9 @@ class Account {
 
 	static async fetch() {
 
-		if(await Storage.has('account'))
+		if(await Storage.has('account')) {
 			return await Storage.get('account');
+		}
 
 		try {
 
@@ -1146,21 +1147,8 @@ class Account {
 		for(const setting of account.settings) {
 			this.settings.set(setting.key, setting.value);
 		}
-	}
-}
 
-class AccountFeatures extends Map {
-
-	constructor() {
-
-		super();
-
-		for(const [key, feature] of MetaData.features || []) {
-
-			if(account.selected_features.includes(JSON.stringify(key))) {
-				this.set(feature.slug, feature);
-			}
-		}
+		this.features = new Map(this.features.map(f => [f, f]));
 	}
 }
 
@@ -1349,9 +1337,19 @@ class MetaData {
 		MetaData.visualizations = new Map(metadata.visualizations ? metadata.visualizations.map(v => [v.slug, v]) : []);
 		MetaData.features = new Map(metadata.features ? metadata.features.map(f => [f.feature_id, f]) : []);
 		MetaData.globalFilters = new Map(metadata.globalFilters ? metadata.globalFilters.map(d => [d.id, d]) : []);
+
 		user.settings = new Map(metadata.userSettings ? metadata.userSettings.map(us => [us.key, us.value]) : []);
 
-		account.features = new AccountFeatures();
+		const features = new Map;
+
+		for(const [key, feature] of MetaData.features || []) {
+
+			if(account.features && (account.features.includes(key) || account.features.has(key))) {
+				features.set(feature.slug, feature);
+			}
+		}
+
+		account.features = features;
 	}
 }
 

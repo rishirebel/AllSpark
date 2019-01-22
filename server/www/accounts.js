@@ -102,7 +102,7 @@ exports.get = class extends API {
 
 		const account = {
 			settings: [],
-			selected_features: [],
+			features: [],
 		};
 
 		Object.assign(account, accountList[0]);
@@ -111,7 +111,7 @@ exports.get = class extends API {
 
 			try {
 				account.settings = JSON.parse(a.value);
-				account.selected_features = (a.features || '').split(',').filter(a => a);
+				account.features = (a.features || '').split(',').filter(a => parseInt(a));
 			}
 			catch (e) {
 			}
