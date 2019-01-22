@@ -1022,7 +1022,7 @@ main.preview-left #stages {
 				color: var(--color-grey);
 				font-size: 90%;
 			}
-			.visualization-form .configuration-section .body .NA {
+			.visualization-form .configuration-section .body .list .NA {
 				background: var(--color-surface);
 				color: var(--color-surface-text);
 				padding: calc(var(--gap) * 2);
