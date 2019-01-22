@@ -180,8 +180,9 @@ Settings.list.set('globalFilters', class GlobalFilters extends SettingPage {
 		for(const report of DataSource.list.values()) {
 
 			datalist.push({
-				name: `${report.name} <span class="NA">#${report.query_id}</span>`,
+				name: report.name,
 				value: report.query_id,
+				subtitle: `#${report.query_id}`
 			});
 		}
 

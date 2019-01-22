@@ -2555,7 +2555,7 @@ class MultiSelect {
 
 		if(Array.isArray(datalist)) {
 
-			this.datalistMap = new Map(datalist.map(x => [x.value, x]));
+			this.datalistMap = new Map(datalist.map(x => [x.value.toString(), x]));
 		}
 		else if (datalist instanceof Map) {
 
