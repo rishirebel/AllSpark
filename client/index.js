@@ -247,7 +247,12 @@ router.get('/login', API.serve(class extends HTMLAPI {
 			this.request.body.password = this.request.query.password;
 		}
 
-		if((Array.isArray(this.account.settings.get('external_parameters')) && this.request.query.external_parameters) || (this.request.query.email && this.request.query.password)) {
+		if((this.account.settings.get('external_parameters') && this.request.query.external_parameters) || (this.request.query.email && this.request.query.password)) {
+
+			if(!Array.isArray(this.account.settings.get('external_parameters'))) {
+
+				this.account.settings.set('external_parameters', []);
+			}
 
 			const external_parameters = {};
 
@@ -258,7 +263,7 @@ router.get('/login', API.serve(class extends HTMLAPI {
 					this.request.body['ext_' + key.name] = this.request.query[key.name] || key.value;
 				}
 
-				external_parameters[key.name] = this.request.query[key.name] || key.value;
+				external_parameters[key.name] = this.request.query[key.name] || !isNaN(parseFloat(this.request.query[key.name])) ? this.request.query[key.name] : key.value;
 			}
 
 			this.request.body.account_id = this.account.account_id;

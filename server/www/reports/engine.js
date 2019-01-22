@@ -124,20 +124,36 @@ class report extends API {
 		this.reportObj.category_id = [...new Set(reportDetails[2].map(x => x.category_id))];
 
 		let [preReportApi] = await this.mysql.query(
-			`select value from tb_settings where owner = 'account' and profile = 'pre_report_api' and owner_id = ?`,
+			`select 
+				value 
+			from 
+				tb_settings 
+			where 
+				owner = 'account' 
+				and profile = 'pre_report_api' 
+				and owner_id = ? 
+				and status = 1
+			`,
 			[this.account.account_id],
 		);
 
 		if (preReportApi && commonFun.isJson(preReportApi.value)) {
 
+			if(!Array.isArray(this.account.settings.get("external_parameters"))) {
+
+				this.account.settings.set("external_parameters", []);
+			}
+
 			for (const parameter of this.account.settings.get("external_parameters") || []) {
 
 				if ((constants.filterPrefix + parameter.name) in this.request.body) {
 
+					const filterParameter = this.request.body[constants.filterPrefix + parameter.name];
+
 					this.filters.push({
 						placeholder: parameter.name,
-						value: this.request.body[constants.filterPrefix + parameter.name] || parameter.value,
-						default_value: this.request.body[constants.filterPrefix + parameter.name] || parameter.value,
+						value: filterParameter || !isNaN(parseFloat(filterParameter)) ? filterParameter : parameter.value,
+						default_value: filterParameter || !isNaN(parseFloat(filterParameter)) ? filterParameter : parameter.value,
 					})
 				}
 			}
@@ -159,9 +175,11 @@ class report extends API {
 							}
 						],
 						queryString: this.account.settings.get("external_parameters").map(x => {
+
+							const filterParameter = this.request.body[constants.filterPrefix + x.name];
 							return {
 								name: x.name,
-								value: this.request.body[constants.filterPrefix + x.name] || x.value,
+								value: filterParameter || !isNaN(parseFloat(filterParameter)) ? filterParameter : x.value,
 							}
 						})
 					},

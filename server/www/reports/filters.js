@@ -14,7 +14,7 @@ class Filters extends API {
 
 		this.assert(query_id, 'Query id is required');
 		this.assert(name && placeholder, 'Name or placeholder is missing');
-		this.assert(query_id == dataset, 'Dataset and query id cannot be same.');
+		this.assert(query_id != dataset, 'Dataset and query id cannot be same.');
 
 		let values = {
 			name, query_id, placeholder, type, multiple, default_value, description, offset,
@@ -71,7 +71,7 @@ class Filters extends API {
 			compareJson = {};
 
 		this.assert(filterQuery, 'Invalid filter id');
-		this.assert(filterQuery.query_id == dataset, 'Dataset and query id cannot be same.');
+		this.assert(filterQuery.query_id != dataset, 'Dataset and query id cannot be same.');
 
 		if ((await auth.report(filterQuery.query_id, this.user)).error) {
 
@@ -178,9 +178,12 @@ class Filters extends API {
 					}
 				],
 				queryString: this.account.settings.get("external_parameters").map(x => {
+
+					const paramValue = this.request.body[constants.filterPrefix + x.name];
+
 					return {
 						name: x.name,
-						value: this.request.body[constants.filterPrefix + x.name] || x.value,
+						value: paramValue || !isNaN(paramValue) ? paramValue : x.value,
 					}
 				})
 			},
