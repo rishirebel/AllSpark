@@ -17,7 +17,7 @@ class Transformation extends API {
 
 	async update({id, owner, title, type, order, options = '{}'} = {}) {
 
-        this.assert(id, 'Id is required');
+		this.assert(id, 'Id is required');
 
 		const
 			values = {id, owner, title, type, order, options},

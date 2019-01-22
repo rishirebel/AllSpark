@@ -7113,6 +7113,10 @@ class ReportTransformation {
 
 	async delete(id) {
 
+		if(!confirm('Are you sure?!')) {
+			return;
+		}
+
 		const option = {
 				method: 'POST',
 			};
