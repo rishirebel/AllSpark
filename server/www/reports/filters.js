@@ -155,16 +155,23 @@ class Filters extends API {
 	async preReport() {
 
 		let [preReportApi] = await this.mysql.query(
-			`select value from tb_settings where owner = 'account' and profile = 'pre_report_api' and owner_id = ?`,
+			`select value from tb_settings where owner = 'account' and profile = 'pre_report_api' and owner_id = ? AND status = 1`,
 			[this.account.account_id],
 		);
 
-		if (!preReportApi || commonFun.isJson(preReportApi.value)) {
+		if (!preReportApi || !commonFun.isJson(preReportApi.value)) {
 
 			return [];
 		}
 
 		preReportApi = (JSON.parse(preReportApi.value)).value;
+
+		let externalParameters = [];
+
+		if(Array.isArray(this.account.settings.get("external_parameters"))) {
+
+			externalParameters = this.account.settings.get("external_parameters");
+		}
 
 		let preReportApiDetails = await requestPromise({
 
@@ -177,7 +184,7 @@ class Filters extends API {
 						value: 'application/x-www-form-urlencoded'
 					}
 				],
-				queryString: this.account.settings.get("external_parameters").map(x => {
+				queryString: externalParameters.map(x => {
 
 					const paramValue = this.request.body[constants.filterPrefix + x.name];
 

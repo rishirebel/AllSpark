@@ -139,12 +139,14 @@ class report extends API {
 
 		if (preReportApi && commonFun.isJson(preReportApi.value)) {
 
-			if(!Array.isArray(this.account.settings.get("external_parameters"))) {
+			let externalParameters = [];
 
-				this.account.settings.set("external_parameters", []);
+			if(Array.isArray(this.account.settings.get("external_parameters"))) {
+
+				externalParameters = this.account.settings.get("external_parameters");
 			}
 
-			for (const parameter of this.account.settings.get("external_parameters") || []) {
+			for (const parameter of externalParameters) {
 
 				if ((constants.filterPrefix + parameter.name) in this.request.body) {
 
@@ -174,7 +176,7 @@ class report extends API {
 								value: 'application/x-www-form-urlencoded'
 							}
 						],
-						queryString: this.account.settings.get("external_parameters").map(x => {
+						queryString: externalParameters.map(x => {
 
 							const filterParameter = this.request.body[constants.filterPrefix + x.name];
 							return {

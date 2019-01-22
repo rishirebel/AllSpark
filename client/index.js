@@ -247,16 +247,18 @@ router.get('/login', API.serve(class extends HTMLAPI {
 			this.request.body.password = this.request.query.password;
 		}
 
-		if((this.account.settings.get('external_parameters') && this.request.query.external_parameters) || (this.request.query.email && this.request.query.password)) {
+		if((this.account.settings.has('external_parameters') && this.request.query.external_parameters) || (this.request.query.email && this.request.query.password)) {
 
-			if(!Array.isArray(this.account.settings.get('external_parameters'))) {
+			let externalParameters = [];
 
-				this.account.settings.set('external_parameters', []);
+			if(Array.isArray(this.account.settings.get('external_parameters'))) {
+
+				externalParameters = this.account.settings.get('external_parameters');
 			}
 
 			const external_parameters = {};
 
-			for(const key of this.account.settings.get('external_parameters') || []) {
+			for(const key of externalParameters) {
 
 				if(key.name in this.request.query) {
 
