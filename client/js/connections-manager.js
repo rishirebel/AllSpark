@@ -11,10 +11,6 @@ class Connections extends Page {
 		this.container.querySelector('#add-oauth-connection').on('submit', e => OAuthConnection.insert(e));
 		OAuthConnection.validate();
 
-		this.container.querySelector('.oauth-heading').classList.toggle('hidden', !this.account.features.has('oauth'));
-
-		this.container.querySelector('.oauth-connections').classList.toggle('hidden', !this.account.features.has('oauth'));
-
 		(async () => {
 
 			await this.load();
@@ -100,6 +96,10 @@ class Connections extends Page {
 		for(const provider of response[1] || []) {
 			this.oAuthProviders.set(provider.provider_id, provider);
 		}
+
+		this.container.querySelector('.oauth-heading').classList.toggle('hidden', !this.oAuthProviders.size);
+
+		this.container.querySelector('.oauth-connections').classList.toggle('hidden', !this.oAuthProviders.size);
 
 		for(const connection of response[2] || []) {
 			this.oAuthConnections.set(connection.id, new OAuthConnection(connection, this));
