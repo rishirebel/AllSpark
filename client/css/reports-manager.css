@@ -562,6 +562,9 @@ main.preview-left #stages {
 				grid-template-columns: 1fr;
 				align-items: flex-start;
 			}
+				#stage-define-report #filters .edit-filter .form .dataset .multi-select .options {
+					z-index: 0;
+				}
 				#stage-define-report #filters .add-filter .form .dataset .multi-select.top.stretched,
 				#stage-define-report #filters .edit-filter .form .dataset .multi-select.top.stretched {
 					display: grid;
@@ -572,7 +575,6 @@ main.preview-left #stages {
 						border-top: 1px solid var(--color-border);
 						border-bottom: 0;
 						position: initial;
-						z-index: 0;
 					}
 				#stage-define-report #filters .form .toolbar {
 					margin: calc(var(--gap) * -2);
@@ -788,6 +790,9 @@ main.preview-left #stages {
 				font-weight: normal;
 				color: #999;
 			}
+		.visualization-form .axes .axis .axis-column .multi-select .options {
+			z-index: 0;
+		}
 		.visualization-form .axes .add-axis .form,
 		.visualization-form .layers .add-layer .form {
 			grid-template-columns: minmax(max-content, 200px) max-content;

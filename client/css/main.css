@@ -764,6 +764,7 @@ body {
 		position: initial;
 		height: 220px;
 		box-shadow: none;
+		z-index: 0;
 	}
 	.multi-select.top.stretched .options {
 		position:absolute;
