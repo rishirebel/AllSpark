@@ -2546,6 +2546,27 @@ class MultiSelect {
 		return container;
 	}
 
+	get datalist() {
+
+		return this.datalistMap ? [...this.datalistMap.values()] : [];
+	}
+
+	set datalist(datalist) {
+
+		if(Array.isArray(datalist)) {
+
+			this.datalistMap = new Map(datalist.map(x => [x.value, x]));
+		}
+		else if (datalist instanceof Map) {
+
+			this.datalistMap = datalist;
+		}
+		else {
+
+			throw new Error('Datalist must be an array or map' );
+		}
+	}
+
 	dualMode() {
 
 		if(this.disabled) {
@@ -2592,7 +2613,7 @@ class MultiSelect {
 		const header = dialogBody.querySelector('header');
 
 		this.dialogSearch= new SearchColumnFilters({
-			data: this.datalist,
+			data: [...this.datalistMap.values()],
 			filters: [
 				{
 					key: 'Name',
@@ -2636,7 +2657,9 @@ class MultiSelect {
 
 		this.dialogSearch.on('change', () => {
 
-			this.loadList(dialogBody.querySelector('.list'), this.dialogSearch.filterData);
+			const filterDataMap = new Map(this.dialogSearch.filterData.map(x => [x.value, x]));
+
+			this.loadList(dialogBody.querySelector('.list'), filterDataMap);
 			dialogBody.querySelector('.no-matches').classList.toggle('hidden', this.dialogSearch.filterData.length);
 		});
 
@@ -2777,24 +2800,16 @@ class MultiSelect {
 
 		optionList.textContent = null;
 
-		if(!this.datalist || !this.datalist.length) {
-
-			return this.recalculate();
-		}
-
-		if(this.datalist.length != (new Set(this.datalist.map(x => x.value))).size)
-			throw new Error('Invalid datalist format. Datalist values must be unique.');
-
 		this.expandDialog = null;
 
 		this.loadList(this.options.querySelector('.list'));
 	}
 
-	loadList(list, data = this.datalist) {
+	loadList(list, data = this.datalistMap) {
 
 		list.textContent = null;
 
-		for(const row of data) {
+		for(const row of data.values()) {
 
 			const
 				label = document.createElement('label'),
@@ -2874,7 +2889,7 @@ class MultiSelect {
 			return search.placeholder = 'Search...';
 		}
 
-		const [first] =  this.datalist.filter(x => x.value == this.selectedValues.values().next().value);
+		const first =  this.datalistMap.get(this.selectedValues.values().next().value);
 		search.placeholder = first ? this.selectedValues.size > 1 ? `${first.name} and ${this.selectedValues.size - 1} more` : first.name : 'Search...';
 
 	}
@@ -2884,7 +2899,7 @@ class MultiSelect {
 	 */
 	recalculate() {
 
-		if(!this.containerElement || !this.datalistMap) {
+		if(!this.containerElement) {
 
 			return;
 		}
@@ -2900,7 +2915,7 @@ class MultiSelect {
 			return;
 		}
 
-		for(const row of this.datalist || []) {
+		for(const row of this.datalistMap.values()) {
 
 			row.input.checked = this.selectedValues.has(row.input.value);
 
@@ -3013,21 +3028,6 @@ class MultiSelect {
 
 		this.expandDialog.container.querySelector('header .operation').innerHTML = this.multiple && this.selectedValues.size == this.datalist.length ?
 			'<i class="fas fa-check-square"></i> All' :  this.selectedValues.size ? '<i class="far fa-minus-square"></i>' : '<i class="far fa-square"></i> Clear';
-	}
-
-	get datalist() {
-
-		return this.datalistMap ? [...this.datalistMap.values()] : [];
-	}
-
-	set datalist(datalist) {
-
-		if(!Array.isArray(datalist)) {
-
-			throw new Error('Datalist must be an array');
-		}
-
-		this.datalistMap = new Map(datalist.map(x => [x.value, x]));
 	}
 }
 
