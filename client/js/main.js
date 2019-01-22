@@ -2584,7 +2584,7 @@ class MultiSelect {
 
 	expand() {
 
-		if(this.disabled || !this.datalist) {
+		if(this.disabled || !this.datalistMap) {
 
 			return;
 		}
@@ -2906,7 +2906,7 @@ class MultiSelect {
 
 		const search = this.container.querySelector('input[type=search]');
 
-		if(!this.datalist || !this.datalist.length)
+		if(!this.datalistMap || !this.datalistMap.size)
 			return;
 
 		if(!this.optionsContainer) {
@@ -3026,7 +3026,7 @@ class MultiSelect {
 			return;
 		}
 
-		this.expandDialog.container.querySelector('header .operation').innerHTML = this.multiple && this.selectedValues.size == this.datalist.length ?
+		this.expandDialog.container.querySelector('header .operation').innerHTML = this.multiple && this.selectedValues.size == this.datalistMap.size ?
 			'<i class="fas fa-check-square"></i> All' :  this.selectedValues.size ? '<i class="far fa-minus-square"></i>' : '<i class="far fa-square"></i> Clear';
 	}
 }
