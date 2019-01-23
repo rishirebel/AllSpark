@@ -10243,6 +10243,11 @@ Visualization.list.set('pie', class Pie extends Visualization {
 
 		const dataRow = this.source.originalResponse.data[0];
 
+		if(!dataRow) {
+
+			return this.source.error('No data found.');
+		}
+
 		if((this.options.nameColumn in dataRow) || (this.options.valueColumn in dataRow)) {
 
 			const [pivotPresent] = this.options.transformations.filter(x => x.type == 'pivot' && x.implied);
@@ -10267,6 +10272,11 @@ Visualization.list.set('pie', class Pie extends Visualization {
 	async render(options = {}) {
 
 		const originalResponse = this.source.originalResponse.data;
+
+		if(!originalResponse.length) {
+
+			return this.source.error('No data found.');
+		}
 
 		if(!(this.options.nameColumn in originalResponse[0]) && originalResponse.length > 1) {
 
