@@ -2906,13 +2906,9 @@ class MultiSelect {
 
 		const search = this.container.querySelector('input[type=search]');
 
-		if(!this.datalistMap || !this.datalistMap.size)
-			return;
-
 		if(!this.optionsContainer) {
 
-			this.setPlaceholderText();
-			return;
+			return this.setPlaceholderText();
 		}
 
 		for(const row of this.datalistMap.values()) {
