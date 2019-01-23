@@ -2524,7 +2524,7 @@ class MultiSelect {
 				this.options.classList.add('hidden');
 			}
 
-			search.value = '';
+			this.setPlaceholderText();
 		});
 
 		search.on('keyup', () => this.recalculate());
@@ -2687,7 +2687,7 @@ class MultiSelect {
 
 		for(const value of values) {
 
-			if(!this.datalistMap.has(value)) {
+			if(!value || !this.datalistMap.has(value.toString())) {
 
 				continue;
 			}
