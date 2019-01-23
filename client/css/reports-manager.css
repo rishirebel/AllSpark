@@ -24,6 +24,11 @@ main.preview-bottom {
 		justify-content: space-between;
 	}
 
+.notification-bar-container {
+	overflow: initial;
+	max-height: none;
+}
+
 #stage-switcher {
 	display: flex;
 	background: var(--color-surface);
@@ -727,6 +732,9 @@ main.preview-left #stages {
 		.visualization-form fieldset > .form {
 			padding: 0;
 		}
+		.visualization-form fieldset form > .save {
+			margin-top: calc(var(--gap) * 2);
+		}
 	.visualization-form .subform {
 		display: grid;
 		padding: calc(var(--gap) * 2);
@@ -862,12 +870,15 @@ main.preview-left #stages {
 				.visualization-form .transformations fieldset > .actions > div:active {
 					box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.25);
 				}
+			.visualization-form .transformations .title {
+				grid-template-columns: max-content;
+			}
 			.visualization-form .transformations .transformation {
 				display: grid;
 				grid-template-columns: max-content;
 				grid-gap: calc(var(--gap) * 2);
 				align-items: flex-start;
-				margin-top: var(--gap);
+				margin-top: calc(var(--gap) * 2);
 			}
 				.visualization-form .transformations .transformation > div {
 					display: grid;

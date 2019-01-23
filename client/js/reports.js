@@ -5124,7 +5124,7 @@ DataSourceTransformation.types.set('linear-regression', class DataSourceTransfor
 
 	async execute(response = []) {
 
-		if (!(this.options.columns.x || this.options.columns.y)) {
+		if (!(this.options.columns && (this.options.columns.x || this.options.columns.y))) {
 
 			return response;
 		}
@@ -5204,7 +5204,7 @@ DataSourceTransformation.types.set('linear-regression', class DataSourceTransfor
 			asc = response.length > 1 ? response[response.length - 1][this.options.columns.x] > response[response.length - 2][this.options.columns.x] : false
 		;
 
-		switch ((this.source.columns.get(this.options.columns.x).type || {name: 'string'}).name) {
+		switch (((this.source.columns.has(this.options.columns.x) && this.source.columns.get(this.options.columns.x).type) || {name: 'string'}).name) {
 
 			case 'date':
 			case 'string':

@@ -3312,7 +3312,7 @@ class VisualizationManager {
 
 			this.stage.visualizationLogs.clear();
 
-			this.stage.load();
+			await this.stage.load();
 
 			this.stage.page.stages.get('pick-visualization').switcher.querySelector('small').textContent = this.form.name.value;
 
@@ -6832,7 +6832,7 @@ class ReportTransformations extends Set {
 		this.container.querySelector('.list').innerHTML = '<div class="NA">Loading&hellip;</div>';
 	}
 
-	insert(e) {
+	async insert(e) {
 
 		e.preventDefault();
 
@@ -6840,7 +6840,48 @@ class ReportTransformations extends Set {
 
 		this.add(new (ReportTransformation.types.get(type))({type}, this));
 
-		this.preview();
+		const
+			option = {
+				method: 'POST',
+			},
+			parameters = {
+				owner: 'visualization',
+				owner_id: this.visualization.visualization_id,
+				options: '{}',
+				type: type,
+				order: 1,
+				title: '',
+			};
+
+			if(this.visualization.options.transformations && this.visualization.options.transformations.length) {
+				parameters.order = Math.max(...this.visualization.options.transformations.map(o => o.order)) + 1;
+			}
+
+		try {
+
+			await API.call('reports/transformations/insert', parameters, option);
+
+			await DataSource.load(true);
+
+			await this.stage.load();
+
+			this.stage.container.querySelector('.transformations .body').classList.remove('hidden');
+
+			new SnackBar({
+				message: 'Transformation Added',
+				icon: 'far fa-save',
+			});
+
+		} catch(e) {
+
+			new SnackBar({
+				message: 'Request Failed',
+				subtitle: e.message,
+				type: 'error',
+			});
+
+			throw e;
+		}
 	}
 }
 
@@ -6858,8 +6899,9 @@ class ReportTransformation {
 
 		this.name = new type().name;
 
-		if(!this.options)
+		if(!this.options) {
 			this.options = {};
+		}
 	}
 
 	get container() {
@@ -6880,58 +6922,31 @@ class ReportTransformation {
 			</div>
 			<legend class="interactive">${this.name}</legend>
 			<div class="ellipsis"><i class="fas fa-ellipsis-h"></i></div>
-			<div class="transformation ${this.key} hidden"></div>
+			<form class="update-transformation hidden">
+				<label class="title">
+					Title
+					<input type="text" class="transformation-title" value="${this.title || ''}">
+				</label>
+				<div class="transformation ${this.key}"></div>
+				<button type="submit" class="save"><i class="far fa-save"></i> Save </button>
+			</form>
 		`;
 
 		container.querySelector('legend').on('click', () => {
-			container.querySelector('.transformation').classList.toggle('hidden');
 			container.querySelector('.ellipsis').classList.toggle('hidden');
+			container.querySelector('form').classList.toggle('hidden');
 		});
 
 		container.querySelector('.ellipsis').on('click', () => {
-			container.querySelector('.transformation').classList.toggle('hidden');
 			container.querySelector('.ellipsis').classList.toggle('hidden');
+			container.querySelector('form').classList.toggle('hidden');
 		});
 
-		container.querySelector('.actions .move-up').on('click', () => {
+		container.querySelector('.actions .move-up').on('click', e => this.moveUp(e));
 
-			const
-				list = Array.from(this.transformations),
-				position = list.indexOf(this);
+		container.querySelector('.update-transformation').on('submit', e => this.update(e));
 
-			if(position == 0)
-				return;
-
-			list.splice(position, 1);
-			list.splice(position - 1, 0, this);
-
-			this.transformations.clear();
-
-			for(const transformation of list)
-				this.transformations.add(transformation);
-
-			this.transformations.preview();
-		});
-
-		container.querySelector('.actions .move-down').on('click', () => {
-
-			const
-				list = Array.from(this.transformations),
-				position = list.indexOf(this);
-
-			if(position == list.length - 1)
-				return;
-
-			list.splice(position, 1);
-			list.splice(position + 1, 0, this);
-
-			this.transformations.clear();
-
-			for(const transformation of list)
-				this.transformations.add(transformation);
-
-			this.transformations.preview();
-		});
+		container.querySelector('.actions .move-down').on('click', e => this.moveDown(e));
 
 		container.querySelector('.actions .preview').on('click', () => {
 
@@ -6942,12 +6957,178 @@ class ReportTransformation {
 			this.transformations.preview(position);
 		});
 
-		container.querySelector('.actions .remove').on('click', () => {
-			this.transformations.delete(this);
-			this.transformations.preview();
-		});
+		container.querySelector('.actions .remove').on('click', () => this.delete(this.id));
 
 		return container;
+	}
+
+	async moveUp(e) {
+
+		const
+			list = Array.from(this.transformations),
+			position = list.indexOf(this);
+
+		if(position == 0) {
+			return;
+		}
+
+		[list[position].order, list[position - 1].order] = [list[position - 1].order, list[position].order];
+
+		try {
+			await Promise.all([
+				list[position].update(e, true),
+				list[position - 1].update(e, true)
+			]);
+
+			await DataSource.load(true);
+
+			await this.stage.load();
+
+			this.stage.container.querySelector('.transformations .body').classList.remove('hidden');
+
+			new SnackBar({
+				message: `${this.name} Transformation Moved Up`,
+				icon: 'far fa-save',
+			});
+		}
+
+		catch(e) {
+
+			new SnackBar({
+				message: 'Request Failed',
+				subtitle: e.message,
+				type: 'error',
+			});
+
+			throw e;
+		}
+	}
+
+	async moveDown(e) {
+
+		const
+			list = Array.from(this.transformations),
+			position = list.indexOf(this);
+
+		if(position == list.length - 1) {
+			return;
+		}
+
+		[list[position].order, list[position + 1].order] = [list[position + 1].order, list[position].order];
+
+		try {
+
+			await Promise.all([
+				list[position].update(e, true),
+				list[position + 1].update(e, true),
+			]);
+
+			await DataSource.load(true);
+
+			await this.stage.load();
+
+			this.stage.container.querySelector('.transformations .body').classList.remove('hidden');
+
+			new SnackBar({
+				message: `${this.name} Transformation Moved Down`,
+				icon: 'far fa-save',
+			});
+		}
+
+		catch(e) {
+
+			new SnackBar({
+				message: 'Request Failed',
+				subtitle: e.message,
+				type: 'error',
+			});
+
+			throw e;
+		}
+	}
+
+	async update(e, move) {
+
+		if(e) {
+			e.preventDefault();
+		}
+
+		const
+			option = {
+				method: 'POST',
+			};
+
+		const json = this.json;
+
+		json.options = JSON.stringify(json.options);
+
+		try {
+
+			await API.call('reports/transformations/update', json, option);
+
+			if(move) {
+				return;
+			}
+
+			await DataSource.load(true);
+
+			await this.stage.load();
+
+			this.stage.container.querySelector('.transformations .body').classList.remove('hidden');
+
+			new SnackBar({
+				message: 'Transformation Updated',
+				icon: 'far fa-save',
+			});
+
+		} catch(e) {
+
+			new SnackBar({
+				message: 'Request Failed',
+				subtitle: e.message,
+				type: 'error',
+			});
+
+			throw e;
+		}
+	}
+
+	async delete(id) {
+
+		if(!confirm('Are you sure?!')) {
+			return;
+		}
+
+		const
+			option = {
+				method: 'POST',
+			};
+
+		try {
+
+			await API.call('reports/transformations/delete', {id}, option);
+
+			await DataSource.load(true);
+
+			await this.stage.load();
+
+			this.stage.container.querySelector('.transformations .body').classList.remove('hidden');
+
+			new SnackBar({
+				message: 'Transformation Deleted',
+				icon: 'far fa-save',
+			});
+
+		} catch(e) {
+
+			new SnackBar({
+				message: 'Request Failed',
+				subtitle: e.message,
+				type: 'error',
+			});
+
+			throw e;
+		}
 	}
 
 	get incoming() {
@@ -6981,6 +7162,10 @@ class ReportTransformation {
 
 		const response = {
 			type: this.key,
+			owner: 'visualization',
+			order: this.order,
+			id: this.id,
+			title: this.container.querySelector('.transformation-title').value
 		};
 
 		return response;
@@ -7101,8 +7286,9 @@ ReportTransformation.types.set('pivot', class ReportTransformationPivot extends 
 			});
 		}
 
-		if(!response.options.rows.length && !response.options.columns.length && !response.options.values.length)
-			return null;
+		if(!response.options.rows.length && !response.options.columns.length && !response.options.values.length) {
+			response.options = {};
+		}
 
 		return response;
 	}
@@ -7244,7 +7430,7 @@ ReportTransformation.types.set('filters', class ReportTransformationFilters exte
 		}
 
 		if(!response.options.filters.length) {
-			return null;
+			response.options = {};
 		}
 
 		return response;
@@ -7349,13 +7535,13 @@ ReportTransformation.types.set('autofill', class ReportTransformationAutofill ex
 		container.insertAdjacentHTML('beforeend', `
 
 			<label>
-				<span>Column</span>
-				<select name="column"></select>
+				<span>Column <span class="red">*</span></span>
+				<select name="column" required></select>
 			</label>
 
 			<label>
-				<span>Granularity</span>
-				<select name="granularity">
+				<span>Granularity <span class="red">*</span></span>
+				<select name="granularity" required>
 					<option value=""></option>
 					<option value="number">Number</option>
 					<option value="second">Second</option>
@@ -7572,7 +7758,7 @@ ReportTransformation.types.set('stream', class ReportTransformationStream extend
 		}
 
 		if(!response.options.columns.length) {
-			return null;
+			response.options = {};
 		}
 
 		return response;
@@ -7804,8 +7990,9 @@ ReportTransformation.types.set('sort', class ReportTransformationSort extends Re
 			});
 		}
 
-		if(!response.options.columns.length)
-			return null;
+		if(!response.options.columns.length) {
+			response.options = {};
+		}
 
 		return response;
 	}
@@ -8082,13 +8269,13 @@ ReportTransformation.types.set('custom-column', class ReportTransformationMultip
 		container.innerHTML = `
 
 			<label>
-				<span>Column Name</span>
-				<input type="text" name="column" value="${this.options.column || ''}">
+				<span>Column Name <span class="red">*</span></span>
+				<input type="text" name="column" required value="${this.options.column || ''}">
 			</label>
 
 			<label>
-				<span>Formula</span>
-				<textarea name="formula">${this.options.formula || ''}</textarea>
+				<span>Formula <span class="red">*</span></span>
+				<textarea name="formula" required>${this.options.formula || ''}</textarea>
 				<small class="error"></small>
 			</label>
 		`;
@@ -8164,8 +8351,8 @@ ReportTransformation.types.set('row-limit', class RowLimitTransformation extends
 		container.innerHTML = `
 			<div>
 				<label>
-					<span>Row Limit</span>
-					<input type="number" name="rowLimit">
+					<span>Row Limit <span class="red">*</span></span>
+					<input type="number" name="rowLimit" required>
 				</label>
 			</div>
 		`;
@@ -9061,8 +9248,8 @@ class RelatedVisualizations extends Set {
 
 			return new SnackBar({
 				message: 'Visualization Id cannot be empty',
-				type: 'warning'
-			})
+				type: 'warning',
+			});
 		}
 
 		const
