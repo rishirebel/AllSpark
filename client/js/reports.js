@@ -660,7 +660,15 @@ class DataSource {
 			const options = {};
 
 			if(e.altKey) {
+
 				options.cached = 0;
+
+				for(const filter of this.filters.values()) {
+
+					if(filter.dataset) {
+						Storage.delete('dataset.' + filter.dataset);
+					}
+				}
 			}
 
 			this.visualizations.selected.load(options);

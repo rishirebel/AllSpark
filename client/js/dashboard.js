@@ -1855,6 +1855,16 @@ class DashboardGlobalFilters extends DataSourceFilters {
 
 			Dashboard.filtersAppliedByUser = true;
 
+			for (const report of this.dashboard.visibleVisuliaztions) {
+
+				for (const filter of report.filters.values()) {
+
+					if(filter.dataset) {
+						Storage.delete('dataset.' + filter.dataset);
+					}
+				}
+			}
+
 			this.apply({cached: 0, userApplied: true});
 		});
 	}
