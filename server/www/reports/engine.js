@@ -153,7 +153,7 @@ class report extends API {
 
 			this.autodetectDatasets = JSON.parse(this.autodetectDatasets);
 		}
-		catch(e) {
+		catch (e) {
 
 			this.autodetectDatasets = [];
 		}
@@ -163,9 +163,17 @@ class report extends API {
 
 		const datasetsPromiseList = [];
 
-		for(const filter of this.filters) {
+		const filtersWithDatasets = this.filters.filter(x => x.dataset).map(x => x.placeholder);
 
-			if(this.autodetectDatasets.has(filter.placeholder)) {
+		filtersWithDatasets.forEach(x => {
+			if (!this.request.body.hasOwnProperty(constants.filterPrefix + x)) {
+				this.autodetectDatasets.add(x);
+			}
+		});
+
+		for (const filter of this.filters) {
+
+			if (this.autodetectDatasets.has(filter.placeholder)) {
 
 				datasetsPromiseList.push(this.executeDatasets(filter));
 			}
@@ -177,7 +185,7 @@ class report extends API {
 
 			let externalParameters = [];
 
-			if(Array.isArray(this.account.settings.get("external_parameters"))) {
+			if (Array.isArray(this.account.settings.get("external_parameters"))) {
 
 				externalParameters = this.account.settings.get("external_parameters");
 			}
@@ -416,7 +424,7 @@ class report extends API {
 				filter.offset = JSON.parse(filter.offset);
 			}
 			catch (e) {
-				console.error(e);
+
 				continue;
 			}
 
@@ -740,17 +748,38 @@ class report extends API {
 			body: {},
 			query: {},
 		};
+
+		let externalParameters = this.account.settings.get("external_parameters");
+
+		if (!(externalParameters && !Array.isArray(externalParameters))) {
+
+			for (const parameter of externalParameters) {
+
+				let requestParameterValue = this.request.body[constants.filterPrefix + parameter.name];
+
+				requestParameterValue = !requestParameterValue && (requestParameterValue !== false) && (requestParameterValue !== 0)
+					? parameter.value
+					: requestParameterValue
+				;
+
+				reportObj.request.query[constants.filterPrefix + parameter.name] = requestParameterValue;
+				reportObj.request.body[constants.filterPrefix + parameter.name] = requestParameterValue;
+			}
+		}
+
 		reportObj.request.body.query_id = filter.dataset;
+		reportObj.request.query.query_id = filter.dataset;
+
 
 		let response = await reportObj.report();
 
-		if(
+		if (
 			this.filterMapping.hasOwnProperty(filter.placeholder)
 			&& this.filterMapping[filter.placeholder].value
 			&& this.filterMapping[filter.placeholder].value.toString()
 		) {
 
-			if(!Array.isArray(this.filterMapping[filter.placeholder].value)) {
+			if (!Array.isArray(this.filterMapping[filter.placeholder].value)) {
 
 				this.filterMapping[filter.placeholder].value = [this.filterMapping[filter.placeholder].value];
 			}
@@ -764,7 +793,7 @@ class report extends API {
 
 		filter = this.filterMapping[filter.placeholder];
 
-		if(!this.filterMapping[filter.placeholder].multiple) {
+		if (!this.filterMapping[filter.placeholder].multiple) {
 
 			this.filterMapping[filter.placeholder].value = response.data.length ? response.data[0].value : '';
 			this.filterMapping[filter.placeholder].default_value = this.filterMapping[filter.placeholder].value;
