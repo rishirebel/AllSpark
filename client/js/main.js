@@ -1346,7 +1346,7 @@ class MetaData {
 
 		for(const [key, feature] of MetaData.features || []) {
 
-			if(account.features.size && (account.features.has(feature.slug) || account.features.has(key))) {
+			if(account.features && account.features.size && (account.features.has(feature.slug) || account.features.has(key))) {
 				features.set(feature.slug, feature);
 			}
 		}
