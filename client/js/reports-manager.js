@@ -6944,7 +6944,7 @@ class ReportTransformation {
 					<input type="text" class="transformation-title" value="${this.title || ''}">
 				</label>
 				<div class="transformation ${this.key}"></div>
-				<button type="submit" class="save"><i class="far fa-save"></i>Save</button>
+				<button type="submit" class="save"><i class="far fa-save"></i> Save </button>
 			</form>
 		`;
 
@@ -7115,7 +7115,8 @@ class ReportTransformation {
 			return;
 		}
 
-		const option = {
+		const
+			option = {
 				method: 'POST',
 			};
 
