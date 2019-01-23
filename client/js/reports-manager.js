@@ -6865,14 +6865,12 @@ class ReportTransformations extends Set {
 				owner_id: this.visualization.visualization_id,
 				options: '{}',
 				type: type,
+				order: 1,
 				title: '',
 			};
 
 			if(this.visualization.options.transformations && this.visualization.options.transformations.length) {
-				parameters.order = Math.max.apply(Math, this.visualization.options.transformations.map(o => o.order)) + 1;
-			}
-			else {
-				parameters.order = 1;
+				parameters.order = Math.max(...this.visualization.options.transformations.map(o => o.order)) + 1;
 			}
 
 		try {
@@ -6990,10 +6988,7 @@ class ReportTransformation {
 			return;
 		}
 
-		const order = list[position].order;
-
-		list[position].order = list[position - 1].order;
-		list[position - 1].order = order;
+		[list[position].order, list[position - 1].order] = [list[position - 1].order, list[position].order];
 
 		try {
 			await Promise.all([
@@ -7035,10 +7030,7 @@ class ReportTransformation {
 			return;
 		}
 
-		const order = list[position].order;
-
-		list[position].order = list[position + 1].order;
-		list[position + 1].order = order;
+		[list[position].order, list[position + 1].order] = [list[position + 1].order, list[position].order];
 
 		try {
 

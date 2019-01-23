@@ -11034,7 +11034,7 @@ Visualization.list.set('livenumber', class LiveNumber extends Visualization {
 	async load(options = {}) {
 
 		super.render(options);
-
+		debugger
 		this.source.columns.render();
 
 		this.container.querySelector('.container').innerHTML = `
