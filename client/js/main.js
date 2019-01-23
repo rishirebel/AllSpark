@@ -1148,7 +1148,9 @@ class Account {
 			this.settings.set(setting.key, setting.value);
 		}
 
-		this.features = new Map(this.features.map(f => [f, f]));
+		if(this.features && (this.features.length || this.features.size)) {
+			this.features = new Map(this.features.map(f => [f, f]));
+		}
 	}
 }
 
