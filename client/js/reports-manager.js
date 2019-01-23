@@ -3273,7 +3273,7 @@ class VisualizationManager {
 			container.querySelector('.configuration-section h3 .count a').on('click', e => e.stopPropagation());
 		}
 
-		this.form.on('submit', e => this.update(e));
+		this.form.on('submit', this.saveListener = e => this.update(e));
 
 		return container;
 	}
@@ -3334,7 +3334,7 @@ class VisualizationManager {
 
 			await this.stage.load();
 
-			this.stage.page.stages.get('pick-visualization').switcher.querySelector('small').textContent = this.form.name.value;
+			// this.stage.page.stages.get('pick-visualization').switcher.querySelector('small').textContent = this.form.name.value;
 
 			const type = MetaData.visualizations.get(this.type);
 
@@ -3343,7 +3343,6 @@ class VisualizationManager {
 				subtitle: `${this.name} #${this.visualization_id}`,
 				icon: 'far fa-save',
 			});
-
 		} catch(e) {
 
 			new SnackBar({

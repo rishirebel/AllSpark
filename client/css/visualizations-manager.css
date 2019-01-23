@@ -24,6 +24,9 @@ main {
 	main > #list td .search-text:hover {
 		text-decoration: underline;
 	}
+	main section#insert-visualization #add-visualization-form {
+		box-shadow: none;
+	}
 	main section.configuration.show {
 		display: grid;
 		grid-template-columns: 3fr 4fr;
@@ -31,9 +34,12 @@ main {
 		height: calc(100%);
 		grid-template-rows: max-content max-content 1fr;
 	}
+	main section.configuration.show.compact {
+		grid-template-columns: 1fr 1fr 1fr;
+	}
 		main section.configuration > .toolbar,
 		main section.configuration > h1 {
-			grid-column: 1 / 3;
+			grid-column: 1 / 4;
 		}
 		main section.configuration > .toolbar {
 			padding: 0;
@@ -47,4 +53,5 @@ main {
 		main section.configuration > .tabs {
 			grid-column: unset;
 			grid-row: unset;
+			overflow: auto;
 		}

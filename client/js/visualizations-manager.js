@@ -385,7 +385,10 @@ class VisualizationsManager extends Map {
 			await this.load();
 
 			window.history.pushState({}, '', '/visualizations-manager/configure/' + response.insertId);
+
 			this.get(response.insertId).configure();
+
+			this.insertVisualizationReport.clear();
 
 			new SnackBar({
 				message: `${visualization.name} Visualization Added`,
@@ -417,14 +420,17 @@ class VisualizationsManagerRow {
 
 		// Temporary maps until classes are moved permanently
 		{
-			visualizations.report = visualization.report;
+			this.visualizations.report = this.report;
+			this.report.query_id = this.report.id;
 			this.visualizations.visualization = this;
 			this.visualizations.dashboards = this.dashboards;
+			this.visualizations.visualizationLogs = this.logs;
 			this.visualization_id = this.id;
 		}
 
 		this.manager = new VisualizationManager(this, visualizations);
 		this.dashboards = new ReportVisualizationDashboards(visualizations);
+		this.logs = new ReportLogs(this, this, {class: VisualizationLog, name: 'visualization'});
 	}
 
 	get row() {
@@ -554,8 +560,9 @@ class VisualizationsManagerRow {
 			<h1>Configure ${this.name} <span class="NA">#${this.id}</span></h1>
 			<div class="toolbar">
 				<button type="button" class="back"><i class="fa fa-arrow-left"></i> Back</button>
-				<button type="submit" class="save"><i class="far fa-save"></i> Save</button>
+				<button type="submit" class="save" form="configure-visualization-form"><i class="far fa-save"></i> Save</button>
 				<button type="button" class="preview"><i class="fa fa-eye"></i> Preview</button>
+				<button type="button" class="history-toggle"><i class="fa fa-history"></i> History</button>
 			</div>
 		`;
 
@@ -571,10 +578,35 @@ class VisualizationsManagerRow {
 		});
 
 		container.querySelector('.preview').on('click', () => this.manager.preview());
-		container.querySelector('.save').on('click', () => this.update());
+
+		this.manager.container.querySelector('#configure-visualization-form').removeEventListener('submit', this.manager.saveListener);
+
+		container.querySelector('.save').on('click', e => {
+
+			e.preventDefault();
+			this.update();
+		});
+
+		const historyToggle = container.querySelector('.history-toggle');
+
+		historyToggle.on('click', () => {
+
+			historyToggle.classList.toggle('selected');
+
+			this.logs.toggle(historyToggle.classList.contains('selected'));
+
+			container.classList.toggle('compact', historyToggle.classList.contains('selected'));
+
+			if(historyToggle.classList.contains('selected') && !this.logs.size) {
+				this.logs.load();
+			}
+		});
 
 		container.appendChild(this.manager.container);
 		container.querySelector('.visualization-form').insertBefore(this.dashboards.container, container.querySelector('.visualization-form .filters'));
+
+		this.logs.container.classList.add('hidden');
+		container.appendChild(this.logs.container);
 
 		this.loadShare();
 
@@ -583,11 +615,23 @@ class VisualizationsManagerRow {
 
 	async configure() {
 
+		// Temporary maps until classes are moved permanently
+		{
+			this.visualizations.report = this.report;
+			this.report.query_id = this.report.id;
+			this.visualizations.visualization = this;
+			this.visualizations.dashboards = this.dashboards;
+			this.visualizations.visualizationLogs = this.logs;
+			this.visualization_id = this.id;
+		}
+
 		this.visualizations.container.parentElement.appendChild(this.configuration);
 
 		this.configuration.appendChild(this.page.preview.container);
 
 		Sections.show('configuration-' + this.id);
+
+		this.manager.container.style.visibility = 'hidden';
 
 		if(!this.page.preview.report || this.page.preview.report.visualizations.selected.visualization_id != this.id) {
 
@@ -600,6 +644,8 @@ class VisualizationsManagerRow {
 				position: 'right',
 			});
 		}
+
+		this.manager.container.style.visibility = null;
 
 		this.dashboards.load();
 		this.manager.load();
