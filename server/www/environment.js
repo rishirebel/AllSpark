@@ -10,101 +10,92 @@ class About extends API {
 
 	async about() {
 
-		let
-			mysqlResponse = {
-				status: false,
-				time: 0
-			},
-			pythonResponse = {
-				status: false,
-				port: null
-			},
-			chromeResponse = {status: false},
-			redisResponse = {status: false}
-		;
+		let response = {
+			...this.environment,
+			services: {}
+		};
 
-		try {
+		const functionMap = {
+			mysql: "testMysql",
+			python: "testPython",
+			chrome: "testHeadlessChrome",
+			redis: "testRedis"
+		};
+
+		for(const key in functionMap) {
 
 			const start = performance.now();
 
-			await this.mysql.query('SELECT 1');
-
-			mysqlResponse = {
-				status:true,
-				time:  parseFloat(performance.now() - start).toFixed(2)
-			}
-		}
-		catch(e) {
-
-			mysqlResponse.message = e.message;
-		}
-
-		if(!config.has("allspark_python_base_api")) {
-
-			pythonResponse.message = 'Python base api not set in config.';
-		}
-		else {
-
 			try {
+				const funResponse = await this[functionMap[key]]();
 
-				let response = await fetch(config.get('allspark_python_base_api'));
-
-				response = await response.json();
-
-				if(commonFun.isJson(response.response)) {
-
-					response.response = JSON.parse(response.response)
-				}
-
-				pythonResponse = {
+				response.services[key] = {
 					status: true,
-					port: response.response.port
+					time: parseFloat(performance.now() - start).toFixed(2).concat('ms'),
+					message: '',
+					...funResponse
 				}
 			}
 			catch(e) {
 
-				pythonResponse.message = e.message;
+				response.services[key] = {
+					status: false,
+					time: parseFloat(performance.now() - start).toFixed(2).concat('ms'),
+					message: e.message
+				}
 			}
 		}
 
-		try {
+		return response;
+	}
 
-			const headlessChrome = new HeadlessChrome();
+	async testMysql() {
 
-			await headlessChrome.setup();
-			await headlessChrome.browser.close();
+		await this.mysql.query('SELECT 1');
+		return {
+			port: 3306
+		};
+	}
 
-			chromeResponse.status = true
-		}
-		catch(e) {
+	async testPython() {
 
-			chromeResponse.message = e.message;
-		}
+		let response = await fetch(config.get('allspark_python_base_api'));
 
-		try {
+		response = await response.json();
 
-			await redis.set(`key${this.environment.name}`, 1);
+		if(commonFun.isJson(response.response)) {
 
-			if(await redis.get(`key${this.environment.name}`) == 1) {
-
-				redisResponse.status = true;
-			}
-
-			await redis.del(`key${this.environment.name}`);
-		}
-		catch(e) {
-
-			redisResponse.message = e.message;
+			response.response = JSON.parse(response.response)
 		}
 
 		return {
-			...this.environment,
-			services: {
-				mysql: mysqlResponse,
-				python: pythonResponse,
-				chrome: chromeResponse,
-				redis: redisResponse
-			}
+			port: response.response.port
+		}
+	}
+
+	async testHeadlessChrome() {
+
+		const headlessChrome = new HeadlessChrome();
+
+		await headlessChrome.setup();
+		await headlessChrome.browser.close();
+
+		return {};
+	}
+
+	async testRedis() {
+
+		await redis.set(`key${this.environment.name}`, 1);
+
+		if(await redis.get(`key${this.environment.name}`) != 1) {
+
+			throw new API.Exception(500, 'Error in setting redis key.');
+		}
+
+		await redis.del(`key${this.environment.name}`);
+
+		return {
+			port: redis.options().port
 		};
 	}
 }
