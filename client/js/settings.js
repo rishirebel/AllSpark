@@ -1060,7 +1060,7 @@ Settings.list.set('about', class About extends SettingPage {
 			tr.innerHTML = `
 				<td>${key}</td>
 				<td class="${this.environment.services[key].status ? 'green' : 'red'}">${this.environment.services[key].status}</td>
-				<td>${this.environment.services[key].time}</td>
+				<td>${this.environment.services[key].time || ''}</td>
 				<td>${this.environment.services[key].port || ''}</td>
 				<td>${this.environment.services[key].message}</td>
 			`;
