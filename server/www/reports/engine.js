@@ -163,13 +163,16 @@ class report extends API {
 
 		const datasetsPromiseList = [];
 
-		const filtersWithDatasets = this.filters.filter(x => x.dataset).map(x => x.placeholder);
+		if(!this.derivedQuery) {
 
-		filtersWithDatasets.forEach(x => {
-			if (!this.request.body.hasOwnProperty(constants.filterPrefix + x)) {
-				this.autodetectDatasets.add(x);
-			}
-		});
+			const filtersWithDatasets = this.filters.filter(x => x.dataset).map(x => x.placeholder);
+
+			filtersWithDatasets.forEach(x => {
+				if (!this.request.body.hasOwnProperty(constants.filterPrefix + x)) {
+					this.autodetectDatasets.add(x);
+				}
+			});
+		}
 
 		for (const filter of this.filters) {
 
@@ -748,6 +751,8 @@ class report extends API {
 			body: {},
 			query: {},
 		};
+
+		reportObj.derivedQuery = true;
 
 		let externalParameters = this.account.settings.get("external_parameters");
 
