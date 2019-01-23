@@ -1037,9 +1037,9 @@ Settings.list.set('about', class About extends SettingPage {
 		container.classList.add('environment-about');
 
 		container.innerHTML = `
-			<h2>Module Status</h2>
+			<h2>Services</h2>
 			
-			<table>
+			<table class="block">
 				<thead>
 					<th>Services</th>
 					<th>Running</th>
@@ -1059,7 +1059,7 @@ Settings.list.set('about', class About extends SettingPage {
 
 			tr.innerHTML = `
 				<td>${key}</td>
-				<td>${this.environment.services[key].status}</td>
+				<td class="${this.environment.services[key].status ? 'green' : 'red'}">${this.environment.services[key].status}</td>
 				<td>${this.environment.services[key].time}</td>
 				<td>${this.environment.services[key].port || ''}</td>
 				<td>${this.environment.services[key].message}</td>
@@ -1067,6 +1067,8 @@ Settings.list.set('about', class About extends SettingPage {
 
 			tbody.appendChild(tr);
 		}
+
+		(new SortTable({table: container.querySelector('table')})).sort();
 
 		return container;
 	}

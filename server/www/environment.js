@@ -52,7 +52,9 @@ class About extends API {
 	async testMysql() {
 
 		await this.mysql.query('SELECT 1');
-		return {};
+		return {
+			port: 3306
+		};
 	}
 
 	async testPython() {
@@ -92,7 +94,9 @@ class About extends API {
 
 		await redis.del(`key${this.environment.name}`);
 
-		return {};
+		return {
+			port: redis.options().port
+		};
 	}
 }
 
