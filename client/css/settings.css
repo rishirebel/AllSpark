@@ -103,7 +103,7 @@ main .about-list {
 }
 	main .about-list .info {
 		display: grid;
-		grid-template-columns: max-content max-content;
+		grid-template-columns: max-content 1fr;
 		grid-gap: calc(var(--gap) * 3);
 		background: var(--color-surface);
 		color: var(--color-surface-text);
@@ -125,6 +125,10 @@ main .about-list {
 		width: max-content;
 		background: var(--color-secondary);
 		color: var(--color-secondary-text);
+	}
+	main .about-list .environment-about h2 {
+		border-bottom: 1px solid var(--color-border);
+		font-size: 120%;
 	}
 main .executing-reports {
 }
