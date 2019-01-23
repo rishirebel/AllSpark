@@ -251,10 +251,11 @@ Page.class = class Login extends Page {
 
 				const external_parameters = await Storage.get('external_parameters');
 
-				for(const key of this.account.settings.get('external_parameters')) {
+				for(const parameter of this.account.settings.get('external_parameters')) {
 
-					if(key in external_parameters) {
-						parameters['ext_' + key] = external_parameters[key];
+					if(parameter.name in external_parameters) {
+
+						parameters['ext_' + parameter.name] = external_parameters[parameter.name] || !isNaN(parseFloat(external_parameters[parameter.name])) ? external_parameters[parameter.name] : parameter.value;
 					}
 				}
 			}
@@ -279,7 +280,7 @@ Page.class = class Login extends Page {
 				for(const key in response.external_parameters) {
 
 					// Only save the value from login response if it's key was given in account settings
-					if(settingsList.includes(key)) {
+					if(settingsList.filter(x => x.name == key).length) {
 						storageList[key] = response.external_parameters[key];
 					}
 				}

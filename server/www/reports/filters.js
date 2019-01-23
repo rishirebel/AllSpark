@@ -14,6 +14,7 @@ class Filters extends API {
 
 		this.assert(query_id, 'Query id is required');
 		this.assert(name && placeholder, 'Name or placeholder is missing');
+		this.assert(query_id != dataset, 'Dataset and query id cannot be same.');
 
 		let values = {
 			name, query_id, placeholder, type, multiple, default_value, description, offset,
@@ -70,6 +71,7 @@ class Filters extends API {
 			compareJson = {};
 
 		this.assert(filterQuery, 'Invalid filter id');
+		this.assert(filterQuery.query_id != dataset, 'Dataset and query id cannot be same.');
 
 		if ((await auth.report(filterQuery.query_id, this.user)).error) {
 
@@ -153,16 +155,23 @@ class Filters extends API {
 	async preReport() {
 
 		let [preReportApi] = await this.mysql.query(
-			`select value from tb_settings where owner = 'account' and profile = 'pre_report_api' and owner_id = ?`,
+			`select value from tb_settings where owner = 'account' and profile = 'pre_report_api' and owner_id = ? AND status = 1`,
 			[this.account.account_id],
 		);
 
-		if (!preReportApi || commonFun.isJson(preReportApi.value)) {
+		if (!preReportApi || !commonFun.isJson(preReportApi.value)) {
 
 			return [];
 		}
 
 		preReportApi = (JSON.parse(preReportApi.value)).value;
+
+		let externalParameters = [];
+
+		if(Array.isArray(this.account.settings.get("external_parameters"))) {
+
+			externalParameters = this.account.settings.get("external_parameters");
+		}
 
 		let preReportApiDetails = await requestPromise({
 
@@ -175,10 +184,13 @@ class Filters extends API {
 						value: 'application/x-www-form-urlencoded'
 					}
 				],
-				queryString: this.account.settings.get("external_parameters").map(x => {
+				queryString: externalParameters.map(x => {
+
+					const paramValue = this.request.body[constants.filterPrefix + x.name];
+
 					return {
-						name: x,
-						value: this.request.body[constants.filterPrefix + x],
+						name: x.name,
+						value: paramValue || !isNaN(paramValue) ? paramValue : x.value,
 					}
 				})
 			},

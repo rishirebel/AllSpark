@@ -21,6 +21,11 @@ class Redis {
 		Redis.redis_client = redis_client;
 	}
 
+	static options() {
+
+		return redisOptions;
+	}
+
 	static async get(keyPattern) {
 
 		const getPromisified = promisify(redis_client.get).bind(redis_client);

@@ -126,6 +126,16 @@ main .about-list {
 		background: var(--color-secondary);
 		color: var(--color-secondary-text);
 	}
+	main .about-list .environment-about h2 {
+		border-bottom: 1px solid var(--color-border);
+		font-size: 120%;
+	}
+	main .about-list .environment-about table td.red {
+		background: var(--color-red);
+	}
+	main .about-list .environment-about table td.green {
+		background: var(--color-green);
+	}
 main .executing-reports {
 }
 	main .executing-reports .toolbar {
@@ -159,12 +169,15 @@ main .cached-reports table {
 		height: 400px;
 	}
 
-main #global-filters-form .multi-select.top.stretched .options {
-	grid-row: 1;
-	border-top: 1px solid #ccc;
-	border-bottom: 0;
-	position: initial;
+main #global-filters-form .multi-select.top.stretched {
+	display: grid;
 }
+	main #global-filters-form .multi-select.top.stretched .options {
+		grid-row: 1;
+		border-top: 1px solid var(--color-border);
+		border-bottom: 0;
+		position: initial;
+	}
 
 main .documentation-page .generate-slug {
 	margin-left: auto;

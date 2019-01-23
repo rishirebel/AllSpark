@@ -90,7 +90,50 @@ exports.list = class extends API {
                  AND d.status = 1
                  AND vd.owner = 'dashboard'
             GROUP BY query_id
-        `;
+		`;
+
+		const transformationQuery = `
+			SELECT
+				ot.id,
+				ot.owner,
+				ot.owner_id,
+				ot.type,
+				ot.order,
+				ot.title,
+				ot.options
+			FROM
+				tb_object_transformation ot
+			JOIN
+				tb_query_visualizations qv
+				ON qv.visualization_id = ot.owner_id
+			JOIN
+				tb_query q
+				ON qv.query_id = q.query_id
+			WHERE
+				ot.is_enabled = 1
+				AND q.is_deleted = 0
+				AND q.account_id = ?
+				AND ot.owner = 'visualization'
+			UNION ALL
+			SELECT
+				ot.id,
+				ot.owner,
+				ot.owner_id,
+				ot.type,
+				ot.order,
+				ot.title,
+				ot.options
+			FROM
+				tb_object_transformation ot
+			JOIN
+				tb_query q
+				ON ot.owner_id = q.query_id
+			WHERE
+				ot.is_enabled = 1
+				AND q.is_deleted = 0
+				AND q.account_id = ?
+				AND ot.owner = 'query'
+		`;
 
 		if (this.request.body.search) {
 			query = query.concat(`
@@ -182,8 +225,27 @@ exports.list = class extends API {
 
 			this.mysql.query(dashboardToReportAccessQuery, [this.user.user_id]),
 
-			credentialObjectRoles
+			credentialObjectRoles,
+
+			this.mysql.query(transformationQuery, [this.account.account_id, this.account.account_id]),
 		]);
+
+		const transformations = {};
+
+		for (const row of results[6]) {
+
+			if (!transformations.hasOwnProperty(row.owner)) {
+
+				transformations[row.owner] = {};
+			}
+
+			if (!transformations[row.owner].hasOwnProperty(row.owner_id)) {
+
+				transformations[row.owner][row.owner_id] = [];
+			}
+
+			transformations[row.owner][row.owner_id].push(row);
+		}
 
 		const groupIdObject = {};
 
@@ -418,6 +480,8 @@ exports.list = class extends API {
 
 			row.flag = userSharedQueries.has(row.query_id) || dashboardSharedQueries.has(row.query_id);
 
+			row.transformations = transformations['query'] ? transformations['query'][row.query_id] : [];
+
 			if (!connectionMapping[row.connection_name]) {
 
 				row.connectionObj = {
@@ -549,9 +613,46 @@ exports.list = class extends API {
 					continue;
 				}
 
-				visualization.related_visualizations = relatedVisualizationMapping[visualization.visualization_id] ? relatedVisualizationMapping[visualization.visualization_id] : [];
-				row.visualizations.push(visualization);
+				visualization.related_visualizations = relatedVisualizationMapping[visualization.visualization_id]
+				? relatedVisualizationMapping[visualization.visualization_id]
+				: [];
 
+				const visualization_transformations = transformations['visualization']
+				? transformations['visualization'][visualization.visualization_id]
+				: [];
+
+				let visualization_options = {};
+
+				try {
+
+					visualization_options = JSON.parse(visualization.options);
+					visualization_options.transformations = [];
+
+					visualization_transformations.sort( (a, b) => {
+						return a.order - b.order;
+					});
+				}
+				catch(e) {
+
+					if(!visualization_options) {
+						visualization_options = {};
+						visualization_options.transformations = [];
+					}
+				}
+
+				for (const transformation of visualization_transformations || []) {
+
+					try {
+
+						transformation.options = JSON.parse(transformation.options);
+						visualization_options.transformations.push(transformation);
+					}
+					catch(e) {}
+				}
+
+				visualization.options = JSON.stringify(visualization_options);
+
+				row.visualizations.push(visualization);
 			}
 
 			row.href = `/report/${row.query_id}`;

@@ -736,7 +736,6 @@ body {
 .multi-select {
 	width: 100%;
 	position: relative;
-	display: grid;
 }
 	.multi-select > input {
 		width: 100%;
@@ -765,6 +764,7 @@ body {
 		position: initial;
 		height: 220px;
 		box-shadow: none;
+		z-index: 0;
 	}
 	.multi-select.top.stretched .options {
 		position:absolute;
@@ -1357,9 +1357,10 @@ body {
 					margin: 0px;
 				}
 .notification-bar-container {
-	overflow: auto;
 	width: 100%;
 	z-index: 6;
+	overflow: auto;
+	max-height: 100px;
 }
 	.notification-bar {
 		text-align: center;

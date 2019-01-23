@@ -55,6 +55,7 @@ exports.publicEndpoints = [
 
 exports.nonAccountEndpoints = [
 	'/v2/setup/run',
+	'/v2/environment/about'
 ]
 
 exports.filterPrefix = "param_";

@@ -464,6 +464,23 @@ CREATE TABLE `tb_visualizations` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+
+CREATE TABLE `tb_documentation` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `slug` varchar(100) DEFAULT NULL,
+  `heading` varchar(1024) DEFAULT NULL,
+  `body` text,
+  `parent` int(11) DEFAULT NULL,
+  `chapter` int(11) DEFAULT NULL,
+  `added_by` int(11) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `slug` (`slug`),
+  UNIQUE KEY `parent` (`parent`,`chapter`)
+) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8;
+
+
 INSERT INTO `tb_features` VALUES (4,'Table','table','visualization','2018-05-28 10:24:00','2018-05-28 10:24:00'),
 (5,'Spatial Map','spatialmap','visualization','2018-05-28 10:24:00','2018-05-28 10:24:00'),
 (6,'Funnel','funnel','visualization','2018-05-28 10:24:00','2018-05-28 10:24:00'),

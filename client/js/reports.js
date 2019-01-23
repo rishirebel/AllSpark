@@ -100,10 +100,14 @@ class DataSource {
 
 		if(Array.isArray(account.settings.get('external_parameters')) && external_parameters) {
 
-			for(const key of account.settings.get('external_parameters')) {
+			for(const parameter of account.settings.get('external_parameters')) {
 
-				if(key in external_parameters) {
-					parameters.set(DataSourceFilter.placeholderPrefix + key, external_parameters[key]);
+				if(parameter.name in external_parameters) {
+
+					parameters.set(
+						DataSourceFilter.placeholderPrefix + parameter.name,
+						external_parameters[parameter.name] || !isNaN(parseFloat(external_parameters[parameter.name])) ? external_parameters[parameter.name] : parameter.value
+					);
 				}
 			}
 		}
@@ -5120,7 +5124,7 @@ DataSourceTransformation.types.set('linear-regression', class DataSourceTransfor
 
 	async execute(response = []) {
 
-		if (!(this.options.columns.x || this.options.columns.y)) {
+		if (!(this.options.columns && (this.options.columns.x || this.options.columns.y))) {
 
 			return response;
 		}
@@ -5200,7 +5204,7 @@ DataSourceTransformation.types.set('linear-regression', class DataSourceTransfor
 			asc = response.length > 1 ? response[response.length - 1][this.options.columns.x] > response[response.length - 2][this.options.columns.x] : false
 		;
 
-		switch ((this.source.columns.get(this.options.columns.x).type || {name: 'string'}).name) {
+		switch (((this.source.columns.has(this.options.columns.x) && this.source.columns.get(this.options.columns.x).type) || {name: 'string'}).name) {
 
 			case 'date':
 			case 'string':
@@ -10239,6 +10243,11 @@ Visualization.list.set('pie', class Pie extends Visualization {
 
 		const dataRow = this.source.originalResponse.data[0];
 
+		if(!dataRow) {
+
+			return this.source.error('No data found.');
+		}
+
 		if((this.options.nameColumn in dataRow) || (this.options.valueColumn in dataRow)) {
 
 			const [pivotPresent] = this.options.transformations.filter(x => x.type == 'pivot' && x.implied);
@@ -10263,6 +10272,11 @@ Visualization.list.set('pie', class Pie extends Visualization {
 	async render(options = {}) {
 
 		const originalResponse = this.source.originalResponse.data;
+
+		if(!originalResponse.length) {
+
+			return this.source.error('No data found.');
+		}
 
 		if(!(this.options.nameColumn in originalResponse[0]) && originalResponse.length > 1) {
 

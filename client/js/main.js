@@ -1543,10 +1543,12 @@ class API extends AJAX {
 
 			const external_parameters = await Storage.get('external_parameters');
 
-			for(const key of account.settings.get('external_parameters')) {
+			for(const parameter of account.settings.get('external_parameters')) {
 
-				if(key in external_parameters)
-					parameters['ext_' + key] = external_parameters[key];
+				if(parameter.name in external_parameters) {
+
+					parameters['ext_' + parameter.name] = external_parameters[parameter.name] || !isNaN(parseFloat(external_parameters[parameter.name])) ? external_parameters[parameter.name] : parameter.value;
+				}
 			}
 
 			parameters.external_parameters = true;

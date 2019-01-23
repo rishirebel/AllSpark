@@ -24,6 +24,11 @@ main.preview-bottom {
 		justify-content: space-between;
 	}
 
+.notification-bar-container {
+	overflow: initial;
+	max-height: none;
+}
+
 #stage-switcher {
 	display: flex;
 	background: var(--color-surface);
@@ -562,6 +567,20 @@ main.preview-left #stages {
 				grid-template-columns: 1fr;
 				align-items: flex-start;
 			}
+				#stage-define-report #filters .edit-filter .form .dataset .multi-select .options {
+					z-index: 0;
+				}
+				#stage-define-report #filters .add-filter .form .dataset .multi-select.top.stretched,
+				#stage-define-report #filters .edit-filter .form .dataset .multi-select.top.stretched {
+					display: grid;
+				}
+					#stage-define-report #filters .add-filter .form .dataset .multi-select.top.stretched .options,
+					#stage-define-report #filters .edit-filter .form .dataset .multi-select.top.stretched .options {
+						grid-row: 1;
+						border-top: 1px solid var(--color-border);
+						border-bottom: 0;
+						position: initial;
+					}
 				#stage-define-report #filters .form .toolbar {
 					margin: calc(var(--gap) * -2);
 				}
@@ -713,6 +732,9 @@ main.preview-left #stages {
 		.visualization-form fieldset > .form {
 			padding: 0;
 		}
+		.visualization-form fieldset form > .save {
+			margin-top: calc(var(--gap) * 2);
+		}
 	.visualization-form .subform {
 		display: grid;
 		padding: calc(var(--gap) * 2);
@@ -776,6 +798,9 @@ main.preview-left #stages {
 				font-weight: normal;
 				color: #999;
 			}
+		.visualization-form .axes .axis .axis-column .multi-select .options {
+			z-index: 0;
+		}
 		.visualization-form .axes .add-axis .form,
 		.visualization-form .layers .add-layer .form {
 			grid-template-columns: minmax(max-content, 200px) max-content;
@@ -845,12 +870,15 @@ main.preview-left #stages {
 				.visualization-form .transformations fieldset > .actions > div:active {
 					box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.25);
 				}
+			.visualization-form .transformations .title {
+				grid-template-columns: max-content;
+			}
 			.visualization-form .transformations .transformation {
 				display: grid;
 				grid-template-columns: max-content;
 				grid-gap: calc(var(--gap) * 2);
 				align-items: flex-start;
-				margin-top: var(--gap);
+				margin-top: calc(var(--gap) * 2);
 			}
 				.visualization-form .transformations .transformation > div {
 					display: grid;
@@ -1022,7 +1050,7 @@ main.preview-left #stages {
 				color: var(--color-grey);
 				font-size: 90%;
 			}
-			.visualization-form .configuration-section .body .NA {
+			.visualization-form .configuration-section .body .list .NA {
 				background: var(--color-surface);
 				color: var(--color-surface-text);
 				padding: calc(var(--gap) * 2);

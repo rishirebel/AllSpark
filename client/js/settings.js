@@ -943,8 +943,9 @@ Settings.list.set('about', class About extends SettingPage {
 			infoContainer = this.infoContainer,
 			clearCacheContainer = this.clearCacheContainer;
 
-		this.section.appendChild(infoContainer);
 		this.section.appendChild(clearCacheContainer);
+		this.section.appendChild(infoContainer);
+		this.section.appendChild(this.environmentAbout);
 
 		Sections.show('about')
 	}
@@ -1020,6 +1021,54 @@ Settings.list.set('about', class About extends SettingPage {
 		setInterval(() => this.updateTimestamps(), 1000);
 
 		this.updateTimestamps();
+
+		return container;
+	}
+
+	get environmentAbout() {
+
+		if(this.environmentAboutcontainer) {
+
+			return this.environmentAboutcontainer;
+		}
+
+		const container = this.environmentAboutcontainer = document.createElement('div');
+
+		container.classList.add('environment-about');
+
+		container.innerHTML = `
+			<h2>Services</h2>
+			
+			<table class="block">
+				<thead>
+					<th>Services</th>
+					<th>Running</th>
+					<th>Time</th>
+					<th>Port</th>
+					<th>Message</th>
+				</thead>
+				<tbody></tbody>
+			</table>
+		`;
+
+		const tbody = container.querySelector('table tbody');
+
+		for(const key in this.environment.services) {
+
+			const tr = document.createElement('tr');
+
+			tr.innerHTML = `
+				<td>${key}</td>
+				<td class="${this.environment.services[key].status ? 'green' : 'red'}">${this.environment.services[key].status}</td>
+				<td>${this.environment.services[key].time || ''}</td>
+				<td>${this.environment.services[key].port || ''}</td>
+				<td>${this.environment.services[key].message}</td>
+			`;
+
+			tbody.appendChild(tr);
+		}
+
+		(new SortTable({table: container.querySelector('table')})).sort();
 
 		return container;
 	}
