@@ -81,7 +81,7 @@ class DataSource {
 
 				const values = filter.multiSelect.value;
 
-				if(filter.multiSelect.datalist.length > 50 && values.length == filter.multiSelect.datalist.length) {
+				if(filter.multiSelect.datalist.length > 50 && values.length && values.length == filter.multiSelect.datalist.length) {
 
 					autodetectDatasets.push(filter.placeholder);
 					continue;
