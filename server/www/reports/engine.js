@@ -459,8 +459,8 @@ class report extends API {
 				filter.placeholder = `(${filter.placeholder})`;
 			}
 
-			filter.value = filter.value
-				|| this.request.body[constants.filterPrefix + filter.placeholder]
+			filter.value = this.request.body[constants.filterPrefix + filter.placeholder]
+				|| filter.value
 				|| filter.default_value
 			;
 		}
@@ -757,7 +757,8 @@ class report extends API {
 
 				let requestParameterValue = this.request.body[constants.filterPrefix + parameter.name];
 
-				requestParameterValue = !requestParameterValue && (requestParameterValue !== false) && (requestParameterValue !== 0)
+				requestParameterValue =
+					!requestParameterValue && requestParameterValue !== false && requestParameterValue !== 0 && requestParameterValue !== ""
 					? parameter.value
 					: requestParameterValue
 				;
