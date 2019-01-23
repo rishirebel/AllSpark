@@ -103,7 +103,7 @@ main .about-list {
 }
 	main .about-list .info {
 		display: grid;
-		grid-template-columns: max-content 1fr;
+		grid-template-columns: max-content max-content;
 		grid-gap: calc(var(--gap) * 3);
 		background: var(--color-surface);
 		color: var(--color-surface-text);
