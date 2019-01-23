@@ -125,7 +125,13 @@ class Setup extends API {
 
 			settingValue = [{
 				"key": "external_parameters",
-				"value": account.auth_api_parameters || []
+				"value": account.auth_api_parameters.map(x => {
+
+					return {
+						name: x.name,
+						value: x.value || ''
+					}
+				})
 			}]
 		}
 

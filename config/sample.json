@@ -35,7 +35,10 @@
       "icon": "https://foo-bar.com/images/icon.png",
       "logo": "https://foo-bar.com/images/logo.png",
       "auth_api": "External Login api",
-      "auth_api_parameters": ["External login api parameters or empty array"]
+      "auth_api_parameters": [{
+        "name": "Parameter name",
+        "value": "Any default value"
+      }]
     },
     "user": {
       "first_name": "First Name",

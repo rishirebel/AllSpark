@@ -2808,17 +2808,17 @@ class ReportsManagerFilters extends Map {
 
 			let value = '';
 
-			if(parameter in externalParametersValues)
-				value = externalParametersValues[parameter];
+			if(parameter.name in externalParametersValues)
+				value = externalParametersValues[parameter.name];
 
-			if(ReportsManagerFilters.externalParameters.has(parameter))
-				value = ReportsManagerFilters.externalParameters.get(parameter);
+			if(ReportsManagerFilters.externalParameters.has(parameter.name))
+				value = ReportsManagerFilters.externalParameters.get(parameter.name);
 
 			tbody.insertAdjacentHTML('beforeend', `
 				<tr>
-					<td>${parameter}</td>
-					<td>${value}</td>
-					<td>${ReportsManagerFilters.externalParameters.has(parameter) ? 'Yes' : 'No'}</td>
+					<td>${parameter.name}</td>
+					<td>${value || parameter.value}</td>
+					<td>${ReportsManagerFilters.externalParameters.has(parameter.name) ? 'Yes' : 'No'}</td>
 				</tr>
 			`);
 		}
