@@ -1701,9 +1701,6 @@ button[disabled] {
 .sub-reports-dialog .dialog-box {
 	width: 70%;
 }
-	.sub-reports-dialog .body {
-		padding: calc(var(--gap) * 2);
-	}
 		.sub-reports-dialog .data-source {
 		}
 .visualization-canvas {
@@ -1711,12 +1708,14 @@ button[disabled] {
 	display: flex;
 	flex-direction: column;
 	transition: background var(--transition-duration);
+	background: var(--color-background);
+	padding: calc(var(--gap) * 2);
 }
 	.visualization-canvas > .menu {
 		display: grid;
 		grid-auto-flow: column;
 		grid-gap: calc(var(--gap) * 2);
-		margin: calc(var(--gap) * 2) 0;
+		margin-bottom: calc(var(--gap) * 2);
 		grid-auto-columns: minmax(10px, max-content);
 	}
 		.visualization-canvas > .menu button {

@@ -21,8 +21,12 @@ class InternalAnalytics extends API {
 			.replace(/{{sdate}}/g, `"${this.request.query[constants.filterPrefix.concat('sdate')]}"`)
 			.replace(/{{edate}}/g, `"${this.request.query[constants.filterPrefix.concat('edate')]}"`);
 
+		const executionTimeStart = Date.now();
+
 		return {
-			data: await this.mysql.query(report.query, null)
+			cached: {status: false},
+			data: await this.mysql.query(report.query, null),
+			runtime: (Date.now() - executionTimeStart)
 		};
 	}
 

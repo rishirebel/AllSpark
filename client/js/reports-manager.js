@@ -9121,7 +9121,7 @@ class RelatedVisualizations extends Set {
 						<div class="form">
 
 							<label class="visualization">
-								<span>Visualizations</span>
+								<span>Visualizations <span class="red">*</span></span>
 							</label>
 
 							<label>
@@ -9339,7 +9339,7 @@ class RelatedVisualization {
 
 		form.innerHTML = `
 			<label class="visualization">
-				<span>Visualization</span>
+				<span>Visualization <span class="red">*</span></span>
 			</label>
 
 			<label>

@@ -923,13 +923,12 @@ Settings.list.set('internalAnalytics', class InternalAnalytics extends SettingPa
 
 	setup() {
 
-		if(this.page.querySelector('#analytics')) {
+		if(this.page.querySelector('.analytics')) {
 
-			this.page.querySelector('#analytics').remove();
+			this.page.querySelector('.analytics').remove();
 		}
 
 		this.page.appendChild(this.container);
-
 	}
 
 	async load() {
@@ -957,7 +956,6 @@ Settings.list.set('internalAnalytics', class InternalAnalytics extends SettingPa
 		}
 
 		this.visualizationCanvas = new VisualizationsCanvas(canvasVisualizations, this);
-		this.container.querySelector('#analytics').appendChild(this.visualizationCanvas.container);
 
 		await this.render()
 	}
@@ -968,7 +966,7 @@ Settings.list.set('internalAnalytics', class InternalAnalytics extends SettingPa
 			return this.containerElement;
 
 		const container = this.containerElement = document.createElement('div');
-		container.classList.add('setting-page', 'hidden');
+		container.classList.add('setting-page', 'analytics', 'hidden');
 
 		container.innerHTML = `
 			<section class="section show" id="analytics">
@@ -980,6 +978,11 @@ Settings.list.set('internalAnalytics', class InternalAnalytics extends SettingPa
 	}
 
 	async render() {
+
+		const container = this.container.querySelector('#analytics');
+		container.textContent = null;
+
+		container.appendChild(this.visualizationCanvas.container);
 
 		this.visualizationCanvas.render();
 		await Sections.show('analytics');
