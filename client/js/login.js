@@ -280,7 +280,7 @@ Page.class = class Login extends Page {
 				for(const key in response.external_parameters) {
 
 					// Only save the value from login response if it's key was given in account settings
-					if(settingsList.includes(key)) {
+					if(settingsList.filter(x => x.name == key).length) {
 						storageList[key] = response.external_parameters[key];
 					}
 				}
