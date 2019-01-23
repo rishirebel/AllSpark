@@ -1547,7 +1547,7 @@ class API extends AJAX {
 
 				if(parameter.name in external_parameters) {
 
-					parameters['ext_' + parameter.name] = external_parameters[parameter.name] || !isNaN(parseFloat(external_parameters[parameter.name])) ? external_parameters[parameter.name] : parameter.value;
+					parameters['ext_' + parameter.name] = external_parameters[parameter.name] == null ||  external_parameters[parameter.name] == undefined || isNaN( external_parameters[parameter.name]) ? parameter.value : external_parameters[parameter.name];
 				}
 			}
 

@@ -119,7 +119,7 @@ class DataSource {
 
 					parameters.set(
 						DataSourceFilter.placeholderPrefix + parameter.name,
-						external_parameters[parameter.name] || !isNaN(parseFloat(external_parameters[parameter.name])) ? external_parameters[parameter.name] : parameter.value
+						external_parameters[parameter.name] == null || external_parameters[parameter.name] == undefined || isNaN(external_parameters[parameter.name]) ? parameter.value : external_parameters[parameter.name]
 					);
 				}
 			}

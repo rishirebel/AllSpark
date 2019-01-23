@@ -193,7 +193,7 @@ exports.login = class extends API {
 
 				const
 					externalValue = this.request.body[constants.external_parameter_prefix + parameter.name],
-					value = externalValue || !isNaN(parseFloat(externalValue)) ? externalValue : parameter.value;
+					value = externalValue == null || externalValue == undefined || isNaN(externalValue) ? parameter.value : externalValue;
 
 				if (Array.isArray(value)) {
 
