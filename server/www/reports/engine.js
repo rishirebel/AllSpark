@@ -163,7 +163,7 @@ class report extends API {
 
 		const datasetsPromiseList = [];
 
-		if(!this.derivedQuery) {
+		if(this.derivedQuery) {
 
 			const filtersWithDatasets = this.filters.filter(x => x.dataset).map(x => x.placeholder);
 
