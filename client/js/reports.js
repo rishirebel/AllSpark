@@ -59,6 +59,7 @@ class DataSource {
 		const parameters = new URLSearchParams(_parameters);
 
 		if(typeof _parameters == 'object') {
+
 			for(const key in _parameters) {
 				parameters.set(key, _parameters[key]);
 			}
@@ -70,11 +71,21 @@ class DataSource {
 			parameters.set('query', this.definition.query);
 		}
 
+		const autodetectDatasets = [];
+
 		for(const filter of this.filters.values()) {
 
 			if(filter.multiSelect) {
 
 				await filter.fetch();
+
+				const values = filter.multiSelect.value;
+
+				if(filter.multiSelect.datalist.length > 50 && values.length && values.length == filter.multiSelect.datalist.length) {
+
+					autodetectDatasets.push(filter.placeholder);
+					continue;
+				}
 
 				for(const value of filter.multiSelect.value) {
 					parameters.append(DataSourceFilter.placeholderPrefix + filter.placeholder, value);
@@ -96,6 +107,8 @@ class DataSource {
 			}
 		}
 
+		parameters.set('autodetect_datasets', JSON.stringify(autodetectDatasets));
+
 		const external_parameters = await Storage.get('external_parameters');
 
 		if(Array.isArray(account.settings.get('external_parameters')) && external_parameters) {
@@ -114,11 +127,11 @@ class DataSource {
 
 		let response = null;
 
-		const params = parameters.toString();
-
-		const options = {
-			method: params.length <= 2500 ? 'GET' : 'POST', //2500 is used as our server was not accepting more then this query param length
-		};
+		const
+			params = parameters.toString(),
+			options = {
+				method: params.length <= 2500 ? 'GET' : 'POST', // 2500 is used as our server was not accepting more then this query param length
+			};
 
 		this.resetError();
 

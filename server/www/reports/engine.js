@@ -13,7 +13,6 @@ const requestPromise = promisify(request);
 const config = require("config");
 const fetch = require('node-fetch');
 const URLSearchParams = require('url').URLSearchParams;
-const fs = require("fs");
 const mongoConnecter = require("../../utils/mongo").Mongo.query;
 const userQueryLogs = require("../accounts").userQueryLogs;
 const getRole = require("../object_roles").get;
@@ -22,7 +21,6 @@ const oracle = require('../../utils/oracle').Oracle;
 const PromiseManager = require("../../utils/promisesManager").promiseManager;
 const promiseManager = new PromiseManager("executingReports");
 const pgsql = require("../../utils/pgsql").Postgres;
-const child_process = require('child_process');
 
 // prepare the raw data
 class report extends API {
@@ -137,11 +135,60 @@ class report extends API {
 			[this.account.account_id],
 		);
 
+		const filterMapping = {};
+
+		for (const filter of this.filters) {
+
+			if (!filterMapping[filter.placeholder]) {
+
+				filterMapping[filter.placeholder] = filter;
+			}
+		}
+
+		this.filterMapping = filterMapping;
+
+		this.autodetectDatasets = this.request.body.autodetect_datasets;
+
+		try {
+
+			this.autodetectDatasets = JSON.parse(this.autodetectDatasets);
+		}
+		catch (e) {
+
+			this.autodetectDatasets = [];
+		}
+
+		this.assert(Array.isArray(this.autodetectDatasets), 'Auto Detect Datasources is not an array.');
+		this.autodetectDatasets = new Set(this.autodetectDatasets);
+
+		const datasetsPromiseList = [];
+
+		if(this.derivedQuery) {
+
+			const filtersWithDatasets = this.filters.filter(x => x.dataset).map(x => x.placeholder);
+
+			filtersWithDatasets.forEach(x => {
+				if (!this.request.body.hasOwnProperty(constants.filterPrefix + x)) {
+					this.autodetectDatasets.add(x);
+				}
+			});
+		}
+
+		for (const filter of this.filters) {
+
+			if (this.autodetectDatasets.has(filter.placeholder)) {
+
+				datasetsPromiseList.push(this.executeDatasets(filter));
+			}
+		}
+
+		await commonFun.promiseParallelLimit(5, datasetsPromiseList);
+
 		if (preReportApi && commonFun.isJson(preReportApi.value)) {
 
 			let externalParameters = [];
 
-			if(Array.isArray(this.account.settings.get("external_parameters"))) {
+			if (Array.isArray(this.account.settings.get("external_parameters"))) {
 
 				externalParameters = this.account.settings.get("external_parameters");
 			}
@@ -194,15 +241,6 @@ class report extends API {
 
 			preReportApiDetails = JSON.parse(preReportApiDetails.body).data[0];
 
-			const filterMapping = {};
-
-			for (const filter of this.filters) {
-
-				if (!filterMapping[filter.placeholder]) {
-
-					filterMapping[filter.placeholder] = filter;
-				}
-			}
 
 			for (const key in preReportApiDetails) {
 
@@ -221,9 +259,9 @@ class report extends API {
 					default_value: value
 				}
 			}
-
-			this.filters = Object.values(filterMapping);
 		}
+
+		this.filters = Object.values(filterMapping);
 
 		this.reportObj.query = this.request.body.query || this.reportObj.query;
 	}
@@ -388,17 +426,17 @@ class report extends API {
 			try {
 				filter.offset = JSON.parse(filter.offset);
 			}
-			catch(e) {
-				console.error(e);
-				continue;
-			}
-
-			if(!filter.offset || !Object.keys(filter.offset).length) {
+			catch (e) {
 
 				continue;
 			}
 
-			for(const offsetRule of filter.offset) {
+			if (!filter.offset || !Object.keys(filter.offset).length) {
+
+				continue;
+			}
+
+			for (const offsetRule of filter.offset) {
 
 				date = this.parseOffset(offsetRule, date);
 			}
@@ -409,7 +447,7 @@ class report extends API {
 			const today = new Date();
 			const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
-			if(new Date(filter.value) >= +startOfDay) {
+			if (new Date(filter.value) >= +startOfDay) {
 
 				this.has_today = true;
 			}
@@ -424,7 +462,10 @@ class report extends API {
 				filter.placeholder = `(${filter.placeholder})`;
 			}
 
-			filter.value = this.request.body[constants.filterPrefix + filter.placeholder] || filter.default_value;
+			filter.value = this.request.body[constants.filterPrefix + filter.placeholder]
+				|| filter.value
+				|| filter.default_value
+			;
 		}
 	}
 
@@ -698,6 +739,78 @@ class report extends API {
 		result.cached = {status: false};
 
 		return result;
+	}
+
+	async executeDatasets(filter) {
+
+		const reportObj = new report();
+		reportObj.user = this.user;
+		reportObj.account = this.account;
+
+		reportObj.request = {
+			body: {},
+			query: {},
+		};
+
+		reportObj.derivedQuery = true;
+
+		let externalParameters = this.account.settings.get("external_parameters");
+
+		if (!(externalParameters && !Array.isArray(externalParameters))) {
+
+			for (const parameter of externalParameters) {
+
+				let requestParameterValue = this.request.body[constants.filterPrefix + parameter.name];
+
+				requestParameterValue =
+					!requestParameterValue && requestParameterValue !== false && requestParameterValue !== 0 && requestParameterValue !== ""
+					? parameter.value
+					: requestParameterValue
+				;
+
+				reportObj.request.query[constants.filterPrefix + parameter.name] = requestParameterValue;
+				reportObj.request.body[constants.filterPrefix + parameter.name] = requestParameterValue;
+			}
+		}
+
+		reportObj.request.body.query_id = filter.dataset;
+		reportObj.request.query.query_id = filter.dataset;
+
+
+		let response = await reportObj.report();
+
+		if (
+			this.filterMapping.hasOwnProperty(filter.placeholder)
+			&& this.filterMapping[filter.placeholder].value
+			&& this.filterMapping[filter.placeholder].value.toString()
+		) {
+
+			if (!Array.isArray(this.filterMapping[filter.placeholder].value)) {
+
+				this.filterMapping[filter.placeholder].value = [this.filterMapping[filter.placeholder].value];
+			}
+		}
+
+		else {
+
+			filter.value = [];
+			this.filterMapping[filter.placeholder] = filter;
+		}
+
+		filter = this.filterMapping[filter.placeholder];
+
+		if (!this.filterMapping[filter.placeholder].multiple) {
+
+			this.filterMapping[filter.placeholder].value = response.data.length ? response.data[0].value : '';
+			this.filterMapping[filter.placeholder].default_value = this.filterMapping[filter.placeholder].value;
+
+			return;
+		}
+
+		this.filterMapping[filter.placeholder].value = this.filterMapping[filter.placeholder].value
+			.concat(response.data.map(x => x.value));
+
+		this.filterMapping[filter.placeholder].default_value = this.filterMapping[filter.placeholder].value;
 	}
 }
 
