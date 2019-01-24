@@ -19,10 +19,6 @@ class DashboardManager extends Page {
 
 		DashboardsDashboard.setup(this);
 
-		this.parentDashboardMultiselect = new MultiSelect({multiple: false});
-
-		DashboardsDashboard.container.querySelector('.parent-dashboard').appendChild(this.parentDashboardMultiselect.container);
-
 		(async () => {
 			this.setup();
 			await this.load();
@@ -147,8 +143,8 @@ class DashboardManager extends Page {
 			});
 		}
 
-		this.parentDashboardMultiselect.datalist = datalist;
-		this.parentDashboardMultiselect.render();
+		DashboardsDashboard.parentDashboardMultiselect.datalist = datalist;
+		DashboardsDashboard.parentDashboardMultiselect.render();
 	}
 }
 
@@ -163,6 +159,10 @@ class DashboardsDashboard {
 		DashboardsDashboard.container = page.container.querySelector('section#form');
 		DashboardsDashboard.form = DashboardsDashboard.container.querySelector('form');
 
+		DashboardsDashboard.parentDashboardMultiselect = new MultiSelect({multiple: false});
+
+		DashboardsDashboard.container.querySelector('.parent-dashboard').appendChild(DashboardsDashboard.parentDashboardMultiselect.container);
+
 		DashboardsDashboard.container.querySelector('#back').on('click', page.back);
 
 		DashboardsDashboard.editor = new CodeEditor({mode: 'json'});
@@ -175,17 +175,11 @@ class DashboardsDashboard {
 
 		const datalist = response.map(a => {return {name: a.name, value: a.id}});
 
-		DashboardsDashboard.multiselect = new MultiSelect({datalist, multiple: false});
-
-		if(DashboardsDashboard.container.querySelector('.parent-dashboard .multi-select')) {
-			DashboardsDashboard.container.querySelector('.parent-dashboard .multi-select').remove();
-		}
+		DashboardsDashboard.parentDashboardMultiselect.clear();
 
 		if(DashboardsDashboard.container.querySelector('#form .toolbar .right')) {
 			DashboardsDashboard.container.querySelector('#form .toolbar .right').remove();
 		}
-
-		DashboardsDashboard.container.querySelector('.parent-dashboard').appendChild(DashboardsDashboard.multiselect.container);
 
 		DashboardsDashboard.container.querySelector('h1').textContent = 'Add New Dashboard';
 
@@ -216,7 +210,7 @@ class DashboardsDashboard {
 
 		const parameters = {
 			format: DashboardsDashboard.editor.value,
-			parent: DashboardsDashboard.multiselect.value[0] || '',
+			parent: DashboardsDashboard.parentDashboardMultiselect.value[0] || '',
 		};
 
 		const response = await API.call('dashboards/insert', parameters, options);
@@ -312,8 +306,8 @@ class DashboardsDashboard {
 			}
 		}
 
-		this.page.parentDashboardMultiselect.clear();
-		this.page.parentDashboardMultiselect.value = this.parent;
+		DashboardsDashboard.parentDashboardMultiselect.clear();
+		DashboardsDashboard.parentDashboardMultiselect.value = this.parent;
 
 		DashboardsDashboard.editor.value = JSON.stringify(this.format || {}, 0, 4) || '';
 
@@ -342,7 +336,7 @@ class DashboardsDashboard {
 		const parameters = {
 			id: this.id,
 			format: DashboardsDashboard.editor.value,
-			parent: this.page.parentDashboardMultiselect.value[0] || '',
+			parent: DashboardsDashboard.parentDashboardMultiselect.value[0] || '',
 		};
 
 		const options = {
