@@ -193,7 +193,7 @@ exports.login = class extends API {
 
 				const
 					externalValue = this.request.body[constants.external_parameter_prefix + parameter.name],
-					value = externalValue == null || externalValue == undefined ? parameter.value : externalValue;
+					value = externalValue == undefined ? parameter.value : externalValue;
 
 				if (Array.isArray(value)) {
 

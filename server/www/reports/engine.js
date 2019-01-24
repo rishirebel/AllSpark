@@ -201,8 +201,8 @@ class report extends API {
 
 					this.filters.push({
 						placeholder: parameter.name,
-						value: filterParameter == null || filterParameter == undefined ? parameter.value : filterParameter,
-						default_value: filterParameter == null || filterParameter == undefined ? parameter.value : filterParameter,
+						value: filterParameter == undefined ? parameter.value : filterParameter,
+						default_value: filterParameter == undefined ? parameter.value : filterParameter,
 					})
 				}
 			}
@@ -228,7 +228,7 @@ class report extends API {
 							const filterParameter = this.request.body[constants.filterPrefix + x.name];
 							return {
 								name: x.name,
-								value: filterParameter == null || filterParameter == undefined ? parameter.value : filterParameter,
+								value: filterParameter == undefined ? parameter.value : filterParameter,
 							}
 						})
 					},

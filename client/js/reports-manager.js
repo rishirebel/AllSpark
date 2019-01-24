@@ -2815,7 +2815,7 @@ class ReportsManagerFilters extends Map {
 			tbody.insertAdjacentHTML('beforeend', `
 				<tr>
 					<td>${parameter.name}</td>
-					<td>${value == null || value == undefined ? parameter.value : value}</td>
+					<td>${value == undefined ? parameter.value : value}</td>
 					<td>${ReportsManagerFilters.externalParameters.has(parameter.name) ? 'Yes' : 'No'}</td>
 				</tr>
 			`);

@@ -190,7 +190,7 @@ class Filters extends API {
 
 					return {
 						name: x.name,
-						value: paramValue == null || paramValue == undefined ? x.value : paramValue
+						value: paramValue == undefined ? x.value : paramValue
 					}
 				})
 			},
