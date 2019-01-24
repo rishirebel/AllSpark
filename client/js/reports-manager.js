@@ -2524,7 +2524,21 @@ class ReportsManagerFilters extends Map {
 
 		ReportsManagerFilters.externalParameters = new Map;
 
-		const response = await API.call('reports/filters/preReport');
+		const
+			externalParameters = await Storage.get("external_parameters"),
+			parameters = {}
+		;
+
+		for(const parameter of account.settings.get('external_parameters') || []) {
+
+			if(parameter.name in externalParameters) {
+
+				parameters[`param_${parameter.name}`] = externalParameters[parameter.name];
+			}
+		}
+
+
+		const response = await API.call('reports/filters/preReport', parameters);
 
 		for(const parameter of response)
 			ReportsManagerFilters.externalParameters.set(parameter.placeholder, parameter.value);
@@ -2612,7 +2626,7 @@ class ReportsManagerFilters extends Map {
 					<table>
 						<thead>
 							<tr>
-								<th>Placeholer</th>
+								<th>Placeholder</th>
 								<th>Value</th>
 								<th class="trusted">
 									Trusted
@@ -2801,7 +2815,7 @@ class ReportsManagerFilters extends Map {
 			tbody.insertAdjacentHTML('beforeend', `
 				<tr>
 					<td>${parameter.name}</td>
-					<td>${value || parameter.value}</td>
+					<td>${value == null || value == undefined ? parameter.value : value}</td>
 					<td>${ReportsManagerFilters.externalParameters.has(parameter.name) ? 'Yes' : 'No'}</td>
 				</tr>
 			`);
