@@ -2524,7 +2524,7 @@ class ReportsManagerFilters extends Map {
 
 		ReportsManagerFilters.externalParameters = new Map;
 
-		const parameters = new FormData();
+		const parameters = new URLSearchParams();
 
 		const external_parameters = await Storage.get('external_parameters');
 
@@ -2542,7 +2542,7 @@ class ReportsManagerFilters extends Map {
 			}
 		}
 
-		const response = await API.call('reports/filters/preReport', parameters);
+		const response = await API.call('reports/filters/preReport', parameters.toString());
 
 		for(const parameter of response)
 			ReportsManagerFilters.externalParameters.set(parameter.placeholder, parameter.value);
