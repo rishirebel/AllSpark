@@ -235,7 +235,9 @@ class report extends API {
 					gzip: true
 				});
 			}
+
 			catch (e) {
+
 				return {"status": false, data: "invalid request " + e.message};
 			}
 
@@ -244,7 +246,22 @@ class report extends API {
 
 			for (const key in preReportApiDetails) {
 
-				const value = preReportApiDetails.hasOwnProperty(key) ? (new String(preReportApiDetails[key])).toString() : "";
+				let value;
+
+				if(!preReportApiDetails.hasOwnProperty(key)) {
+
+					value = "";
+				}
+
+				else if (Array.isArray(value)) {
+
+					value = preReportApiDetails[key];
+				}
+
+				else {
+
+					value = (new String(preReportApiDetails[key])).toString();
+				}
 
 				if (key in filterMapping) {
 
