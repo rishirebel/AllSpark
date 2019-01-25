@@ -8634,10 +8634,6 @@ Visualization.list.set('linear', class Linear extends LinearVisualization {
 					continue;
 				}
 
-				if(!row.has(key) || row.get(key) == '' || row.get(key) == null) {
-					continue;
-				}
-
 				tooltip.push(`
 					<li class="${row.size > 2 && that.hoverColumn && that.hoverColumn.key == key ? 'hover' : ''}">
 						<span class="circle" style="background:${column.color}"></span>
