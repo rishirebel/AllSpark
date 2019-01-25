@@ -14527,7 +14527,7 @@ class DataSourceFilterForm {
 
 		if(!this.defaultValueMultiSelect) {
 
-			this.defaultValueMultiSelect = new MultiSelect({multiple: this.container.multiple.value ? true : false});
+			this.defaultValueMultiSelect = new MultiSelect({multiple: this.container.multiple.value ? true : false, dropDownPosition: 'top'});
 			this.container.querySelector('.label').appendChild(this.defaultValueMultiSelect.container);
 		}
 

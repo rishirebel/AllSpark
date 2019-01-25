@@ -567,15 +567,15 @@ main.preview-left #stages {
 				grid-template-columns: 1fr;
 				align-items: flex-start;
 			}
-				#stage-define-report #filters .edit-filter .form .dataset .multi-select .options {
+				#stage-define-report #filters .edit-filter .form .multi-select .options {
 					z-index: 0;
 				}
-				#stage-define-report #filters .add-filter .form .dataset .multi-select.top.stretched,
-				#stage-define-report #filters .edit-filter .form .dataset .multi-select.top.stretched {
+				#stage-define-report #filters .add-filter .form .multi-select.top.stretched,
+				#stage-define-report #filters .edit-filter .form .multi-select.top.stretched {
 					display: grid;
 				}
-					#stage-define-report #filters .add-filter .form .dataset .multi-select.top.stretched .options,
-					#stage-define-report #filters .edit-filter .form .dataset .multi-select.top.stretched .options {
+					#stage-define-report #filters .add-filter .form .multi-select.top.stretched .options,
+					#stage-define-report #filters .edit-filter .form .multi-select.top.stretched .options {
 						grid-row: 1;
 						border-top: 1px solid var(--color-border);
 						border-bottom: 0;
