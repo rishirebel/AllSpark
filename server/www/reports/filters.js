@@ -7,6 +7,7 @@ const requestPromise = promisify(request);
 const commonFun = require('../../utils/commonFunctions');
 const getRole = require("../object_roles").get;
 const constants = require("../../utils/constants");
+const ReportList = require('./report').list;
 
 class Filters extends API {
 
@@ -14,7 +15,6 @@ class Filters extends API {
 
 		this.assert(query_id, 'Query id is required');
 		this.assert(name && placeholder, 'Name or placeholder is missing');
-		this.assert(query_id != dataset, 'Dataset and query id cannot be same.');
 
 		let values = {
 			name, query_id, placeholder, type, multiple, default_value, description, offset,
@@ -37,6 +37,11 @@ class Filters extends API {
 		const queryEditableResponse = await this.checkEditable(queryRow);
 
 		this.assert(!queryEditableResponse.error, queryEditableResponse.message);
+
+		if(!isNaN(parseInt(dataset))) {
+
+			await this.datasetCycle(parseInt(query_id), parseInt(dataset));
+		}
 
 		const
 			insertResponse = await this.mysql.query('INSERT INTO tb_query_filters SET  ?', [values], 'write'),
@@ -98,6 +103,11 @@ class Filters extends API {
 		if (JSON.stringify(compareJson) == JSON.stringify(values)) {
 
 			return "0 rows affected";
+		}
+
+		if(!isNaN(parseInt(dataset))) {
+
+			await this.datasetCycle(parseInt(filterQuery.query_id), parseInt(dataset));
 		}
 
 		const
@@ -212,6 +222,72 @@ class Filters extends API {
 		}
 
 		return Object.values(filterMapping);
+	}
+
+	async datasetCycle(query_id, dataset) {
+
+		let reportListObj = new ReportList();
+
+		Object.assign(reportListObj, this);
+
+		let filterList = (await reportListObj.list())
+			.reduce((a, b) => a.concat(b.filters), [])
+			.filter(x => x.dataset);
+
+		this.filterMap = new Map();
+
+		this.filterMap.set(query_id, [dataset])
+
+		for(const filter of filterList) {
+
+			if(!this.filterMap.has(filter.query_id)) {
+
+				this.filterMap.set(filter.query_id, []);
+			}
+
+			this.filterMap.get(filter.query_id).push(filter.dataset);
+		}
+
+		const
+			visited = new Set(),
+			inRecursion = new Set();
+
+		for(const node of this.filterMap.keys()) {
+
+			console.log(node);
+
+			this.assert(!this.hasCycle(node, visited, inRecursion), 'Cycle detected');
+		}
+
+		return true;
+	}
+
+	hasCycle(node, visited, inRecursion) {
+
+		if(inRecursion.has(node)) {
+
+			return true;
+		}
+
+		if(visited.has(node)) {
+
+			return false;
+		}
+
+		visited.add(node);
+		inRecursion.add(node);
+
+		for(const adj_node of this.filterMap.get(node) || []) {
+
+			if(this.hasCycle(adj_node, visited, inRecursion)) {
+
+				return true;
+			}
+		}
+
+		inRecursion.delete(node);
+
+		return false;
 	}
 
 	async checkEditable(reportObj) {
