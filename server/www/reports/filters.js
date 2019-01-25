@@ -186,7 +186,7 @@ class Filters extends API {
 				],
 				queryString: externalParameters.map(x => {
 
-					const paramValue = this.request.body[constants.filterPrefix + x.name];
+					const paramValue = this.request.query[constants.external_parameter_prefix + x.name];
 
 					return {
 						name: x.name,
