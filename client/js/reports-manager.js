@@ -2524,7 +2524,25 @@ class ReportsManagerFilters extends Map {
 
 		ReportsManagerFilters.externalParameters = new Map;
 
-		const response = await API.call('reports/filters/preReport');
+		const parameters = new FormData();
+
+		const external_parameters = await Storage.get('external_parameters');
+
+		if(Array.isArray(account.settings.get('external_parameters')) && external_parameters) {
+
+			for(const parameter of account.settings.get('external_parameters')) {
+
+				if(parameter.name in external_parameters) {
+
+					parameters.set(
+						DataSourceFilter.placeholderPrefix + parameter.name,
+						external_parameters[parameter.name] || !isNaN(parseFloat(external_parameters[parameter.name])) ? external_parameters[parameter.name] : parameter.value
+					);
+				}
+			}
+		}
+
+		const response = await API.call('reports/filters/preReport', parameters);
 
 		for(const parameter of response)
 			ReportsManagerFilters.externalParameters.set(parameter.placeholder, parameter.value);
