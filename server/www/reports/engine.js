@@ -253,7 +253,7 @@ class report extends API {
 					value = "";
 				}
 
-				else if (Array.isArray(value)) {
+				else if (Array.isArray(preReportApiDetails[key])) {
 
 					value = preReportApiDetails[key];
 				}
