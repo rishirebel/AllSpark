@@ -1733,6 +1733,9 @@ button[disabled] {
 		background: var(--color-surface);
 		margin-bottom: calc(var(--gap) * 2);
 	}
+		.visualization-canvas > form label {
+			grid-template-rows: max-content max-content;
+		}
 		.visualization-canvas > form label.visualization {
 			max-width: 250px;
 		}
