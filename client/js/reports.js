@@ -59,6 +59,7 @@ class DataSource {
 		const parameters = new URLSearchParams(_parameters);
 
 		if(typeof _parameters == 'object') {
+
 			for(const key in _parameters) {
 				parameters.set(key, _parameters[key]);
 			}
@@ -70,11 +71,21 @@ class DataSource {
 			parameters.set('query', this.definition.query);
 		}
 
+		const autodetectDatasets = [];
+
 		for(const filter of this.filters.values()) {
 
 			if(filter.multiSelect) {
 
 				await filter.fetch();
+
+				const values = filter.multiSelect.value;
+
+				if(filter.multiSelect.datalist.length > 50 && values.length && values.length == filter.multiSelect.datalist.length) {
+
+					autodetectDatasets.push(filter.placeholder);
+					continue;
+				}
 
 				for(const value of filter.multiSelect.value) {
 					parameters.append(DataSourceFilter.placeholderPrefix + filter.placeholder, value);
@@ -96,6 +107,8 @@ class DataSource {
 			}
 		}
 
+		parameters.set('autodetect_datasets', JSON.stringify(autodetectDatasets));
+
 		const external_parameters = await Storage.get('external_parameters');
 
 		if(Array.isArray(account.settings.get('external_parameters')) && external_parameters) {
@@ -114,11 +127,11 @@ class DataSource {
 
 		let response = null;
 
-		const params = parameters.toString();
-
-		const options = {
-			method: params.length <= 2500 ? 'GET' : 'POST', //2500 is used as our server was not accepting more then this query param length
-		};
+		const
+			params = parameters.toString(),
+			options = {
+				method: params.length <= 2500 ? 'GET' : 'POST', // 2500 is used as our server was not accepting more then this query param length
+			};
 
 		this.resetError();
 
@@ -8450,39 +8463,33 @@ Visualization.list.set('linear', class Linear extends LinearVisualization {
 				}
 			}
 
+			for(const [i, column] of columns.entries()) {
+
+				column.dots = this.svg.selectAll('dot')
+					.data(columnsData[i])
+					.enter()
+					.append('circle')
+					.attr('class', 'dot')
+					.style('fill', this.source.columns.get(column.key).color)
+					.attr('cx', (_, i) => this.x(this.rows[i].getTypedValue(this.x.column)) + this.axes.left.size + (this.x.rangeBand() / 2))
+					.attr('cy', row => scale(row.y + (row.y0 || 0)));
+
+				if(axis.animate) {
+
+					column.dots = column.dots
+						.attr('r', 0)
+						.transition()
+						.delay((_, i) => (Page.animationDuration / this.x.domain().length) * i)
+						.duration(0)
+						.ease('exp-out');
+				}
+			}
+
 			// For each line appending the circle at each point
 			if(this.options.showPoints || axis.showPoints) {
 
 				for(const [i, column] of columns.entries()) {
-
-					let dots = this.svg.selectAll('dot')
-						.data(columnsData[i])
-						.enter()
-						.append('circle')
-						.attr('class', 'clips')
-						.style('fill', this.source.columns.get(column.key).color)
-						.attr('cx', (_, i) => this.x(this.rows[i].getTypedValue(this.x.column)) + this.axes.left.size + (this.x.rangeBand() / 2))
-						.attr('cy', row => scale(row.y + (row.y0 || 0)))
-						.on('mouseover', function(_, __, column) {
-							that.hoverColumn = column[1];
-							d3.select(this).classed('hover', true);
-						})
-						.on('mouseout', function() {
-							that.hoverColumn = null;
-							d3.select(this).classed('hover', false);
-						});
-
-					if(axis.animate) {
-
-						dots = dots
-							.attr('r', 0)
-							.transition()
-							.delay((_, i) => (Page.animationDuration / this.x.domain().length) * i)
-							.duration(0)
-							.ease('exp-out');
-					}
-
-					dots.attr('r', 5);
+					column.dots.attr('r', 3);
 				}
 			}
 
@@ -8521,7 +8528,7 @@ Visualization.list.set('linear', class Linear extends LinearVisualization {
 
 						return this.x(row.getTypedValue(this.x.column)) + this.axes.left.size + (columns.scale.rangeBand() / 2) - (value.toString().length * 4)
 					})
-					.attr('y', ([row, column], i, j) => scale((columnsData[j][i].y > 0 ? columnsData[j][i].y : 0) + (columnsData[j][i].y0 || 0)) - (5 * (this.x.position == 'top' ? -5 : 1)))
+					.attr('y', ([row, column], i, j) => scale((columnsData[j][i].y > 0 ? columnsData[j][i].y : 0) + (columnsData[j][i].y0 || 0)) - (5 * (this.x.position == 'top' ? -5 : 2)))
 					.attr('height', ([row, column]) => Math.abs(scale(row.getTypedValue(column.key)) - scale(0)));
 
 				if(axis.animate) {
@@ -8548,70 +8555,113 @@ Visualization.list.set('linear', class Linear extends LinearVisualization {
 
 		container
 
-		.on('mousemove', function() {
+		.on('mousemove', () => {
 
-			const mouse = d3.mouse(this);
+			const mouse = d3.mouse(container[0][0]);
 
-			if(that.zoomRectangle) {
+			if(this.zoomRectangle) {
 
 				const
-					filteredRows = that.rows.filter(row => {
+					filteredRows = this.rows.filter(row => {
 
-						const item = that.x(row.getTypedValue(that.x.column)) + 100;
+						const item = this.x(row.getTypedValue(this.x.column)) + 100;
 
-						if(mouse[0] < that.zoomRectangle.origin[0]) {
-							return item >= mouse[0] && item <= that.zoomRectangle.origin[0];
+						if(mouse[0] < this.zoomRectangle.origin[0]) {
+							return item >= mouse[0] && item <= this.zoomRectangle.origin[0];
 						}
 						else {
-							return item <= mouse[0] && item >= that.zoomRectangle.origin[0];
+							return item <= mouse[0] && item >= this.zoomRectangle.origin[0];
 						}
 					}),
-					width = Math.abs(mouse[0] - that.zoomRectangle.origin[0]);
+					width = Math.abs(mouse[0] - this.zoomRectangle.origin[0]);
 
 				// Assign width and height to the rectangle
-				that.zoomRectangle
+				this.zoomRectangle
 					.select('rect')
-					.attr('x', Math.min(that.zoomRectangle.origin[0], mouse[0]))
+					.attr('x', Math.min(this.zoomRectangle.origin[0], mouse[0]))
 					.attr('width', width)
-					.attr('height', that.height);
+					.attr('height', this.height);
 
-				that.zoomRectangle
+				this.zoomRectangle
 					.select('g')
 					.selectAll('*')
 					.remove();
 
-				that.zoomRectangle
+				this.zoomRectangle
 					.select('g')
 					.append('text')
 					.text(`${Format.number(filteredRows.length)} Selected`)
-					.attr('x', Math.min(that.zoomRectangle.origin[0], mouse[0]) + (width / 2))
-					.attr('y', (that.height / 2) - 5);
+					.attr('x', Math.min(this.zoomRectangle.origin[0], mouse[0]) + (width / 2))
+					.attr('y', (this.height / 2) - 5);
 
 				if(filteredRows.length) {
 
-					that.zoomRectangle
+					this.zoomRectangle
 						.select('g')
 						.append('text')
 						.attr('class', 'range')
-						.html(`${filteredRows[0].getTypedValue(that.x.column)} &hellip; ${filteredRows[filteredRows.length - 1].getTypedValue(that.x.column)}`)
-						.attr('x', Math.min(that.zoomRectangle.origin[0], mouse[0]) + (width / 2))
-						.attr('y', (that.height / 2) + 20);
+						.html(`${filteredRows[0].getTypedValue(this.x.column)} &hellip; ${filteredRows[filteredRows.length - 1].getTypedValue(this.x.column)}`)
+						.attr('x', Math.min(this.zoomRectangle.origin[0], mouse[0]) + (width / 2))
+						.attr('y', (this.height / 2) + 20);
 				}
 
 				return;
 			}
 
-			const row = that.rows[parseInt((mouse[0] - that.axes.left.size - 10) / (that.width / that.rows.length))];
+			const
+				rowPosition = parseInt((mouse[0] - this.axes.left.size - 10) / (this.width / this.rows.length)),
+				row = this.rows[rowPosition];
 
-			if(!row || !that.x) {
+			if(!row || !this.x) {
 				return;
+			}
+
+			for(const axis of this.axes) {
+
+				// Only works in line for now
+				if(!['line'].includes(axis.type)) {
+					continue;
+				}
+
+				const columns = axis.columns.filter(column => this.source.columns.has(column.key) && !this.source.columns.get(column.key).disabled);
+
+				if(!columns.length) {
+					continue;
+				}
+
+				for(const column of columns) {
+
+					if(!column.dots || !column.dots.length) {
+						continue;
+					}
+
+					for(const [i, dot] of column.dots[0].entries()) {
+
+						let
+							radius = 0,
+							hover = false;
+
+						if(this.options.showPoints || axis.showPoints) {
+							radius = 3;
+						}
+
+						if(i == rowPosition) {
+							radius = 5;
+							hover = true;
+						}
+
+						dot.setAttribute('r', radius);
+						dot.classList.toggle('hover', hover);
+						dot.dataset.showPoints = this.options.showPoints || axis.showPoints;
+					}
+				}
 			}
 
 			const tooltip = [];
 
 			for(const [key, _] of row) {
 
-				if(key == that.x.column) {
+				if(key == this.x.column) {
 					continue;
 				}
 
@@ -8621,12 +8671,8 @@ Visualization.list.set('linear', class Linear extends LinearVisualization {
 					continue;
 				}
 
-				if(!row.has(key) || row.get(key) == '' || row.get(key) == null) {
-					continue;
-				}
-
 				tooltip.push(`
-					<li class="${row.size > 2 && that.hoverColumn && that.hoverColumn.key == key ? 'hover' : ''}">
+					<li class="${row.size > 2 && this.hoverColumn && this.hoverColumn.key == key ? 'hover' : ''}">
 						<span class="circle" style="background:${column.color}"></span>
 						<span>
 							${column.drilldown && column.drilldown.query_id ? '<i class="fas fa-angle-double-down"></i>' : ''}
@@ -8638,17 +8684,27 @@ Visualization.list.set('linear', class Linear extends LinearVisualization {
 			}
 
 			const content = `
-				<header>${row.getTypedValue(that.x.column)}</header>
+				<header>${row.getTypedValue(this.x.column)}</header>
 				<ul class="body">
 					${tooltip.reverse().join('')}
 				</ul>
 			`;
 
-			Tooltip.show(that.container, mouse, content, row);
+			Tooltip.show(this.container, mouse, content, row);
 		})
 
 		.on('mouseleave', function() {
+
 			Tooltip.hide(that.container);
+
+			// Reset any dots that have hover radius
+			const dots = that.container.querySelectorAll('.dot.hover');
+
+			for(const dot of dots) {
+
+				dot.classList.remove('hover');
+				dot.setAttribute('r', dot.dataset.showPoints == 'true' ? 3 : 0);
+			}
 		})
 
 		.on('mousedown', function() {

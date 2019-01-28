@@ -1106,8 +1106,8 @@ button[disabled] {
 				color: var(--color-surface-text);
 			}
 			.visualization.cohort table td.sticky:nth-child(2n) {
-				background: #f1f1f9;
-				color: var(--color-grey);
+				background: var(--color-surface);
+				color: var(--color-surface-text);
 			}
 			.visualization.cohort table .sticky:nth-child(2) {
 				left: 100px;
