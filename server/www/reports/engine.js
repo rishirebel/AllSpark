@@ -256,6 +256,11 @@ class report extends API {
 				else if (Array.isArray(preReportApiDetails[key])) {
 
 					value = preReportApiDetails[key];
+
+					if(!value.length) {
+
+						value = [""];
+					}
 				}
 
 				else {
@@ -1259,6 +1264,7 @@ class Bigquery {
 	}
 }
 
+
 class BigqueryLegacy {
 
 	constructor(reportObj, filters = []) {
@@ -1680,6 +1686,7 @@ class download extends API {
 	}
 }
 
+
 class executingReports extends API {
 
 	async executingReports() {
@@ -1718,6 +1725,7 @@ class executingReports extends API {
 		return result;
 	}
 }
+
 
 class CachedReports extends API {
 
@@ -1764,6 +1772,7 @@ class CachedReports extends API {
 		return await commonFun.promiseParallelLimit(5, keyDetails);
 	}
 }
+
 
 exports.query = query;
 exports.report = report;
