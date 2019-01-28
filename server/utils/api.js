@@ -266,6 +266,54 @@ class API {
 
 				return next(e);
 			}
+
+			finally {
+
+				if(!obj.account || obj.account.account_id != 3)
+					return;
+
+				const db = dbConfig.write.database.concat('_logs');
+
+				let
+					user_id = null,
+					token = obj.request.body.token ||
+							obj.request.body.refresh_token ||
+							obj.request.query.token ||
+							obj.request.query.refresh_token ||
+							obj.request.cookies.token;
+
+				try {
+					let decodedToken = JSON.parse(atob(token.body.split('.')[1]));
+
+					user_id = JSON.parse(decodeURIComponent(decodedToken.data)).user_id;
+				} catch(e) {}
+
+				// Ignore TV panel user
+				if(user_id == 16563)
+					return;
+
+				mysql.MySQL.query(`
+					INSERT INTO ??.tb_api_logs (
+						account_id, user_id, pathname, body, query, headers, response, status, useragent
+					) VALUES (?)`,
+					[
+						db,
+						[
+							obj.account.account_id,
+							user_id,
+							url.parse(obj.request.url).pathname,
+							JSON.stringify(obj.request.body),
+							JSON.stringify(obj.request.query),
+							JSON.stringify(obj.request.headers),
+							JSON.stringify(obj.originalResult) || obj.originalResult,
+							obj.response.statusCode,
+							obj.request.headers['user-agent'],
+						]
+					],
+					'write'
+				);
+
+			}
 		}
 	}
 
