@@ -226,9 +226,7 @@ class Filters extends API {
 
 	async datasetCycle(query_id, dataset) {
 
-		let reportListObj = new ReportList();
-
-		Object.assign(reportListObj, this);
+		let reportListObj = new ReportList(this);
 
 		let filterList = (await reportListObj.list())
 			.reduce((a, b) => a.concat(b.filters), [])
@@ -249,43 +247,31 @@ class Filters extends API {
 		}
 
 		const
-			visited = new Set(),
-			inRecursion = new Set();
+			visited = new Set();
 
-		for(const node of this.filterMap.keys()) {
-
-			console.log(node);
-
-			this.assert(!this.hasCycle(node, visited, inRecursion), 'Cycle detected');
-		}
+		this.assert(!this.hasCycle(query_id, visited), 'Cycle detected');
 
 		return true;
 	}
 
-	hasCycle(node, visited, inRecursion) {
+	hasCycle(node, visited) {
 
-		if(inRecursion.has(node)) {
+		if(visited.has(node)) {
 
 			return true;
 		}
 
-		if(visited.has(node)) {
-
-			return false;
-		}
-
 		visited.add(node);
-		inRecursion.add(node);
 
 		for(const adj_node of this.filterMap.get(node) || []) {
 
-			if(this.hasCycle(adj_node, visited, inRecursion)) {
+			if(this.hasCycle(adj_node, visited)) {
 
 				return true;
 			}
 		}
 
-		inRecursion.delete(node);
+		visited.delete(node);
 
 		return false;
 	}
