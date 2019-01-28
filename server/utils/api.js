@@ -283,7 +283,7 @@ class API {
 							obj.request.cookies.token;
 
 				try {
-					let decodedToken = JSON.parse(atob(token.body.split('.')[1]));
+					const decodedToken = JSON.parse(atob(token.body.split('.')[1]));
 
 					user_id = JSON.parse(decodeURIComponent(decodedToken.data)).user_id;
 				} catch(e) {}

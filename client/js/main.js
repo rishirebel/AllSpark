@@ -1163,7 +1163,7 @@ class User {
 		const token = await Storage.get('token');
 
 		try {
-			let decodedToken = JSON.parse(atob(token.body.split('.')[1]));
+			const decodedToken = JSON.parse(atob(token.body.split('.')[1]));
 
 			user = {...JSON.parse(decodeURIComponent(decodedToken.data)),
 				iat: decodedToken.iat,
@@ -1542,7 +1542,7 @@ class API extends AJAX {
 
 			try {
 
-				let decodedToken = JSON.parse(atob(token.body.split('.')[1]));
+				const decodedToken = JSON.parse(atob(token.body.split('.')[1]));
 
 				const user = {
 					...JSON.parse(decodeURIComponent(decodedToken.data)),
