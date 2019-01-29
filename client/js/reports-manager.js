@@ -2533,7 +2533,7 @@ class ReportsManagerFilters extends Map {
 
 			if(parameter.name in externalParameters) {
 
-				parameters[DataSourceFilter.placeholderPrefix + parameter.name] = externalParameters[parameter.name];
+				parameters['ext_' + parameter.name] = externalParameters[parameter.name];
 			}
 		}
 
