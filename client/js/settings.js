@@ -1151,7 +1151,7 @@ Settings.list.set('about', class About extends SettingPage {
 			return;
 		}
 
-		const decodedToken = JSON.parse(atob(refreshToken.body.split('.')[1]));
+		const decodedToken = JSON.parse(atob(refreshToken.split('.')[1]));
 
 		const
 			refreshTokenInfo  = {
