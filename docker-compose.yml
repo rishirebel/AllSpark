@@ -2,7 +2,6 @@ version: '3.5'
 
 services:
   node:
-    #container_name: demo-master
     build:
       context: .
       dockerfile: node.dockerfile
