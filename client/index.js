@@ -265,7 +265,7 @@ router.get('/login', API.serve(class extends HTMLAPI {
 					this.request.body['ext_' + key.name] = this.request.query[key.name] || key.value;
 				}
 
-				external_parameters[key.name] = this.request.query[key.name] || !isNaN(parseFloat(this.request.query[key.name])) ? this.request.query[key.name] : key.value;
+				external_parameters[key.name] = this.request.query[key.name] == undefined ? key.value : this.request.query[key.name];
 			}
 
 			this.request.body.account_id = this.account.account_id;

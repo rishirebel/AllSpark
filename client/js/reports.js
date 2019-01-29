@@ -109,22 +109,6 @@ class DataSource {
 
 		parameters.set('autodetect_datasets', JSON.stringify(autodetectDatasets));
 
-		const external_parameters = await Storage.get('external_parameters');
-
-		if(Array.isArray(account.settings.get('external_parameters')) && external_parameters) {
-
-			for(const parameter of account.settings.get('external_parameters')) {
-
-				if(parameter.name in external_parameters) {
-
-					parameters.set(
-						DataSourceFilter.placeholderPrefix + parameter.name,
-						external_parameters[parameter.name] || !isNaN(parseFloat(external_parameters[parameter.name])) ? external_parameters[parameter.name] : parameter.value
-					);
-				}
-			}
-		}
-
 		let response = null;
 
 		const

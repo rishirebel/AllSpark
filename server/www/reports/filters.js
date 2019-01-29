@@ -190,7 +190,7 @@ class Filters extends API {
 
 					return {
 						name: x.name,
-						value: paramValue || !isNaN(paramValue) ? paramValue : x.value,
+						value: paramValue == undefined ? x.value : paramValue
 					}
 				})
 			},
