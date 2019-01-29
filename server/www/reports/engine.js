@@ -125,7 +125,7 @@ class report extends API {
 			`select 
 				value 
 			from 
-				tb_settings_copy 
+				tb_settings 
 			where 
 				owner = 'account' 
 				and profile = 'pre_report_api' 

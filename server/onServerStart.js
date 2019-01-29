@@ -21,7 +21,7 @@ async function loadAccounts() {
 		FROM
 			tb_accounts a
 		LEFT JOIN
-			tb_settings_copy s
+			tb_settings s
 		ON
 			a.account_id = s.owner_id
 			AND s.status = 1

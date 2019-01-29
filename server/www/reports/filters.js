@@ -155,7 +155,7 @@ class Filters extends API {
 	async preReport() {
 
 		let [preReportApi] = await this.mysql.query(
-			`select value from tb_settings_copy where owner = 'account' and profile = 'pre_report_api' and owner_id = ? AND status = 1`,
+			`select value from tb_settings where owner = 'account' and profile = 'pre_report_api' and owner_id = ? AND status = 1`,
 			[this.account.account_id],
 		);
 

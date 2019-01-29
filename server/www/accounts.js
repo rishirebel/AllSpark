@@ -21,7 +21,7 @@ exports.list = class extends API {
 			FROM
 				tb_accounts a
 			LEFT JOIN
-				tb_settings_copy s
+				tb_settings s
 			ON
 				s.owner_id = a.account_id
 				AND s.owner = 'account'
@@ -80,7 +80,7 @@ exports.get = class extends API {
 			FROM
 				tb_accounts a
 			LEFT JOIN
-				tb_settings_copy s
+				tb_settings s
 			ON
 				s.owner_id = a.account_id
 				AND s.owner = 'account'
@@ -189,7 +189,7 @@ exports.delete = class extends API {
 		);
 
 		await this.mysql.query(
-			"update tb_settings_copy set status = 0 where owner_id = ? and owner = 'account'",
+			"update tb_settings set status = 0 where owner_id = ? and owner = 'account'",
 			[account_id],
 			"write"
 		);

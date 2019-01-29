@@ -335,7 +335,7 @@ CREATE TABLE `tb_roles` (
 
 
 
-CREATE TABLE `tb_settings_copy` (
+CREATE TABLE `tb_settings` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `account_id` int(11) DEFAULT NULL,
   `owner` enum('account','user') DEFAULT NULL,
