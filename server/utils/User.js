@@ -51,7 +51,7 @@ class Settings extends Map {
 					SELECT
 						s.*
 					FROM
-						tb_settings s
+						tb_settings_copy s
 					JOIN
 						tb_users u
 					ON

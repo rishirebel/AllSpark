@@ -157,7 +157,7 @@ class Setup extends API {
 				"write"
 			),
 			this.mysql.query(
-				'INSERT INTO tb_settings (account_id, owner, owner_id, profile, value) VALUES (?, "account", ?, "main", ?)',
+				'INSERT INTO tb_settings_copy (account_id, owner, owner_id, profile, value) VALUES (?, "account", ?, "main", ?)',
 				[setupAccount.insertId, setupAccount.insertId, JSON.stringify(settingValue)],
 				"write"
 			),

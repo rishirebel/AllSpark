@@ -26,7 +26,7 @@ exports.insert = class extends API {
 
 		return await this.mysql.query(`
 				INSERT INTO
-					tb_settings
+					tb_settings_copy
 					(
 						account_id,
 						profile,
@@ -69,7 +69,7 @@ exports.update = class extends API {
 		this.assert(commonFun.isJson(value), "Please send valid JSON");
 
 		const response = await this.mysql.query(
-			"UPDATE tb_settings SET profile = ?, value = ? WHERE id = ?",
+			"UPDATE tb_settings_copy SET profile = ?, value = ? WHERE id = ?",
 			[profile || null, value, id],
 			"write"
 		);
@@ -106,7 +106,7 @@ exports.delete = class extends API {
 
 		await account.loadAccounts();
 
-		return await this.mysql.query("DELETE FROM tb_settings WHERE id = ?", [id], "write");
+		return await this.mysql.query("DELETE FROM tb_settings_copy WHERE id = ?", [id], "write");
 	}
 };
 
@@ -120,7 +120,7 @@ exports.list = class extends API {
 
 		this.assert(owner && owner_id, 'Owner or Owner_id not found');
 
-		const settingsList = await this.mysql.query("select * from tb_settings where status = 1 and owner = ? and owner_id = ?", [owner, owner_id]);
+		const settingsList = await this.mysql.query("select * from tb_settings_copy where status = 1 and owner = ? and owner_id = ?", [owner, owner_id]);
 
 		for(const row of settingsList) {
 			try {
