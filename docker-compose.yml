@@ -2,20 +2,31 @@ version: '3.5'
 
 services:
   node:
-    container_name: <node-test>
     build:
       context: .
       dockerfile: node.dockerfile
     command: bash startpm2.sh <env variable>
     ports:
-       - "3001:3001"
-       - "8001:8001"
+       - "3001"
     external_links:
        - mysql
        - redis
     networks:
       - nodeapp-network
       - db-net
+
+  lb:
+    image: dockercloud/haproxy
+    ports:
+      - <haproxy-port>:80
+    links:
+      - node
+    networks:
+      - nodeapp-network
+      - db-net
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
 
 networks:
   nodeapp-network:
