@@ -1,34 +1,41 @@
 const API = require('../utils/api');
+const ReportList = require('./reports/report').list;
 
-exports.noRedisDatasets = class extends API {
+class Alerts extends API {
 
 	async noRedisDatasets() {
 
-		this.user.privilege.needs('report');
+		const
+			reportListObj = new ReportList(this),
+			response = []
+		;
 
-		return this.mysql.query(
-			`SELECT
-				f.dataset, q.name AS dataset_name
-			FROM
-				tb_query_filters f
-			JOIN
-				tb_query q
-			ON
-				q.query_id = f.dataset
-			WHERE
-				f.dataset IS NOT NULL
-				AND q.is_deleted = 0
-				AND q.is_enabled = 1
-				AND (
-					q.is_redis IS NULL
-					OR (
-						q.is_redis NOT LIKE '%EOD%'
-						AND (q.is_redis = 0 OR q.is_redis = '')
-					)
-				)
-			GROUP BY
-				dataset	
-			`
-		);
+		let
+			reportList = await reportListObj.list(),
+			reportFilters = reportList.reduce((a, b) => a.concat(b.filters), [])
+		;
+
+		reportFilters = new Map(reportFilters.filter(x => x.dataset).map(x => [x.dataset, x]));
+		reportList = new Map(reportList.map(x => [x.query_id, x]));
+
+		for(const filter of reportFilters.values()) {
+
+			const query = reportList.get(filter.dataset);
+
+			if(!query || query.is_redis == 'EOD' || parseFloat(query.is_redis)) {
+
+				continue;
+			}
+
+			response.push({
+				query_id: query.query_id,
+				name: `<a href="report/${query.query_id}" target="_blank">${query.name}</a>`,
+				redis: query.is_redis
+			});
+		}
+
+		return response;
 	}
 }
+
+exports.noRedisDatasets = Alerts;

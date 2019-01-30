@@ -232,16 +232,21 @@ main #alerts > .list {
 	}
 		main #alerts > .list .alert h2 {
 			margin: 0;
-			padding: 5px 10px 5px 5px;
+			padding: 5px 5px 5px 0;
 			font-size: 110%;
-			background: var(--color-primary);
-			color: var(--color-primary-text);
+			border-bottom: 1px solid var(--color-border);
 			font-weight: normal;
 			letter-spacing: 0.3px;
 			cursor: pointer;
 			display: flex;
-			justify-content: space-between;
 		}
+			main #alerts > .list .alert h2 .arrow {
+				margin-right: 8px;
+				transition: transform var(--transition-duration);
+			}
+			main #alerts > .list .alert h2 .arrow.rotate {
+				transform: rotate(90deg);
+			}
 		main #alerts > .list .alert .alert-data {
 			max-height: 300px;
 			overflow: auto;

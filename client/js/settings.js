@@ -922,7 +922,7 @@ Settings.list.set('alerts', class Alerts extends SettingPage {
 
 		const alerts = [
 			{
-				name: 'Datasets having no redis',
+				name: 'Datasets Having No Redis',
 				api: 'alerts/noRedisDatasets'
 			}
 		];
@@ -938,6 +938,7 @@ Settings.list.set('alerts', class Alerts extends SettingPage {
 	setup() {
 
 		if(this.page.querySelector('.alerts')) {
+
 			this.page.querySelector('.alerts').remove();
 		}
 
@@ -952,7 +953,7 @@ Settings.list.set('alerts', class Alerts extends SettingPage {
 		}
 
 		const container = this.alertsContainer = document.createElement('div');
-		container.classList.add('setting-page', 'alerts');
+		container.classList.add('setting-page', 'alerts', 'hidden');
 
 		container.innerHTML = `
 			<section class="section show" id="alerts">
@@ -964,7 +965,7 @@ Settings.list.set('alerts', class Alerts extends SettingPage {
 		return container;
 	}
 
-	load() {
+	async load() {
 
 		const list = this.container.querySelector('.list');
 
@@ -974,6 +975,8 @@ Settings.list.set('alerts', class Alerts extends SettingPage {
 
 			list.appendChild(alert.container);
 		}
+
+		await Sections.show('alerts');
 	}
 
 });
@@ -3163,13 +3166,15 @@ class Alert {
 
 		container.innerHTML = `
 			<h2>
+				<span class="arrow"><i class="fas fa-angle-right"></i></span>
 				<span>${this.name}</span>
-				<span><i class="fas fa-ellipsis-h"></i></span>
 			</h2>
 			<div class="alert-data hidden"></div>
 		`;
 
 		container.querySelector('h2').on('click', async () => {
+
+			container.querySelector('.arrow').classList.toggle('rotate');
 
 			if(!this.response) {
 
@@ -3186,12 +3191,12 @@ class Alert {
 
 		const alertData = this.container.querySelector('.alert-data');
 
-		alertData.textContent = null;
-
 		if(!this.response.length) {
 
 			return alertData.innerHTML = '<div class="NA">No data found</div>';
 		}
+
+		alertData.textContent = null;
 
 		const table = document.createElement('table');
 
@@ -3229,6 +3234,8 @@ class Alert {
 
 			tbody.appendChild(tr);
 		}
+
+		(new SortTable({table})).sort();
 
 		alertData.appendChild(table);
 	}
