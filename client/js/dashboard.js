@@ -1855,7 +1855,7 @@ class DashboardGlobalFilters extends DataSourceFilters {
 
 			Dashboard.filtersAppliedByUser = true;
 
-			for (const report of this.dashboard.visibleVisuliaztions) {
+			for (const report of this.dashboard.visibleVisulizations) {
 
 				for (const filter of report.filters.values()) {
 
