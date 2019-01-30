@@ -1,4 +1,6 @@
 const API = require('../../utils/api');
+const getRole = require("../object_roles").get;
+const constants = require("../../utils/constants");
 
 exports.list = class extends API {
     async list() {
@@ -12,7 +14,8 @@ exports.list = class extends API {
 
 exports.insert = class extends API {
     async insert() {
-        this.user.privilege.needs('user');
+
+        this.user.privilege.needs('user', 'ignore');
 
         if (!('user_id' in this.request.body) || !('category_id' in this.request.body) || !('privilege_id' in this.request.body))
             return false;
@@ -49,11 +52,31 @@ exports.insert = class extends API {
 }
 
 exports.update = class extends API {
+
     async update() {
-        this.user.privilege.needs('user');
+        // this.user.privilege.needs('user');
+	    const user_id = this.request.body.user_id;
+
+        this.assert(user_id, "user id not found");
+
+	    const objRole = new getRole();
+	    const requiredRoles = await objRole.get(this.account.account_id, "query", "role", user_id);
+
+	    let flag = false;
+
+	    for(const row of requiredRoles) {
+
+	        for (const cat of row.category_id) {
+
+		        flag = flag || this.user.privilege.has('user.update', cat);
+	        }
+        }
+
+        flag = flag || !flag.length;
+
+        this.assert(flag, "user does not have enough privileges");
 
         const id = this.request.body.id;
-        const user_id = this.request.body.user_id;
         const category_id = this.request.body.category_id;
         const privilege_id = this.request.body.privilege_id;
         const account_id = this.account.account_id;
@@ -85,7 +108,28 @@ exports.update = class extends API {
 
 exports.delete = class extends API {
     async delete() {
-        this.user.privilege.needs('user');
+
+	    const userId = this.request.body.id;
+
+	    this.assert(userId, "user id not found");
+
+	    const objRole = new getRole();
+
+	    const requiredRoles = await objRole.get(this.account.account_id, "query", "role", userId);
+
+	    let flag = false;
+
+	    for(const row of requiredRoles) {
+
+		    for (const cat of row.category_id) {
+
+			    flag = flag || this.user.privilege.has('user.delete', cat);
+		    }
+	    }
+
+	    flag = flag || !flag.length;
+
+	    this.assert(flag, "user does not have enough privileges");
 
         return await this.mysql.query(
             'DELETE FROM tb_user_privilege WHERE id = ? AND user_id IN (SELECT user_id FROM tb_users WHERE account_id = ?)',
