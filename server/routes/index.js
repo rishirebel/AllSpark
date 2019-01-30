@@ -40,7 +40,7 @@ const MySQL = require('mysql');
 
 	if(useDb.error) {
 
-		return;
+		return console.error('Unable to establish MySQL connection.');
 	}
 
 	await account.loadAccounts();
