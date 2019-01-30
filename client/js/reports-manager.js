@@ -5493,6 +5493,11 @@ SpatialMapOptionsLayer.types.set('heatmap', class HeatMapLayer extends SpatialMa
 				<span>Opacity <span class="value">${this.opacity || 0.6}</span></span>
 				<input type="range" name="opacity" min="0" max="1" step="0.01">
 			</label>
+			
+			<label>
+				<span>Gradient</span>
+				<div class="gradient"></div>
+			</label>
 		`);
 
 		container.querySelector('.opacity input').on('input', () => {
@@ -5509,6 +5514,41 @@ SpatialMapOptionsLayer.types.set('heatmap', class HeatMapLayer extends SpatialMa
 			`);
 		}
 
+		for(const gradient in SpatialMapLayer.types.get('heatmap').gradient) {
+
+			this.selectedGradient = this.gradient || 'standard';
+
+			const gradDiv = document.createElement('div');
+			gradDiv.classList.add(gradient);
+
+			gradDiv.title = gradient;
+
+			let divBackground = '-webkit-linear-gradient(left';
+
+			for(const rgb of SpatialMapLayer.types.get('heatmap').gradient[gradient])
+				divBackground = divBackground.concat(',', rgb);
+
+			divBackground = divBackground.concat(')');
+
+			gradDiv.style.background = divBackground;
+
+			gradDiv.on('click', () => {
+
+				for(const div of container.querySelectorAll('.gradient div')) {
+
+					div.classList.remove('selected');
+				}
+
+				this.selectedGradient = gradDiv.title;
+				gradDiv.classList.add('selected');
+			});
+
+			if(gradient == this.selectedGradient)
+				gradDiv.classList.add('selected');
+
+			container.querySelector('.gradient').appendChild(gradDiv);
+		}
+
 		if(this.weightColumn)
 			container.querySelector('select[name=weight]').value = this.weightColumn;
 
@@ -5519,6 +5559,15 @@ SpatialMapOptionsLayer.types.set('heatmap', class HeatMapLayer extends SpatialMa
 			container.querySelector('input[name=radius]').value = this.radius;
 
 		return container;
+	}
+
+	get json() {
+
+		const response = super.json;
+
+		response.gradient = this.selectedGradient || this.gradient;
+
+		return response;
 	}
 });
 
@@ -6145,12 +6194,12 @@ ConfigureVisualization.types.set('spatialmap', class SpatialMapOptions extends R
 
 						<label>
 							<span>Center Latitude</span>
-							<input type="number" name="centerLatitude">
+							<input type="number" name="centerLatitude" step="0.000000000001">
 						</label>
 
 						<label>
 							<span>Center Longitude</span>
-							<input type="number" name="centerLongitude">
+							<input type="number" name="centerLongitude" step="0.000000000001">
 						</label>
 
 						<label>
