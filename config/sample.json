@@ -9,14 +9,14 @@
       "connectionLimit": 10,
       "host": "mysql-host",
       "user": "mysql-read",
-      "password": "password",
+      "password": "mysql-pass-read",
       "database":"env-db"
     },
     "write": {
       "connectionLimit": 10,
       "host": "mysql-host",
       "user": "mysql-write",
-      "password": "password",
+      "password": "mysql-pass-write",
       "database":"env-db"
     }
   },
