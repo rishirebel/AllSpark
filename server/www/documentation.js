@@ -106,9 +106,47 @@ class Documentation extends API {
 			'write'
 		);
 	}
+
+	async get({id} = {}) {
+
+		const response = await this.mysql.query('SELECT id, parent, chapter, heading FROM tb_documentation');
+
+		if(!id) {
+			return response;
+		}
+
+		let requiredIds = [];
+
+		for(const data of response) {
+
+			if(data.id == id) {
+				requiredIds.push(getChild(data, response, requiredIds));
+			}
+		}
+
+		function getChild(data, arr, requiredIds) {
+
+			const children = arr.filter(x => x.parent == data.id);
+
+			if(!children.length) {
+				return data.id;
+			}
+
+			requiredIds.push(data.id);
+
+			for(const child of children) {
+				requiredIds.push(getChild(child, arr, requiredIds));
+			}
+		}
+
+		requiredIds = requiredIds.filter(x => x);
+
+		return await this.mysql.query('SELECT * FROM tb_documentation WHERE id in (?)',[requiredIds]);
+	}
 }
 
 exports.list = Documentation;
+exports.get = Documentation;
 exports.insert = Documentation;
 exports.update = Documentation;
 exports.delete = Documentation;
