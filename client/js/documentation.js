@@ -21,11 +21,39 @@ class Documentations extends Page {
 
 		let what = state ? state.what : location.pathname.split('/').pop();
 
-		if(!what) {
+		if(what == 'documentation') {
+			history.pushState(null, '', '/documentation/');
+		}
+
+		if(!what || what == 'documentation') {
 			return [...this.list.values()][0].title.click();
 		}
 
-		return this.list.get(parseInt(what)).title.click();
+		const nav = this.getTitle(this.list, what);
+
+		return nav.title.click();
+	}
+
+	getTitle(list, what) {
+
+		if(list.has(parseInt(what))) {
+			return list.get(parseInt(what));
+		}
+
+		let title;
+
+		for(const child of list.values()) {
+
+			if(!child.children.size) {
+				continue;
+			}
+
+			title = this.getTitle(child.children, what);
+
+			if(title) {
+				return title;
+			}
+		}
 	}
 
 	setup() {
@@ -40,7 +68,9 @@ class Documentations extends Page {
 
 		const response = await API.call('documentation/get');
 
-		for(const data of response) {
+		const root = this.constructTree(response);
+
+		for(const data of root) {
 			this.list.set(data.id, new Nav(data, this));
 		}
 
@@ -50,11 +80,10 @@ class Documentations extends Page {
 	render() {
 
 		const
-			list = this.section.querySelector('.container .list'),
-			hierarchy = this.constructTree(this.list);
+			list = this.section.querySelector('.container .list');
 
-		for(const nav of hierarchy) {
-			list.appendChild(nav.menu);
+		for(const nav of this.list.values()) {
+			list.appendChild(nav.title);
 		}
 	}
 
@@ -62,7 +91,7 @@ class Documentations extends Page {
 
 		const dataMap = new Map;
 
-		for(const data of list.values()) {
+		for(const data of list) {
 
 			const parent = data.parent || 'root';
 
@@ -103,13 +132,108 @@ class Documentations extends Page {
 
 Page.class = Documentations;
 
-class Nav {
+class Documentation {
 
-	constructor(documentation, page) {
+	constructor(documentation, page, parent) {
 
 		Object.assign(this, documentation);
+		this.parent = parent;
 		this.page = page;
-		this.list = new Map;
+	}
+
+	async load() {
+
+		if(this.body) {
+			return;
+		}
+
+		const response = await API.call('documentation/get', {id: this.id});
+
+		this.bodyx = response;
+		this.indexSize = 1;
+	}
+
+	get container() {
+
+		const container =  document.createElement('div');
+		container.classList.add('documentation');
+
+		container.innerHTML = `
+			<div class="heading"><h${this.headingSize}>${this.completeChapter} ${this.heading}</h${this.headingSize}></div>
+			<p>${this.body || '<span class="NA">No content added.</span>'}</p>
+		`;
+
+		if(this.children.size) {
+
+			const subContent = document.createElement('div');
+			subContent.classList.add('subContent');
+
+			for(const child of this.children.values()) {
+
+				subContent.appendChild(child.container);
+			}
+
+			container.appendChild(subContent);
+		}
+
+		return container;
+	}
+
+	set indexSize(size) {
+
+		this.headingSize = size;
+
+		if(!this.children.size) {
+			return;
+		}
+
+		size++;
+
+		for(const child of this.children.values()) {
+			child.indexSize = size;
+		}
+	}
+
+	set bodyx(text) {
+
+		this.body = text.filter(x => x.id == this.id)[0].body;
+
+		if(!this.children.size) {
+			return;
+		}
+
+		for(const child of this.children.values()) {
+			child.bodyx = text;
+		}
+	}
+
+	get completeChapter() {
+
+		let parent = this.parent;
+		const a = [this.chapter];
+
+		while(parent) {
+			a.push(parent.chapter);
+			parent = parent.parent;
+		}
+
+		return a.reverse().join('.');
+	}
+}
+
+class Nav extends Documentation {
+
+	constructor(documentation, page, parent = null) {
+
+		super(documentation, page, parent);
+
+		const children = new Map;
+
+		for(const data of this.children) {
+			children.set(data.id, new Nav(data, this.page, this));
+		}
+
+		this.children = children;
 	}
 
 	get title() {
@@ -121,7 +245,19 @@ class Nav {
 		const container = this.titleElement = document.createElement('div');
 		container.classList.add('menu');
 
-		container.innerHTML = '';
+		container.innerHTML = `<span class="id">${super.completeChapter}</span> <a>${this.heading}</a>`;
+
+		if(this.children.size) {
+
+			const submenu = document.createElement('div');
+			submenu.classList.add('submenu');
+
+			for(const nav of this.children.values()) {
+				submenu.appendChild(nav.title);
+			}
+
+			container.appendChild(submenu);
+		}
 
 		container.on('click', async (e) => {
 
@@ -135,172 +271,14 @@ class Nav {
 
 			history.pushState(null, '', this.id);
 
-			if(!this.list.size) {
-				this.list.set(this.id, new Documentation(this.id, this.page));
+			if(this.page.container.querySelector('.documentation')) {
+				this.page.container.querySelector('.documentation').remove();
 			}
 
-			await this.list.get(this.id).load();
+			await this.load();
 
-			const content = this.page.container.querySelector('.container');
-
-			if(content.querySelector('.documentation')) {
-				content.querySelector('.documentation').remove();
-			}
-
-			content.appendChild(this.list.get(this.id).container);
+			this.page.container.querySelector('.container').appendChild(this.container);
 		});
-
-		return container;
-	}
-
-	set index(text) {
-
-		this.title.innerHTML = `<span class="id">${text}</span> <a>${this.heading}</a>`
-	}
-
-	get index() {
-
-		return this.title.querySelector('.id').textContent;
-	}
-
-	get menu() {
-
-		if(this.menuElement) {
-			return this.menuElement;
-		}
-
-		const container = this.menuElement = document.createDocumentFragment();
-
-		container.appendChild(this.constructMenu(this, [this.id], 0));
-
-		return container;
-	}
-
-	constructMenu(documentation, index, level) {
-
-		const item = document.createElement('div');
-		item.classList.add('item');
-
-		if(!documentation.children.length) {
-			documentation.index = index.join('.');
-			item.appendChild(documentation.title);
-			return item;
-		}
-
-		documentation.children.sort((a,b) => a.chapter - b.chapter);
-
-		documentation.index = index.join('.');
-
-		const children = document.createElement('div');
-
-		children.classList.add('children');
-
-		for(const _documentation of documentation.children) {
-
-			index.push(_documentation.chapter)
-
-			level++;
-
-			_documentation.title.style['padding-left'] = level * 20 + 'px';
-
-			children.appendChild(this.constructMenu(_documentation, index, level));
-
-			index.pop();
-
-			level--;
-		}
-
-		item.appendChild(documentation.title);
-		item.appendChild(children);
-
-		return item;
-	}
-}
-
-class Documentation {
-
-	constructor(id, page) {
-
-		this.id = id;
-		this.list = new Map;
-		this.page = page;
-	}
-
-	async load() {
-
-		if(this.list.size) {
-			return;
-		}
-
-		const response = await API.call('documentation/get', {id: this.id});
-
-		for(const documentation of response) {
-			this.list.set(documentation.id, new Doc(documentation, this.page));
-		}
-	}
-
-	get container() {
-
-		if(this.containerElement) {
-			return this.containerElement;
-		}
-
-		const container = this.containerElement = document.createElement('div');
-		container.classList.add('documentation');
-
-		container.appendChild(this.prepareDocumentation(this.page.list.get(this.chapter), this.id, 1));
-
-		return container;
-	}
-
-	prepareDocumentation(nav, id, headingSize) {
-
-		this.list.get(id).container.querySelector('div').innerHTML = `
-			<h${headingSize}>${nav.index} <a>${nav.heading} </a></h${headingSize}>
-		`;
-
-		if(!nav.children.length) {
-			return this.list.get(id).container
-		}
-
-		if(headingSize <= 6) {
-			headingSize++;
-		}
-
-		for(const _nav of nav.children) {
-
-			this.list.get(_nav.id).container.querySelector('div').innerHTML = `<h${headingSize}>${_nav.index} <a>${_nav.heading} </a></h${headingSize}>`;
-
-			this.list.get(id).container.appendChild(this.list.get(_nav.id).container);
-			this.prepareDocumentation(_nav, _nav.id, headingSize);
-		}
-
-		return this.list.get(id).container;
-	}
-}
-
-class Doc {
-
-	constructor(documentation, page) {
-
-		Object.assign(this, documentation);
-
-		this.page = page;
-	}
-
-	get container() {
-
-		if(this.containerElement) {
-			return this.containerElement;
-		}
-
-		const container = this.containerElement = document.createElement('div');
-		container.classList.add('body');
-
-		container.innerHTML = `
-			<div></div>
-			<p>${this.body || '<span class="NA">No content added.</span>'}</p>
-		`;
 
 		return container;
 	}
