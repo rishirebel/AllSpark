@@ -1024,7 +1024,12 @@ class DataSource {
 
 		a.download = fileName.join(' - ') + '.' + what.mode;
 
+		a.classList.add('hidden');
+
+		document.querySelector('body').appendChild(a);
+
 		a.click();
+		a.remove();
 	}
 
 	get xlsxDownloadable() {
