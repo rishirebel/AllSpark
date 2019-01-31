@@ -128,9 +128,9 @@ class VisualizationsManager extends Map {
 			}
 		}
 
-		this.clear();
-
-		let reports = Array.from(DataSource.list.values());
+		let
+			reports = Array.from(DataSource.list.values()),
+			visualizations = [];
 
 		reports	= JSON.parse(JSON.stringify(reports))
 
@@ -157,8 +157,16 @@ class VisualizationsManager extends Map {
 					visualization.connection.datasource = MetaData.datasources.get(visualization.connection.type);
 				}
 
-				this.set(visualization.id, new VisualizationsManagerRow(visualization, this))
+				visualizations.push(new VisualizationsManagerRow(visualization, this));
 			}
+		}
+
+		visualizations.sort((a, b) => Date.parse(b.created_at) -  Date.parse(a.created_at));
+
+		this.clear();
+
+		for(const visualization of visualizations) {
+			this.set(visualization.id, visualization);
 		}
 
 		this.search.data = Array.from(this.values());
@@ -181,8 +189,6 @@ class VisualizationsManager extends Map {
 		if(!tbody.children.length) {
 			tbody.innerHTML = '<tr><td colspan="7">No Visualizations Found!</td></tr>';
 		}
-
-		this.sortTable.sort();
 
 		Sections.show('list');
 	}
@@ -254,7 +260,7 @@ class VisualizationsManager extends Map {
 			</table>
 		`;
 
-		this.sortTable = new SortTable({table: container.querySelector('table')});
+		new SortTable({table: container.querySelector('table')}).sort();
 
 		container.querySelector('.add-visualization').on('click', () => this.add());
 		container.querySelector('.toolbar').appendChild(this.search.globalSearch.container);
@@ -485,7 +491,7 @@ class VisualizationsManagerRow {
 			</td>
 
 			<td class="tags"></td>
-			<td>
+			<td data-sort-by="${this.created_at}">
 				<span title="${Format.dateTime(this.created_at)}">${Format.ago(this.created_at)}</span> by
 				${this.added_by_name ? `<a href="/user/profile/${this.added_by}" target="_blank">${this.added_by_name}</a>` : 'Unknown User'}
 			</td>
