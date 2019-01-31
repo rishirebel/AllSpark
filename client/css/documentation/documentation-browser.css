@@ -1,13 +1,13 @@
-main section {
+main {
 	height: calc(100vh - 50px);
 }
-	main section .container {
+	main section.container {
 		display: grid;
 		grid-template-columns: max-content 1fr;
 		height: 100%;
 		grid-gap: calc(var(--gap) * 3);
 	}
-		main section .container .list {
+		main section.container nav {
 			border-right: 1px solid var(--color-border);
 			min-width: 250px;
 			max-height: 100%;
@@ -28,7 +28,7 @@ main section {
 			main section .menu .item:hover {
 				background: rgba(0, 0, 0, 0.2);
 			}
-			main section .container .list a {
+			main section.container nav a {
 				text-decoration: none;
 			}
 			.documentation {
@@ -54,11 +54,11 @@ main section {
 				}
 
 @media(max-width: 750px) {
-	main section .container {
+	main section.container {
 		display: flex;
 		flex-direction: column;
 	}
-		main section .container .list {
+		main section.container nav {
 			border-bottom: 1px solid var(--color-border);
 		}
 }

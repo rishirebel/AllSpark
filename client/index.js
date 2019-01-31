@@ -1700,8 +1700,8 @@ router.get('/documentation/:id?', API.serve(class extends HTMLAPI {
 
 		super();
 
-		this.stylesheets.push('/css/documentation.css');
-		this.scripts.push('/js/documentation.js');
+		this.stylesheets.push('/css/documentation/documentation-browser.css');
+		this.scripts.push('/js/documentation/documentation-browser.js');
 	}
 }));
 

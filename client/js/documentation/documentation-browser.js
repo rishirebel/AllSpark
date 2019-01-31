@@ -1,0 +1,192 @@
+class DocumentationBrowser extends Page {
+
+	constructor() {
+
+		super();
+
+		window.on('popstate', e => this.loadState(e.state));
+
+		this.list = new Map;
+
+		this.setup();
+
+		(async () => {
+
+			await this.load();
+			this.loadState();
+		})();
+	}
+
+	loadState(state) {
+
+		let what = state ? state.what : location.pathname.split('/').pop();
+
+		if(!what || isNaN(parseInt(what))) {
+			return [...this.list.values()][0].title.click();
+		}
+
+		const nav = this.getTitle(this.list, what);
+
+		return nav.title.querySelector('.item').click();
+	}
+
+	getTitle(list, id) {
+
+		if(list.has(parseInt(id))) {
+			return list.get(parseInt(id));
+		}
+
+		for(const child of list.values()) {
+
+			if(!child.children.size) {
+				continue;
+			}
+
+			const title = this.getTitle(child.children, id);
+
+			if(title) {
+				return title;
+			}
+		}
+	}
+
+	setup() {
+
+		this.container.textContent = null;
+		this.container.innerHTML = `
+			<section class="container">
+				<nav></nav>
+			</section>
+		`;
+	}
+
+	async load() {
+
+		this.list.clear();
+
+		const response = await API.call('documentation/get');
+
+		const root = this.constructTree(response);
+
+		for(const data of root) {
+			this.list.set(data.id, new DocumentationBrowserItem(data, this));
+		}
+
+		this.render();
+	}
+
+	render() {
+
+		const
+			list = this.container.querySelector('.container nav');
+
+		for(const nav of this.list.values()) {
+			list.appendChild(nav.title);
+		}
+	}
+
+	constructTree(list) {
+
+		const tree = new Map;
+
+		for(const documentation of list) {
+
+			if(!tree.has(documentation.parent)) {
+				tree.set(documentation.parent, []);
+			}
+
+			tree.get(documentation.parent).push(documentation);
+		}
+
+		for(const [key, documentation] of tree) {
+
+		    for(const _documentation of documentation) {
+				_documentation.children = tree.get(_documentation.id) || [];
+			}
+		}
+
+		return tree.get(null);
+	}
+}
+
+Page.class = DocumentationBrowser;
+
+class DocumentationBrowserItem extends Documentation {
+
+	constructor(documentation, page, parent = null) {
+
+		super(documentation, page, parent);
+
+		const children = new Map;
+
+		for(const data of this.children) {
+			children.set(data.id, new DocumentationBrowserItem(data, this.page, this));
+		}
+
+		this.children = children;
+	}
+
+	get title() {
+
+		if(this.titleElement) {
+			return this.titleElement;
+		}
+
+		const container = this.titleElement = document.createElement('div');
+		container.classList.add('menu');
+
+		container.innerHTML = `
+			<div class="item">
+				<span class="id">${this.completeChapter}</span>
+				<a>${this.heading}</a>
+			</div>
+		`;
+
+		if(this.children.size) {
+
+			const submenu = document.createElement('div');
+			submenu.classList.add('submenu');
+
+			for(const child of this.children.values()) {
+
+				let parent = this.parent;
+				let level = 1;
+
+				while(parent) {
+					level++;
+					parent = parent.parent;
+				}
+
+				child.title.querySelector('.item').style['padding-left'] = level * 20 + 'px';
+
+				submenu.appendChild(child.title);
+			}
+
+			container.appendChild(submenu);
+		}
+
+		const item = container.querySelector('.item');
+
+		item.on('click', async() => {
+
+			if(this.page.container.querySelector('nav .selected')) {
+				this.page.container.querySelector('nav .selected').classList.remove('selected');
+			}
+
+			item.classList.add('selected');
+
+			history.pushState(null, '', `/documentation/${this.id}`);
+
+			if(this.page.container.querySelector('.documentation')) {
+				this.page.container.querySelector('.documentation').remove();
+			}
+
+			await this.load();
+			this.indexSize = 1;
+
+			this.page.container.querySelector('.container').appendChild(this.container);
+		});
+
+		return container;
+	}
+}
