@@ -10,7 +10,7 @@ class Settings extends Page {
 
 			for (const [key, settings] of Settings.list) {
 
-				if(['executingReports', 'accounts', 'cachedReports'].includes(key) && !this.user.privileges.has('superadmin')) {
+				if(['executingReports', 'accounts', 'cachedReports', 'alerts'].includes(key) && !this.user.privileges.has('superadmin')) {
 					continue;
 				}
 
@@ -912,6 +912,75 @@ Settings.list.set('cachedReports', class CachedReports extends SettingPage {
 
 		Sections.show('cached-reports');
 	}
+});
+
+Settings.list.set('alerts', class Alerts extends SettingPage {
+
+	constructor(...params) {
+
+		super(...params);
+
+		const alerts = [
+			{
+				name: 'Datasets Having No Redis',
+				api: 'alerts/noRedisDatasets'
+			}
+		];
+
+		this.alerts = new Map(alerts.map(x => [x.name, new Alert(x)]));
+	}
+
+	get name() {
+
+		return 'Alerts';
+	}
+
+	setup() {
+
+		if(this.page.querySelector('.alerts')) {
+
+			this.page.querySelector('.alerts').remove();
+		}
+
+		this.page.appendChild(this.container);
+	}
+
+	get container() {
+
+		if(this.alertsContainer) {
+
+			return this.alertsContainer;
+		}
+
+		const container = this.alertsContainer = document.createElement('div');
+		container.classList.add('setting-page', 'alerts', 'hidden');
+
+		container.innerHTML = `
+			<section class="section show" id="alerts">
+				<h1>Alerts</h1>
+				<div class="list"></div>
+			</section>
+		`;
+
+		return container;
+	}
+
+	async load() {
+
+		const list = this.container.querySelector('.list');
+
+		list.textContent = null;
+
+		for(const alert of this.alerts.values()) {
+
+			alert.response = null;
+			alert.resetContainer();
+			list.appendChild(alert.container);
+		}
+
+		await Sections.show('alerts');
+	}
+
 });
 
 Settings.list.set('about', class About extends SettingPage {
@@ -3070,5 +3139,112 @@ class CachedReport {
 		`;
 
 		return this.rowElement;
+	}
+}
+
+class Alert {
+
+	constructor(alertProperties) {
+
+		Object.assign(this, alertProperties);
+	}
+
+	async load() {
+
+		this.response = await API.call(this.api);
+
+		this.render();
+	}
+
+	get container() {
+
+		if(this.alertContainer) {
+
+			return this.alertContainer;
+		}
+
+		const container = this.alertContainer = document.createElement('div');
+		container.classList.add('alert');
+
+		container.innerHTML = `
+			<h2>
+				<span class="arrow"><i class="fas fa-angle-right"></i></span>
+				<span>${this.name}</span>
+			</h2>
+			<div class="alert-data hidden"></div>
+		`;
+
+		container.querySelector('h2').on('click', async () => {
+
+			container.querySelector('.arrow').classList.toggle('rotate');
+
+			if(!this.response) {
+
+				await this.load();
+			}
+
+			container.querySelector('.alert-data').classList.toggle('hidden');
+		});
+
+		return container;
+	}
+
+	resetContainer() {
+
+		this.container.querySelector('.arrow').classList.remove('rotate');
+		this.container.querySelector('.alert-data').classList.add('hidden');
+	}
+
+	render() {
+
+		const alertData = this.container.querySelector('.alert-data');
+
+		if(!this.response.length) {
+
+			return alertData.innerHTML = '<div class="NA">No data found</div>';
+		}
+
+		alertData.textContent = null;
+
+		const table = document.createElement('table');
+
+		table.innerHTML = `
+			<thead>
+				<tr></tr>
+			</thead>
+			<tbody></tbody>
+		`;
+
+		const
+			thead = table.querySelector('thead > tr'),
+			tbody = table.querySelector('tbody');
+
+
+		for(const row of Object.keys(this.response[0])) {
+
+			const th = document.createElement('th');
+
+			th.innerHTML = row.split('_').map(x => x.slice(0, 1).toUpperCase() + x.slice(1)).join(' ');
+			thead.appendChild(th);
+		}
+
+		for(const row of this.response) {
+
+			const tr = document.createElement('tr');
+
+			for(const column of Object.values(row)) {
+
+				const td = document.createElement('td');
+
+				td.innerHTML = column;
+				tr.appendChild(td);
+			}
+
+			tbody.appendChild(tr);
+		}
+
+		(new SortTable({table})).sort();
+
+		alertData.appendChild(table);
 	}
 }
