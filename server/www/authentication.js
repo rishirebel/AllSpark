@@ -193,7 +193,9 @@ exports.login = class extends API {
 
 				const
 					externalValue = this.request.body[constants.external_parameter_prefix + parameter.name],
-					value = externalValue == undefined ? parameter.value : externalValue;
+					value = !externalValue && externalValue !== false && externalValue !== 0 && externalValue !== ""
+						? parameter.value
+						: externalValue;
 
 				if (Array.isArray(value)) {
 
@@ -264,7 +266,6 @@ exports.login = class extends API {
 		if (!this.email) {
 
 			this.assert(this.possibleAccounts.length, "No account found");
-
 
 			if (!this.possibleAccounts[0].auth_api) {
 
@@ -389,7 +390,12 @@ exports.refresh = class extends cycleDetection {
 
 		if (this.account.auth_api && this.request.body.external_parameters) {
 
-			this.possibleAccounts = [this.account];
+			this.possibleAccounts = global.accounts.filter(x => userDetail.account_id == x.account_id);
+
+			if(!this.possibleAccounts.length) {
+
+				this.possibleAccounts = [this.account];
+			}
 
 			const loginObj = new exports.login();
 
