@@ -973,6 +973,8 @@ Settings.list.set('alerts', class Alerts extends SettingPage {
 
 		for(const alert of this.alerts.values()) {
 
+			alert.response = null;
+			alert.resetContainer();
 			list.appendChild(alert.container);
 		}
 
@@ -3185,6 +3187,12 @@ class Alert {
 		});
 
 		return container;
+	}
+
+	resetContainer() {
+
+		this.container.querySelector('.arrow').classList.remove('rotate');
+		this.container.querySelector('.alert-data').classList.add('hidden');
 	}
 
 	render() {
