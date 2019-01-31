@@ -886,7 +886,10 @@ class Dashboard {
 			const link = document.createElement('a');
 			link.href = window.URL.createObjectURL(content);
 			link.download = page.list.get(page.currentDashboard).name + '-' + Format.dateTime(Date.now()) + '.pdf';
+			link.classList.add('hidden');
+			document.querySelector('body').appendChild(link);
 			link.click();
+			link.remove();
 		}
 		else if(content.headers.get('content-type').includes('image')) {
 
@@ -895,7 +898,10 @@ class Dashboard {
 			const link = document.createElement('a');
 			link.href = window.URL.createObjectURL(content);
 			link.download = page.list.get(page.currentDashboard).name + '-' + Format.dateTime(Date.now()) + '.' + type;
+			link.classList.add('hidden');
+			document.querySelector('body').appendChild(link);
 			link.click();
+			link.remove();
 		}
 		else {
 
