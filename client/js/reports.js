@@ -655,7 +655,7 @@ class DataSource {
 		if(this.visualizations.selected.editable)
 			menu.querySelector('.menu .configure-visualization').parentElement.classList.remove('hidden');
 
-		menu.querySelector('.reload').on('click', async e => {
+		menu.querySelector('.reload').on('click', e => {
 
 			const options = {};
 
@@ -666,7 +666,7 @@ class DataSource {
 				for(const filter of this.filters.values()) {
 
 					if(filter.dataset) {
-						await Storage.delete('dataset.' + filter.dataset);
+						Storage.delete('dataset.' + filter.dataset);
 					}
 				}
 			}
