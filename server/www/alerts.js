@@ -29,8 +29,7 @@ class Alerts extends API {
 
 			response.push({
 				query_id: query.query_id,
-				name: `<a href="report/${query.query_id}" target="_blank">${query.name}</a>`,
-				redis: query.is_redis
+				name: `<a href="report/${query.query_id}" target="_blank">${query.name}</a>`
 			});
 		}
 
