@@ -655,7 +655,7 @@ class DataSource {
 		if(this.visualizations.selected.editable)
 			menu.querySelector('.menu .configure-visualization').parentElement.classList.remove('hidden');
 
-		menu.querySelector('.reload').on('click', e => {
+		menu.querySelector('.reload').on('click', async e => {
 
 			const options = {};
 
@@ -666,7 +666,7 @@ class DataSource {
 				for(const filter of this.filters.values()) {
 
 					if(filter.dataset) {
-						Storage.delete('dataset.' + filter.dataset);
+						await Storage.delete('dataset.' + filter.dataset);
 					}
 				}
 			}
@@ -1757,7 +1757,7 @@ class DataSourceFilter {
 			return [];
 		}
 
-		await DataSource.load();
+		await DataSource.load(true);
 
 		let
 			values,
@@ -1780,11 +1780,15 @@ class DataSourceFilter {
 				values = response.data;
 
 			await Storage.set(`dataset.${this.dataset}`, {values, timestamp: Date.now()});
+
+			this.multiSelect.datalist = [];
+			this.multiSelect.clear();
 		}
 
 		({values, timestamp} = await Storage.get(`dataset.${this.dataset}`));
 
 		if(!this.multiSelect.datalist || !this.multiSelect.datalist.length) {
+
 			this.multiSelect.datalist = values;
 			this.multiSelect.multiple = this.multiple;
 			this.multiSelect.all();
