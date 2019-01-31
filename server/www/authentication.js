@@ -183,17 +183,26 @@ exports.login = class extends API {
 
 	async requestAuthAPI() {
 
+		console.log(this.request.body, '=======');
+		console.log('==============');
+
 		let parameters = new URLSearchParams;
 
 		const externalParameters = this.possibleAccounts[0].settings.get("external_parameters");
+
+		console.log(externalParameters);
 
 		if (Array.isArray(externalParameters)) {
 
 			for (const parameter of externalParameters) {
 
+				console.log('@@@@@@', parameter);
+
 				const
 					externalValue = this.request.body[constants.external_parameter_prefix + parameter.name],
 					value = externalValue == undefined ? parameter.value : externalValue;
+
+				console.log('generated value for ', parameter.name, '   ', value);
 
 				if (Array.isArray(value)) {
 
@@ -215,6 +224,8 @@ exports.login = class extends API {
 		let url = this.possibleAccounts[0].auth_api + "?" + parameters;
 
 		try {
+
+			this.assert(false, 'returned');
 
 			let authAPIResponse = await fetch(url, {"method": "GET"});
 			let status = authAPIResponse.status;
