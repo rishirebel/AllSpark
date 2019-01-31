@@ -25,7 +25,7 @@ class Documentations extends Page {
 			history.pushState(null, '', '/documentation/');
 		}
 
-		if(!what || what == 'documentation') {
+		if(!what || isNaN(parseInt(what))) {
 			return [...this.list.values()][0].title.click();
 		}
 
@@ -143,7 +143,7 @@ class Documentation {
 
 	async load() {
 
-		if(this.body) {
+		if(this.body || this.body === null) {
 			return;
 		}
 
@@ -245,7 +245,12 @@ class Nav extends Documentation {
 		const container = this.titleElement = document.createElement('div');
 		container.classList.add('menu');
 
-		container.innerHTML = `<span class="id">${super.completeChapter}</span> <a>${this.heading}</a>`;
+		container.innerHTML = `
+			<div class="item">
+				<span class="id">${super.completeChapter}</span>
+				<a>${this.heading}</a>
+			</div>
+		`;
 
 		if(this.children.size) {
 
@@ -253,6 +258,17 @@ class Nav extends Documentation {
 			submenu.classList.add('submenu');
 
 			for(const nav of this.children.values()) {
+
+				let parent = this.parent;
+				let level = 1;
+
+				while(parent) {
+					level++;
+					parent = parent.parent;
+				}
+
+				nav.title.querySelector('.item').style['padding-left'] = level * 20 + 'px';
+
 				submenu.appendChild(nav.title);
 			}
 
@@ -267,7 +283,7 @@ class Nav extends Documentation {
 				this.page.container.querySelector('.list .selected').classList.remove('selected');
 			}
 
-			container.classList.add('selected');
+			container.querySelector('.item').classList.add('selected');
 
 			history.pushState(null, '', this.id);
 

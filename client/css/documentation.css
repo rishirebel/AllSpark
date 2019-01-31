@@ -5,6 +5,7 @@ main section {
 		display: grid;
 		grid-template-columns: max-content 1fr;
 		height: 100%;
+		grid-gap: calc(var(--gap) * 3);
 	}
 		main section .container .list {
 			border-right: 1px solid var(--color-border);
@@ -12,20 +13,20 @@ main section {
 			max-height: 100%;
 			overflow: auto;
 		}
-			main section .menu {
+			main section .menu .item {
 				padding: 12px;
 				transition: background var(--transition-duration),
 							box-shadow var(--transition-duration);
 			}
-			main section .menu:active {
-				box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.3);
-			}
-			main section .menu:hover {
-				background: rgba(0, 0, 0, 0.2);
-			}
-			main section .menu.selected {
+			main section .menu .item.selected {
 				background: rgba(0, 0, 0, 0.15);
 				box-shadow: inset 6px 0px 0 var(--color-selected);
+			}
+			main section .menu .item:active {
+				box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.3);
+			}
+			main section .menu .item:hover {
+				background: rgba(0, 0, 0, 0.2);
 			}
 			main section .container .list a {
 				text-decoration: none;
@@ -33,7 +34,6 @@ main section {
 			.documentation {
 				max-height: 100%;
 				overflow: auto;
-				padding: 0 15px 15px 15px;
 			}
 				.documentation a {
 					text-decoration: none;
