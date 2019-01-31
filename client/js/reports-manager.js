@@ -213,7 +213,7 @@ window.addEventListener('beforeunload', function (event) {
 
 	event.preventDefault();
 
-	if(this.page.stages.get('define-report').container.querySelector('button.not-saved'))
+	if(this.page.stages && this.page.stages.get('define-report').container.querySelector('button.not-saved'))
 		event.returnValue = 'Sure';
 });
 

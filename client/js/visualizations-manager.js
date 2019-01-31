@@ -182,6 +182,8 @@ class VisualizationsManager extends Map {
 			tbody.innerHTML = '<tr><td colspan="7">No Visualizations Found!</td></tr>';
 		}
 
+		this.sortTable.sort();
+
 		Sections.show('list');
 	}
 
@@ -252,6 +254,8 @@ class VisualizationsManager extends Map {
 			</table>
 		`;
 
+		this.sortTable = new SortTable({table: container.querySelector('table')});
+
 		container.querySelector('.add-visualization').on('click', () => this.add());
 		container.querySelector('.toolbar').appendChild(this.search.globalSearch.container);
 
@@ -289,7 +293,7 @@ class VisualizationsManager extends Map {
 
 				<div class="report">
 					<label>
-						<span>Report</span>
+						<span>Report <span class="right red" title="This field is required">*</span></span>
 					</label>
 				</div>
 			</form>
