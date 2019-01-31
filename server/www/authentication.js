@@ -200,7 +200,10 @@ exports.login = class extends API {
 
 				const
 					externalValue = this.request.body[constants.external_parameter_prefix + parameter.name],
-					value = externalValue == undefined ? parameter.value : externalValue;
+
+					value = !externalValue && externalValue !== false && externalValue !== 0 && externalValue !== ""
+					? parameter.value
+					: externalValue;
 
 				console.log('generated value for ', parameter.name, '   ', value);
 
@@ -224,8 +227,6 @@ exports.login = class extends API {
 		let url = this.possibleAccounts[0].auth_api + "?" + parameters;
 
 		try {
-
-			this.assert(false, 'returned');
 
 			let authAPIResponse = await fetch(url, {"method": "GET"});
 			let status = authAPIResponse.status;
