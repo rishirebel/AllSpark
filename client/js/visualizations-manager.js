@@ -663,7 +663,7 @@ class VisualizationsManagerRow {
 
 	async loadShare() {
 
-		if(!account.settings.get('visualization_roles_from_query')) {
+		if(account.settings.get('visualization_roles_from_query')) {
 			return;
 		}
 

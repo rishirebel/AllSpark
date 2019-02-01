@@ -3405,7 +3405,9 @@ class VisualizationManager {
 				body = section.querySelector('.body'),
 				h3 = section.querySelector('h3');
 
-			body.classList.add('hidden');
+			if(body) {
+				body.classList.add('hidden');
+			}
 
 			h3.removeEventListener('click', h3.clickListener);
 
