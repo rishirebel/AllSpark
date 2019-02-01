@@ -68,6 +68,8 @@ class DocumentationBrowser extends Page {
 
 		const root = this.constructTree(response);
 
+		root.sort((a,b) => a.chapter - b.chapter);
+
 		for(const data of root) {
 			this.list.set(data.id, new DocumentationBrowserItem(data, this));
 		}
@@ -118,6 +120,8 @@ class DocumentationBrowserItem extends Documentation {
 		super(documentation, page, parent);
 
 		const children = new Map;
+
+		this.children.sort((a,b) => a.chapter - b.chapter);
 
 		for(const data of this.children) {
 			children.set(data.id, new DocumentationBrowserItem(data, this.page, this));
