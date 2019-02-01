@@ -817,6 +817,206 @@ Settings.list.set('executingReports', class ExecutingReports extends SettingPage
 	}
 });
 
+Settings.list.set('phrasesTranslations', class PhrasesTranslations extends SettingPage {
+
+	get name() {
+
+		return `Phrases Translations`;
+	}
+
+	setup() {
+
+		console.log('setup called');
+
+		this.sortTable = new SortTable({
+			table: this.container.querySelector('#translations-list table'),
+		});
+	}
+
+	async fetch() {
+
+		this.existingTranslations = (await API.call('translations/list', {owner: 'phrase'}))
+			.filter(x => MetaData.locales.has(x.locale_id));
+	}
+
+	async load() {
+
+		await this.fetch();
+		await this.render();
+	}
+
+	get container() {
+
+		if (this.getContainer) {
+
+			return this.getContainer;
+		}
+
+		this.getContainer = this.page.querySelector('.translations-page');
+
+		return this.getContainer;
+	}
+
+	async render() {
+
+		this.ids = new Set(this.existingTranslations.map(x => x.id));
+
+		if (this.searchBar) {
+
+			this.searchBarFilter.data = this.existingTranslations;
+			this.ids = new Set(this.searchBar.filterData.map(x => x.id));
+		}
+
+		const tbody = this.container.querySelector('table tbody');
+		tbody.textContent = null;
+
+		for (const row of this.existingTranslations) {
+
+			if(!this.ids.has(row.id)) {
+
+				continue;
+			}
+
+			const rowTranslation = new RowTranslations(row, this);
+			tbody.insertAdjacentElement('beforeend', rowTranslation.row);
+			this.container.appendChild(rowTranslation.formContainer);
+		}
+
+		await Sections.show('translations-list');
+
+		const select = this.container.querySelector('#add-translation-form select');
+
+		select.textContent = null;
+		for (const row of MetaData.locales.values()) {
+
+			select.insertAdjacentHTML('beforeend', `
+				<option value=${row.id}>${row.name}(${row.locale})</option>
+			`);
+		}
+
+		this.addTranslationForm = this.container.querySelector('#add-translation-form');
+
+		this.container.querySelector('#add-translation').addEventListener('click', async () => {
+
+			this.addTranslationForm.reset();
+			await Sections.show('translations-form');
+		});
+
+		this.addTranslationForm.removeEventListener('submit', SettingPage.formSubmitListener);
+		this.addTranslationForm.addEventListener('submit', SettingPage.formSubmitListener = async e => {
+
+			e.preventDefault();
+
+			await this.insert();
+		});
+
+		const cancelForm = this.container.querySelector('#translations-form #cancel-form');
+
+		this.sortTable.sort();
+
+		cancelForm.removeEventListener('click', SettingPage.cancelFormListener);
+		cancelForm.addEventListener('click', SettingPage.cancelFormListener = async () => {
+
+			await Sections.show('translations-list');
+		});
+	}
+
+	async insert() {
+
+		const options = {
+			method: 'POST',
+			form: new FormData(this.addTranslationForm),
+		};
+
+		try {
+
+			const response = await API.call('translations/insert', {}, options);
+
+			await this.load();
+
+			if (response.warning) {
+
+				new SnackBar({
+					message: 'Request Failed',
+					subtitle: response.message,
+					type: 'warning',
+				});
+			}
+
+			else {
+
+				new SnackBar({
+					message: 'Added Translation',
+					subtitle: response.message,
+					icon: 'fa fa-plus',
+				});
+			}
+
+		}
+		catch (e) {
+
+			new SnackBar({
+				message: 'Request Failed',
+				subtitle: e.message,
+				type: 'error',
+			});
+
+			throw e;
+		}
+	}
+
+	get searchBar() {
+
+		if (this.searchBarFilter) {
+
+			return this.searchBarFilter;
+		}
+
+		const filters = [
+			{
+				key: 'ID',
+				rowValue: row => [row.id],
+			},
+			{
+				key: 'From',
+				rowValue: row => [row.phrase],
+			},
+			{
+				key: 'locale',
+				rowValue: row => {
+
+					if(MetaData.locales.has(row.locale_id)) {
+
+						return [MetaData.locales.get(row.locale_id).name + '-' + MetaData.locales.get(row.locale_id).locale];
+					}
+
+					return [];
+				}
+			},
+			{
+				key: 'Translation',
+				rowValue: row => [row.translation],
+			},
+		];
+
+		this.searchBarFilter = new SearchColumnFilters({
+			filters: filters,
+			advanceSearch: true,
+			page,
+		});
+
+		this.container.querySelector('#translations-search').insertAdjacentElement('beforeend', this.searchBarFilter.globalSearch.container);
+		this.container.querySelector('#translations-advanced-search').appendChild(this.searchBarFilter.container);
+
+		this.searchBarFilter.on('change', async () => {
+
+			await this.render();
+		});
+
+		this.render();
+	}
+});
+
 Settings.list.set('cachedReports', class CachedReports extends SettingPage {
 
 	constructor(...params) {
@@ -3139,6 +3339,199 @@ class CachedReport {
 		`;
 
 		return this.rowElement;
+	}
+}
+
+class RowTranslations {
+
+	constructor(row, page) {
+
+		Object.assign(this, row);
+		this.page = page;
+	}
+
+	get row() {
+
+		if (this.getRow) {
+
+			return this.getRow;
+		}
+
+		const container = document.createElement('tr');
+
+		const locale = MetaData.locales.get(this.locale_id);
+
+		container.insertAdjacentHTML('beforeend', `
+			<td>${this.id}</td>
+			<td>${this.phrase}</td>
+			<td>${locale.name}(${locale.locale})</td>
+			<td>${this.translation}</td>
+			<td class="action green" title="Edit"><i class="far fa-edit"></i></td>
+			<td class="action red" title="Delete"><i class="far fa-trash-alt"></i></td>
+		`);
+
+		container.querySelector('.green').addEventListener('click', async () => {
+
+			await Sections.show(`edit-translation-form-${this.id}`);
+		});
+
+		container.querySelector('.red').removeEventListener('click', RowTranslations.deleteEventListener);
+		container.querySelector('.red').addEventListener('click', RowTranslations.deleteEventListener = async () => {
+
+			await this.delete();
+		});
+
+		this.getRow = container;
+
+		return this.getRow;
+	}
+
+	get formContainer() {
+
+		if(this.getFormContainer) {
+
+			return this.getFormContainer;
+		}
+
+		const container = document.createElement('section');
+		container.id = `edit-translation-form-${this.id}`;
+		container.classList.add('section');
+
+		container.innerHTML = `
+		
+			<h1>Edit Translation id#${this.id}</h1>
+
+			<header class="toolbar">
+				<button class="back"><i class="fa fa-arrow-left"></i> Back</button>
+				<button type="submit" form="add-translation-form-${this.id}"><i class="far fa-save"></i> Save</button>
+			</header>
+
+			<form class="block form" id="add-translation-form-${this.id}">
+
+				<label>
+					<span>Phrase <span class="red">*</span></span>
+					<input type="text" name="phrase" required value=${this.phrase}>
+				</label>
+
+				<label>
+					<span>Locale <span class="red">*</span></span>
+					<select name="locale_id"></select>
+				</label>
+
+				<label>
+					<span>Translation <span class="red">*</span></span>
+					<input type="text" name="translation" required value=${this.translation}>
+				</label>
+			</form>
+		`;
+
+		const selectContainer = container.querySelector('select[name=locale_id]');
+
+		for(const locale of MetaData.locales.values()) {
+
+			const option = document.createElement('option');
+			option.value = locale.id;
+			option.textContent = `${locale.name}(${locale.locale})`;
+
+			if(this.locale_id == locale.id) {
+
+				option.selected = 'selected';
+			}
+
+			selectContainer.insertAdjacentElement('beforeend', option);
+		}
+
+		this.form = container.querySelector(`#add-translation-form-${this.id}`);
+
+		this.form.removeEventListener('submit', RowTranslations.submitListener);
+		this.form.addEventListener('submit', async e => {
+
+			e.preventDefault();
+
+			await this.update();
+		});
+
+		container.querySelector('.back').addEventListener('click', async () => {
+
+			await Sections.show('translations-list');
+		});
+
+		this.getFormContainer = container;
+
+		return this.getFormContainer;
+	}
+
+	async update() {
+
+		const options = {
+			method: 'POST',
+			form: new FormData(this.form),
+		};
+
+		try {
+
+			const response = await API.call('translations/update', {id: this.id}, options);
+
+			await this.page.load();
+
+			if (response.warning) {
+
+				new SnackBar({
+					message: 'Request Failed',
+					subtitle: response.message,
+					type: 'warning',
+				});
+			}
+
+			else {
+
+				new SnackBar({
+					message: `Updated Translation #${this.id}`,
+					subtitle: response.message,
+					icon: 'fa fa-plus',
+				});
+			}
+		}
+		catch (e) {
+
+			new SnackBar({
+				message: 'Request Failed',
+				subtitle: e.message,
+				type: 'error',
+			});
+
+			throw e;
+		}
+	}
+
+	async delete() {
+
+		try {
+
+			if(!confirm('Are you sure?!')) {
+
+				return;
+			}
+
+			const response = await API.call('translations/delete', {id: this.id}, {method: 'POST'});
+			await this.page.load();
+
+			new SnackBar({
+				message: `Deleted Translation #${this.id}`,
+				subtitle: response.message,
+				icon: 'fa fa-plus',
+			});
+		}
+		catch(e) {
+
+			new SnackBar({
+				message: 'Request Failed',
+				subtitle: e.message,
+				type: 'error',
+			});
+
+			throw e;
+		}
 	}
 }
 

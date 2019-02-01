@@ -217,6 +217,12 @@ main .documentation-page form .body.preview-mode {
 		overflow: auto;
 		padding: calc(var(--gap) * 2);
 	}
+
+#translations-heading {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
 	main .documentation-page form .body .html-editor {
 		grid-column: 1;
 	}

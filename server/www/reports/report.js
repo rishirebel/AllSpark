@@ -7,6 +7,7 @@ const reportHistory = require('../../utils/reportLogs');
 const constants = require("../../utils/constants");
 const dbConfig = require('config').get("sql_db");
 const {performance} = require('perf_hooks');
+const translations = new (require("../translations").list);
 
 exports.list = class extends API {
 
@@ -148,6 +149,8 @@ exports.list = class extends API {
 
 		let credentialObjectRoles = role.get(this.account.account_id, 'connection', ['user', 'role']);
 
+		Object.assign(translations, this);
+
 		let userUpdateCategories = new Set(this.user.privileges.filter(x => [constants.privilege.administrator, constants.privilege["report.update"]].includes(x.privilege_name)).map(x => x.category_id));
 		let userDeleteCategories = new Set(this.user.privileges.filter(x => [constants.privilege.administrator, constants.privilege["report.delete"]].includes(x.privilege_name)).map(x => x.category_id));
 
@@ -188,6 +191,7 @@ exports.list = class extends API {
 				`,
 				[this.account.account_id]
 			),
+
 			this.mysql.query(`
 				SELECT
 					qv.*,
@@ -228,6 +232,8 @@ exports.list = class extends API {
 			credentialObjectRoles,
 
 			this.mysql.query(transformationQuery, [this.account.account_id, this.account.account_id]),
+
+			translations.list({owner:"query"})
 		]);
 
 		const transformations = {};
@@ -462,6 +468,20 @@ exports.list = class extends API {
 			}
 		}
 
+		const queryTranslationMapping = {};
+
+		//phrase should be like title, description etc, which will be replaced with user's locale.
+
+		for(const row of results[7]) {
+
+			if(!queryTranslationMapping.hasOwnProperty(row.owner_id)) {
+
+				queryTranslationMapping[row.owner_id] = {};
+			}
+
+			queryTranslationMapping[row.owner_id][row.phrase] = row.translation;
+		}
+
 		const response = new Map;
 
 		const e = performance.now() - st;
@@ -473,7 +493,9 @@ exports.list = class extends API {
 			visualizationCount = 0
 		;
 
-		for (const row of results[0]) {
+		for (let row of results[0]) {
+
+			//row = {...row, ...queryTranslationMapping[row.query_id]};
 
 			row.roles = (reportRoleMapping[row.query_id] || {}).roles || [];
 			row.category_id = (reportRoleMapping[row.query_id] || {}).category_id || [];

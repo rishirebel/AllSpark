@@ -993,6 +993,32 @@ ReportsManger.stages.set('configure-report', class ConfigureReport extends Repor
 			`);
 		}
 
+		this.form.querySelector('.add-translation-button').addEventListener('click', async e => {
+
+			const titleTranslations = new TranslationsManager({
+				phrase: 'name',
+				owner: 'query',
+				owner_id: this.selectedReport.query_id,
+				// expanded: {
+				// 	editor: 'html',
+				// },
+			});
+
+			await titleTranslations.load();
+
+			if(!this.titleTranslation) {
+
+				this.titleTranslation =  new DialogBox();
+
+				this.titleTranslation.heading = `Add Translations for ${this.selectedReport.name}#${this.selectedReport.query_id}`;
+			}
+
+			this.titleTranslation.body.textContent = null;
+			this.titleTranslation.body.appendChild(titleTranslations.container);
+
+			this.titleTranslation.show();
+		});
+
 		this.report = this.selectedReport;
 
 		this.form.save.disabled = (!this.report && !user.privileges.has('report.insert')) || (this.selectedReport && !this.selectedReport.editable);

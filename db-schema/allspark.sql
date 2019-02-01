@@ -480,6 +480,29 @@ CREATE TABLE `tb_documentation` (
   UNIQUE KEY `parent` (`parent`,`chapter`)
 ) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8;
 
+CREATE TABLE `tb_object_translations` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `account_id` int(11) DEFAULT NULL,
+  `locale_id` int(11) NOT NULL,
+  `owner` enum('query','visualization','phrase') NOT NULL DEFAULT 'phrase',
+  `owner_id` int(11) NOT NULL DEFAULT '0',
+  `phrase` varchar(100) NOT NULL DEFAULT '',
+  `translation` varchar(100) NOT NULL DEFAULT '',
+  `added_by` int(11) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `account_id` (`account_id`,`locale_id`,`owner`,`owner_id`,`phrase`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE `tb_locales` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `locale` varchar(30) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `name` varchar(50) DEFAULT '',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
 
 INSERT INTO `tb_features` VALUES (4,'Table','table','visualization','2018-05-28 10:24:00','2018-05-28 10:24:00'),
 (5,'Spatial Map','spatialmap','visualization','2018-05-28 10:24:00','2018-05-28 10:24:00'),

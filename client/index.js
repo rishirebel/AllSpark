@@ -876,7 +876,12 @@ router.get('/reports/:stage?/:id?', API.serve(class extends HTMLAPI {
 						<div class="form">
 							<label>
 								<span>Name <span class="red">*</span></span>
-								<input type="text" name="name" required>
+								<div>
+									<input type="text" name="name" required>
+									<button type="button" class="add-translation-button" title="Add Translations">
+										<i class="fa fa-language"></i>
+									</button>
+								</div>
 							</label>
 
 							<label>
@@ -1501,7 +1506,7 @@ router.get('/settings/:tab?/:id?', API.serve(class extends HTMLAPI {
 					</form>
 				</section>
 			</div>
-
+			
 			<div class="setting-page roles-page hidden">
 
 				<section class="section" id="roles-list">
@@ -1614,6 +1619,66 @@ router.get('/settings/:tab?/:id?', API.serve(class extends HTMLAPI {
 						</label>
 					</form>
 				</section>
+			</div>
+			
+			<div class="setting-page translations-page hidden">
+				<section class="section" id="translations-list">
+
+					<h1>Manage Translations</h1>
+
+					<header class="toolbar">
+						<button id="add-translation"><i class="fa fa-plus"></i> Add New Translations</button>
+					</header>
+					
+					<div id="translations-heading">
+						<h2>Existing Translations</h2>
+						<div id="translations-search"></div>
+					</div>
+					<div id="translations-advanced-search"></div>
+										
+					<table class="block">
+						<thead>
+							<tr>
+								<th>ID</th>
+								<th>Phrase</th>
+								<th>Locale</th>
+								<th>Translation</th>
+								<th class="action">Edit</th>
+								<th class="action">Delete</th>
+							</tr>
+						</thead>
+						<tbody></tbody>
+					</table>
+				</section>
+
+				<section class="section" id="translations-form">
+
+					<h1>Add New Translation</h1>
+
+					<header class="toolbar">
+						<button id="cancel-form"><i class="fa fa-arrow-left"></i> Back</button>
+						<button type="submit" form="add-translation-form"><i class="far fa-save"></i> Save</button>
+					</header>
+
+					<form class="block form" id="add-translation-form">
+
+						<label>
+							<span>Phrase <span class="red">*</span></span>
+							<input type="text" name="phrase" required>
+						</label>
+
+						<label>
+							<span>Locale <span class="red">*</span></span>
+							<select name="locale_id"></select>
+						</label>
+
+						<label>
+							<span>Translation <span class="red">*</span></span>
+							<input type="text" name="translation" required>
+						</label>
+					</form>
+				</section>
+				
 			</div>
 
 			<div class="setting-page about-page hidden">

@@ -1508,4 +1508,51 @@ body#tinymce table tr {
 
 .tableHeaders {
 	cursor: pointer;
+	color: var(--color-surface-text);
+}
+.add-translations-container {
+	display: flex;
+	flex-direction: column;
+	padding: calc(var(--gap) * 2);
+}
+	.add-translations-container label {
+		margin: var(--gap);
+	}
+	.add-translations-container .translation-editor-label {
+		max-width: unset;
+	}
+		.add-translations-container label span i {
+			margin-right: 0;
+		}
+		.add-translations-container .action.green:not(.NA):hover {
+			background: transparent;
+			color: #5b5;
+		}
+		.add-translations-container .action.red:not(.NA):hover {
+			background: transparent;
+			color: #e77;
+		}
+		.add-translations-container form {
+			padding: var(--gap) var(--gap) var(--gap) 0;
+		}
+#phrases-translations .translation-grid {
+	display: grid;
+	grid-gap: calc(var(--gap) * 2);
+	text-align: center;
+	align-items: center;
+	padding: 0;
+	margin: 0;
+}
+#phrases-translations #translations-headers {
+	margin-top: 10px;
+	padding: var(--gap);
+}
+#phrases-translations .translation-headers {
+	background: var(--color-surface);
+	padding: var(--gap);
+}
+#phrases-translations .translations-global-search {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
 }

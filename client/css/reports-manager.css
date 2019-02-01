@@ -1300,3 +1300,7 @@ main .tabs .tabs-header {
 			max-height: 600px;
 			height: 100%;
 		}
+
+	.add-translation-button {
+		margin-left: calc(var(--gap) * 2);
+	}
