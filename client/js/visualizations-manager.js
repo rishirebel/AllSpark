@@ -572,7 +572,7 @@ class VisualizationsManagerRow {
 				<button type="button" class="back"><i class="fa fa-arrow-left"></i> Back</button>
 				<button type="submit" class="save" form="configure-visualization-form"><i class="far fa-save"></i> Save</button>
 				<button type="button" class="preview"><i class="fa fa-eye"></i> Preview</button>
-				<button type="button" class="history-toggle"><i class="fa fa-history"></i> History</button>
+				<button type="button" class="history-toggle hidden"><i class="fa fa-history"></i> History</button>
 			</div>
 		`;
 
