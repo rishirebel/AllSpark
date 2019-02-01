@@ -659,8 +659,6 @@ class VisualizationsManagerRow {
 
 		this.dashboards.load();
 		this.manager.load();
-
-		this.loadShare();
 	}
 
 	async loadShare() {

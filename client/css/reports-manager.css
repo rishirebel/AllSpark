@@ -1159,7 +1159,7 @@ main.preview-left #stages {
 			transform: perspective(500px) translatez(30px);
 		}
 			#add-visualization-form img,
-			#add-visualization-form .NA,
+			#add-visualization-form figure .NA,
 			#add-visualization-form .loader {
 				height: auto;
 				width: 100%;

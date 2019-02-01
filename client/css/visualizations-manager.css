@@ -44,6 +44,9 @@ main {
 		main section.configuration > .toolbar {
 			padding: 0;
 		}
+		main section.configuration > .query-history {
+			margin-left: 0;
+		}
 		main section.configuration > .visualization-form {
 			overflow: auto;
 		}
