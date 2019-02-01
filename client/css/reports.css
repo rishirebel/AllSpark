@@ -1020,6 +1020,23 @@ button[disabled] {
 				border-radius: 0;
 				vertical-align: initial;
 			}
+			.visualization.table .row-summary .showing {
+				display: inline-flex;
+			}
+				.visualization.table .row-summary .showing > span {
+					display: flex;
+					flex-direction: row;
+				}
+				.visualization.table .row-summary .showing > span:hover {
+					cursor: pointer;
+				}
+					.visualization.table .row-summary .show-all {
+						display: none;
+						padding-right: var(--gap);
+					}
+					.visualization.table .row-summary .showing > span:hover .show-all {
+						display: block;
+					}
 
 		.visualization.spatial-map .container {
 			height: 500px;

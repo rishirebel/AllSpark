@@ -6811,8 +6811,11 @@ Visualization.list.set('table', class Table extends Visualization {
 				<span class="label">Selected:</span>
 				<strong title="Number of selected rows"></strong>
 			</span>
-			<span>
-				<span class="label">Showing:</span>
+			<span class="showing">
+				<span class="label">
+					<span class="show-all">Show all</span>
+					<span>Showing:</span>
+				</span>
 				<strong title="Number of rows currently shown on screen">
 					${Format.number(Math.min(this.rowLimit, this.rows.length))}
 				</strong>
@@ -6830,6 +6833,12 @@ Visualization.list.set('table', class Table extends Visualization {
 				</strong>
 			</span>
 		`;
+
+		rowCount.querySelector('.show-all').on('click', () => {
+
+			this.rowLimit = this.rows.length;
+			this.source.visualizations.selected.render({resize: true});
+		});
 
 		table.appendChild(tbody);
 		container.appendChild(table);
