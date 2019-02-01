@@ -62,7 +62,12 @@ async function verifyJWT(token) {
 	}
 	try {
 
-		return await jwtVerifyAsync(token, config.get('secret_key'));
+		const details = await jwtVerifyAsync(token, config.get('secret_key'));
+
+		if(details.hasOwnProperty('data') && details.hasOwnProperty('iat')) {
+
+			throw new Error('Invalid Token');
+		}
 
 	}
 	catch (e) {
