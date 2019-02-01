@@ -1782,13 +1782,13 @@ class DataSourceFilter {
 			await Storage.set(`dataset.${this.dataset}`, {values, timestamp: Date.now()});
 
 			this.multiSelect.datalist = [];
-			// this.multiSelect.clear();
+			this.multiSelect.clear();
 		}
 
 		({values, timestamp} = await Storage.get(`dataset.${this.dataset}`));
 
 		if(!this.multiSelect.datalist || !this.multiSelect.datalist.length) {
-			this.multiSelect.value = [];
+
 			this.multiSelect.datalist = values;
 			this.multiSelect.multiple = this.multiple;
 			this.multiSelect.all();
