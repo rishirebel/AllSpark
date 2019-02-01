@@ -140,6 +140,7 @@ button[disabled] {
 		margin: calc(var(--gap) * 2) 0;
 		display: flex;
    		flex-wrap: wrap;
+   		box-shadow: none;
 	}
 	.data-source .toolbar::-webkit-scrollbar {
 		display: none;

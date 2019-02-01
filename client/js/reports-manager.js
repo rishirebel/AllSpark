@@ -6886,7 +6886,9 @@ class ReportTransformations extends Set {
 
 			await this.stage.load();
 
-			this.stage.container.querySelector('.transformations .body').classList.remove('hidden');
+			if(this.stage.container.querySelector('.transformations .body')) {
+				this.stage.container.querySelector('.transformations .body').classList.remove('hidden');
+			}
 
 			new SnackBar({
 				message: 'Transformation Added',
@@ -7095,7 +7097,9 @@ class ReportTransformation {
 
 			await this.stage.load();
 
-			this.stage.container.querySelector('.transformations .body').classList.remove('hidden');
+			if(this.stage.container.querySelector('.transformations .body')) {
+				this.stage.container.querySelector('.transformations .body').classList.remove('hidden');
+			}
 
 			new SnackBar({
 				message: 'Transformation Updated',
@@ -7133,7 +7137,9 @@ class ReportTransformation {
 
 			await this.stage.load();
 
-			this.stage.container.querySelector('.transformations .body').classList.remove('hidden');
+			if(this.stage.container.querySelector('.transformations .body')) {
+				this.stage.container.querySelector('.transformations .body').classList.remove('hidden');
+			}
 
 			new SnackBar({
 				message: 'Transformation Deleted',
