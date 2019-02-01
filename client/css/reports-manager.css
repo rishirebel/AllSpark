@@ -1181,7 +1181,7 @@ main.preview-left #stages {
 				position: absolute;
 				top: 0;
 			}
-			#add-visualization-form .NA {
+			#add-visualization-form figure .NA {
 				display: flex;
 				justify-content: center;
 				align-items: center;

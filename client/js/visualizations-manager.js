@@ -187,7 +187,7 @@ class VisualizationsManager extends Map {
 		}
 
 		if(!tbody.children.length) {
-			tbody.innerHTML = '<tr><td colspan="7">No Visualizations Found!</td></tr>';
+			tbody.innerHTML = '<tr><td colspan="8" class="NA">No Visualizations Found!</td></tr>';
 		}
 
 		Sections.show('list');
@@ -299,7 +299,7 @@ class VisualizationsManager extends Map {
 
 				<div class="report">
 					<label>
-						<span>Report <span class="right red" title="This field is required">*</span></span>
+						<span>Report <span class="red" title="This field is required">*</span></span>
 					</label>
 				</div>
 			</form>
