@@ -25,12 +25,12 @@ class DocumentationBrowser extends Page {
 			return [...this.list.values()][0].title.click();
 		}
 
-		const nav = this.getTitle(this.list, what);
+		const nav = this.findItem(this.list, what);
 
 		return nav.title.querySelector('.item').click();
 	}
 
-	getTitle(list, id) {
+	findItem(list, id) {
 
 		if(list.has(parseInt(id))) {
 			return list.get(parseInt(id));
@@ -42,7 +42,7 @@ class DocumentationBrowser extends Page {
 				continue;
 			}
 
-			const title = this.getTitle(child.children, id);
+			const title = this.findItem(child.children, id);
 
 			if(title) {
 				return title;
@@ -98,10 +98,10 @@ class DocumentationBrowser extends Page {
 			tree.get(documentation.parent).push(documentation);
 		}
 
-		for(const [key, documentation] of tree) {
+		for(const documentation of tree.values()) {
 
-		    for(const _documentation of documentation) {
-				_documentation.children = tree.get(_documentation.id) || [];
+		    for(const subDocumentation of documentation) {
+				subDocumentation.children = tree.get(subDocumentation.id) || [];
 			}
 		}
 
@@ -149,15 +149,16 @@ class DocumentationBrowserItem extends Documentation {
 
 			for(const child of this.children.values()) {
 
-				let parent = this.parent;
-				let level = 1;
+				let
+					parent = this.parent,
+					level = 1;
 
 				while(parent) {
 					level++;
 					parent = parent.parent;
 				}
 
-				child.title.querySelector('.item').style['padding-left'] = level * 20 + 'px';
+				child.title.querySelector('.item').style.paddingLeft = level * 20 + 'px';
 
 				submenu.appendChild(child.title);
 			}
@@ -167,7 +168,7 @@ class DocumentationBrowserItem extends Documentation {
 
 		const item = container.querySelector('.item');
 
-		item.on('click', async() => {
+		item.on('click', async () => {
 
 			if(this.page.container.querySelector('nav .selected')) {
 				this.page.container.querySelector('nav .selected').classList.remove('selected');
@@ -182,7 +183,7 @@ class DocumentationBrowserItem extends Documentation {
 			}
 
 			await this.load();
-			this.indexSize = 1;
+			this.headingSize = 1;
 
 			this.page.container.querySelector('.container').appendChild(this.container);
 		});

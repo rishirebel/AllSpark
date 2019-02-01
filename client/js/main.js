@@ -4263,9 +4263,7 @@ class Documentation {
 			return;
 		}
 
-		const response = await API.call('documentation/get', {id: this.id});
-
-		this.initilizeBody = response;
+		this.initilizeBody = await API.call('documentation/get', {id: this.id});
 	}
 
 	get container() {
@@ -4275,23 +4273,14 @@ class Documentation {
 
 		container.appendChild(this.bodyContainer);
 
-		if(this.children.size) {
-
-			const subContent = document.createElement('div');
-			subContent.classList.add('subContent');
-
-			for(const child of this.children.values()) {
-
-				subContent.appendChild(child.container);
-			}
-
-			container.appendChild(subContent);
+		for(const child of this.children.values()) {
+			container.appendChild(child.container);
 		}
 
 		return container;
 	}
 
-	set indexSize(size) {
+	set headingSize(size) {
 
 		this.bodyContainer.querySelector('.heading').innerHTML = `
 			<h${size}>${this.completeChapter} ${this.heading}</h${size}>
@@ -4304,7 +4293,7 @@ class Documentation {
 		size++;
 
 		for(const child of this.children.values()) {
-			child.indexSize = size;
+			child.headingSize = size;
 		}
 	}
 
@@ -4340,14 +4329,14 @@ class Documentation {
 	get completeChapter() {
 
 		let parent = this.parent;
-		const a = [this.chapter];
+		const chapter = [this.chapter];
 
 		while(parent) {
-			a.push(parent.chapter);
+			chapter.push(parent.chapter);
 			parent = parent.parent;
 		}
 
-		return a.reverse().join('.');
+		return chapter.reverse().join('.');
 	}
 }
 
