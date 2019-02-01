@@ -22,7 +22,7 @@ class DocumentationBrowser extends Page {
 		let what = state ? state.what : location.pathname.split('/').pop();
 
 		if(!what || isNaN(parseInt(what))) {
-			return [...this.list.values()][0].title.click();
+			return [...this.list.values()][0].title.querySelector('.item').click();
 		}
 
 		const nav = this.findItem(this.list, what);
