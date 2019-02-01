@@ -675,7 +675,7 @@ class VisualizationsManagerRow {
 			allowedTargets.push('user');
 		}
 
-		const objectRoles = new ObjectRoles('visualization', this.visualization.visualization_id, allowedTargets);
+		const objectRoles = new ObjectRoles('visualization', this.visualization_id, allowedTargets);
 
 		await objectRoles.load();
 
