@@ -1054,9 +1054,14 @@ class DataSource {
 		}))).blob();
 
 		const link = document.createElement('a');
+		link.classList.display = 'none';
+		page.container.appendChild(link);
+
 		link.href = window.URL.createObjectURL(xlsxBlobOutput);
-		link.download = obj.file_name + "_" + new Date().toString().replace(/ /g, "_") + ".xlsx";
+		link.download = (obj.file_name + "_" + new Date().toString()).replace(/ /g, "_") + ".xlsx";
+
 		link.click();
+		link.remove();
 	}
 
 	get link() {
