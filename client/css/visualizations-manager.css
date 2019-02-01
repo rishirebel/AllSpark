@@ -39,7 +39,7 @@ main {
 	}
 		main section.configuration > .toolbar,
 		main section.configuration > h1 {
-			grid-column: 1 / 4;
+			grid-column: 1 / 3;
 		}
 		main section.configuration > .toolbar {
 			padding: 0;
@@ -56,5 +56,5 @@ main {
 		main section.configuration > .tabs {
 			grid-column: unset;
 			grid-row: unset;
-			overflow: auto;
+			overflow: hidden;
 		}
