@@ -5703,7 +5703,10 @@ DataSourcePostProcessors.processors.set('RollingAverage', class extends DataSour
 				}
 
 				for(const [key, value] of newRow) {
-					newRow.set(key,  value + (element.get(key) / this.value));
+
+					if(!isNaN(parseFloat(value))) {
+						newRow.set(key,  value + (element.get(key) / this.value));
+					}
 				}
 			}
 
@@ -5769,7 +5772,10 @@ DataSourcePostProcessors.processors.set('RollingSum', class extends DataSourcePo
 				}
 
 				for(const [key, value] of newRow) {
-					newRow.set(key,  value + parseFloat(element.get(key)));
+
+					if(!isNaN(parseFloat(value))) {
+						newRow.set(key,  value + parseFloat(element.get(key)));
+					}
 				}
 			}
 
