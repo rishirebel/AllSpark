@@ -1694,6 +1694,17 @@ router.get('/tasks/:id?/:define?', API.serve(class extends HTMLAPI {
 	}
 }));
 
+router.get('/documentation/:id?', API.serve(class extends HTMLAPI {
+
+	constructor() {
+
+		super();
+
+		this.stylesheets.push('/css/documentation/documentation-browser.css');
+		this.scripts.push('/js/documentation/documentation-browser.js');
+	}
+}));
+
 router.get('/tests', API.serve(class extends HTMLAPI {
 
 	constructor() {

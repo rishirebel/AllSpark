@@ -4248,6 +4248,98 @@ class FormatSQL {
 	}
 }
 
+class Documentation {
+
+	constructor(documentation, page, parent) {
+
+		Object.assign(this, documentation);
+		this.parent = parent;
+		this.page = page;
+	}
+
+	async load() {
+
+		if('body' in this) {
+			return;
+		}
+
+		this.initilizeBody = await API.call('documentation/get', {id: this.id});
+	}
+
+	get container() {
+
+		const container = document.createElement('div');
+		container.classList.add('body');
+
+		container.appendChild(this.bodyContainer);
+
+		for(const child of this.children.values()) {
+			container.appendChild(child.container);
+		}
+
+		return container;
+	}
+
+	set headingSize(size) {
+
+		this.bodyContainer.querySelector('.heading').innerHTML = `
+			<h${size}>${this.completeChapter} ${this.heading}</h${size}>
+		`;
+
+		if(!this.children.size) {
+			return;
+		}
+
+		size++;
+
+		for(const child of this.children.values()) {
+			child.headingSize = size;
+		}
+	}
+
+	get bodyContainer() {
+
+		if(this.bodyContainerElement) {
+			return this.bodyContainerElement;
+		}
+
+		const container = this.bodyContainerElement = document.createElement('div');
+
+		container.innerHTML = `
+			<div class="heading"></div>
+			<p>${this.body || '<span class="NA">No content added.</span>'}</p>
+		`;
+
+		return container;
+	}
+
+	set initilizeBody(text) {
+
+		this.body = text.filter(x => x.id == this.id)[0].body;
+
+		if(!this.children.size) {
+			return;
+		}
+
+		for(const child of this.children.values()) {
+			child.initilizeBody = text;
+		}
+	}
+
+	get completeChapter() {
+
+		let parent = this.parent;
+		const chapter = [this.chapter];
+
+		while(parent) {
+			chapter.push(parent.chapter);
+			parent = parent.parent;
+		}
+
+		return chapter.reverse().join('.');
+	}
+}
+
 if(typeof Node != 'undefined') {
 	Node.prototype.on = window.on = function(name, fn) {
 		this.addEventListener(name, fn);
