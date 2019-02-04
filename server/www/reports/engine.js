@@ -122,14 +122,14 @@ class report extends API {
 		this.reportObj.category_id = [...new Set(reportDetails[2].map(x => x.category_id))];
 
 		let [preReportApi] = await this.mysql.query(
-			`select 
-				value 
-			from 
-				tb_settings 
-			where 
-				owner = 'account' 
-				and profile = 'pre_report_api' 
-				and owner_id = ? 
+			`select
+				value
+			from
+				tb_settings
+			where
+				owner = 'account'
+				and profile = 'pre_report_api'
+				and owner_id = ?
 				and status = 1
 			`,
 			[this.account.account_id],
@@ -1637,6 +1637,8 @@ class download extends API {
 	}
 
 	async download() {
+
+		this.account.features.needs('export_xlsx-export');
 
 		let queryData = this.request.body.data;
 

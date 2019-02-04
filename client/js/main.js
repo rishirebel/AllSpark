@@ -1117,8 +1117,9 @@ class Account {
 
 	static async fetch() {
 
-		if(await Storage.has('account'))
+		if(await Storage.has('account')) {
 			return await Storage.get('account');
+		}
 
 		try {
 
@@ -1133,16 +1134,23 @@ class Account {
 
 	constructor(account) {
 
-		for(const key in account)
+		for(const key in account) {
 			this[key] = account[key];
+		}
 
 		this.settings = new Map;
 
-		if(!Array.isArray(account.settings))
+		if(!Array.isArray(account.settings)) {
 			return;
+		}
 
-		for(const setting of account.settings)
+		for(const setting of account.settings) {
 			this.settings.set(setting.key, setting.value);
+		}
+
+		if(this.features && (this.features.length || this.features.size)) {
+			this.features = new Map(this.features.map(f => [f, f]));
+		}
 	}
 }
 
@@ -1331,7 +1339,19 @@ class MetaData {
 		MetaData.visualizations = new Map(metadata.visualizations ? metadata.visualizations.map(v => [v.slug, v]) : []);
 		MetaData.features = new Map(metadata.features ? metadata.features.map(f => [f.feature_id, f]) : []);
 		MetaData.globalFilters = new Map(metadata.globalFilters ? metadata.globalFilters.map(d => [d.id, d]) : []);
+
 		user.settings = new Map(metadata.userSettings ? metadata.userSettings.map(us => [us.key, us.value]) : []);
+
+		const features = new Map;
+
+		for(const [key, feature] of MetaData.features || []) {
+
+			if(account.features && account.features.size && (account.features.has(feature.slug) || account.features.has(key))) {
+				features.set(feature.slug, feature);
+			}
+		}
+
+		account.features = features;
 	}
 }
 

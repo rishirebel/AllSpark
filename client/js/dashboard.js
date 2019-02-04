@@ -800,6 +800,8 @@ class Dashboard {
 			download = page.container.querySelector('.download'),
 			downloadOptions = download.querySelector('.options');
 
+		download.classList.toggle('hidden', !page.account.features.has('export_headless'));
+
 		download.querySelector('button').on('click', (e) => {
 
 			e.stopPropagation();
