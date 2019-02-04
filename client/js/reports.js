@@ -5489,12 +5489,8 @@ DataSourcePostProcessors.processors.set('CollapseToAverage', class extends DataS
 
 			for(const [key, value] of row) {
 
-				if(!isNaN(value)) {
+				if(!isNaN(parseFloat(value))) {
 					newRow.set(key, newRow.get(key) + parseFloat(value));
-				}
-
-				else {
-					newRow.set(key, value);
 				}
 			}
 
@@ -5624,12 +5620,8 @@ DataSourcePostProcessors.processors.set('CollapseTo', class extends DataSourcePo
 
 			for(const [key, value] of row) {
 
-				if(!isNaN(value)) {
+				if(!isNaN(parseFloat(value))) {
 					newRow.set(key, newRow.get(key) + parseFloat(value));
-				}
-
-				else {
-					newRow.set(key, value);
 				}
 			}
 
@@ -5711,7 +5703,10 @@ DataSourcePostProcessors.processors.set('RollingAverage', class extends DataSour
 				}
 
 				for(const [key, value] of newRow) {
-					newRow.set(key,  value + (element.get(key) / this.value));
+
+					if(!isNaN(parseFloat(value))) {
+						newRow.set(key,  value + (element.get(key) / this.value));
+					}
 				}
 			}
 
@@ -5777,7 +5772,10 @@ DataSourcePostProcessors.processors.set('RollingSum', class extends DataSourcePo
 				}
 
 				for(const [key, value] of newRow) {
-					newRow.set(key,  value + parseFloat(element.get(key)));
+
+					if(!isNaN(parseFloat(value)) && !isNaN(parseFloat(element.get(key)))) {
+						newRow.set(key,  value + parseFloat(element.get(key)));
+					}
 				}
 			}
 
