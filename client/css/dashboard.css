@@ -428,6 +428,7 @@ main #reports > .global-filters.top.scrolled {
 		main #reports > .global-filters.top .filters > label {
 			max-width: initial;
 			margin: 0 var(--gap);
+			grid-template-rows: max-content max-content;
 		}
 
 main #reports > .list {

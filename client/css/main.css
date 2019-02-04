@@ -737,6 +737,10 @@ body {
 	width: 100%;
 	position: relative;
 }
+.multi-select.stretched {
+	display: grid;
+	z-index: 0;
+}
 	.multi-select > input {
 		width: 100%;
 	}
@@ -766,7 +770,7 @@ body {
 		box-shadow: none;
 	}
 	.multi-select.top.stretched .options {
-		position:absolute;
+		grid-row: 1;
 	}
 		.multi-select .options header {
 			border-bottom: 1px dashed #999;

@@ -289,6 +289,9 @@ button[disabled] {
 		flex-wrap: wrap;
 		margin: 0;
 	}
+		.data-source .overlay .filters label {
+			grid-template-rows: max-content max-content;
+		}
 		.data-source .overlay .filters label.changed > input,
 		.data-source .overlay .filters label.changed > select,
 		.data-source .overlay .filters label.changed > .multi-select {

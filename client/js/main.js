@@ -2468,7 +2468,7 @@ class MultiSelect {
 
 		this.selectedValues = new Set();
 		this.inputName = 'multiselect-' + Math.floor(Math.random() * 10000);
-		this.name = name || '';
+		this.name = name;
 
 		if(['collapse', 'stretch'].includes(mode)) {
 
@@ -2549,6 +2549,8 @@ class MultiSelect {
 
 		search.on('keyup', () => this.recalculate());
 
+		search.on('focus', () => search.click());
+
 		document.body.on('click', () => {
 
 			search.value = '';
@@ -2585,21 +2587,6 @@ class MultiSelect {
 
 			throw new Error('Datalist must be an array or map' );
 		}
-	}
-
-	dualMode() {
-
-		if(this.disabled) {
-
-			return;
-		}
-
-		this.mode = this.mode == 'stretch' ? 'collapse' : 'stretch';
-
-		this.options.querySelector('.dual').textContent = this.mode == 'stretch' ? 'Collapse' : 'Stretch';
-		this.options.querySelector('.mode').textContent = this.mode == 'stretch' ? 'Stretch' : 'Collapse';
-		this.container.classList.toggle('stretched', this.mode == 'stretch');
-		this.options.classList.toggle('hidden', this.mode == 'collapse');
 	}
 
 	expand() {
@@ -2799,6 +2786,23 @@ class MultiSelect {
 		});
 
 		return options;
+	}
+
+	dualMode() {
+
+		if(this.disabled) {
+
+			return;
+		}
+
+		this.mode = this.mode == 'stretch' ? 'collapse' : 'stretch';
+
+		this.options.querySelector('.dual').textContent = this.mode == 'stretch' ? 'Collapse' : 'Stretch';
+		this.options.querySelector('.mode').textContent = this.mode == 'stretch' ? 'Stretch' : 'Collapse';
+		this.container.classList.toggle('stretched', this.mode == 'stretch');
+		this.options.classList.toggle('hidden', this.mode == 'collapse');
+
+		this.setPlaceholderText();
 	}
 
 	/**
