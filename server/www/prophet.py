@@ -198,7 +198,7 @@ class Forecast(API, object):
                     continue
 
                 temp_row[connected_columns_name][
-                    re.match('^' + connected_columns_name + '_(.*)', column).group(1)] = row[column]
+                    re.match('^' + re.escape(connected_columns_name) + '_(.*)', column).group(1)] = row[column]
 
             final_data["rows"].append(temp_row)
 

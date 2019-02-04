@@ -22,9 +22,9 @@ def hello_world():
     return app.send_response('Hello world')
 
 
-@application.errorhandler(Exception)
-def handle_error(e):
-    return app.send_response(str(e), False)
+# @application.errorhandler(Exception)
+# def handle_error(e):
+#     return app.send_response(str(e), False)
 
 
 if __name__ == '__main__':

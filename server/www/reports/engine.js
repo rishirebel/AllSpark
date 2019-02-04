@@ -453,11 +453,7 @@ class report extends API {
 				const age = Math.round((Date.now() - Date.parse(result.created_at)) / 1000);
 				result = result.data;
 
-				return {
-					data: result,
-					age: age,
-					load_saved: true,
-				};
+				this.reportObj.data = result;
 			}
 		}
 
@@ -489,7 +485,7 @@ class report extends API {
 				preparedRequest = new Oracle(this.reportObj, this.filters);
 				break;
 			case "file":
-				this.assert(false, 'No data found in the file. Please upload some data first.');
+				preparedRequest = new File(this.reportObj.data);
 				break;
 			case "bigquery_legacy":
 				preparedRequest = new BigqueryLegacy(this.reportObj, this.filters);
@@ -518,7 +514,7 @@ class report extends API {
 
 		//Priority: Redis > (Saved Result)
 
-		this.redis = (!forcedRun && this.reportObj.is_redis && redisData && !this.has_today);
+		this.redis = (!forcedRun && parseInt(this.reportObj.is_redis) && redisData && !this.has_today);
 
 		let cacheInfo;
 
@@ -573,7 +569,6 @@ class report extends API {
 			try {
 
 				result = await engineExecution;
-				await this.storeQueryResult(result);
 
 			}
 			catch (e) {
@@ -1216,12 +1211,30 @@ class Oracle {
 	}
 }
 
+class File {
+
+	constructor(data) {
+
+		this.data = data;
+	}
+
+	get finalQuery() {
+
+		return {
+			type: "file",
+			request: [this.data],
+		};
+	}
+}
+
 
 class ReportEngine extends API {
 
 	constructor(parameters) {
 
 		super();
+
+		const fn = (data) => data;
 
 		ReportEngine.engines = {
 			mysql: this.mysql.query,
@@ -1231,6 +1244,7 @@ class ReportEngine extends API {
 			mssql: this.mssql.query,
 			mongo: mongoConnecter,
 			oracle: oracle.query,
+			file: fn,
 		};
 
 		this.parameters = parameters || {};
@@ -1281,6 +1295,10 @@ class ReportEngine extends API {
 		else if (this.parameters.type === "mongo") {
 
 			query = JSON.stringify(this.parameters.request[0], 0, 1);
+		}
+		else if (this.parameters.type == "file") {
+
+			query = null;
 		}
 
 		return {
@@ -1563,14 +1581,14 @@ class Transformation {
 				newColumns.set(
 					`${column}_${newColumn}`,
 					`${column}_${newColumn}_${commonFun.hashCode(column + newColumn)}`)
-			};
+			}
 		}
 
 		const originalDataMapping = {};
 
 		for(const row of originalData) {
 
-			originalDataMapping[row[connectingColumn]] = row;
+			originalDataMapping[row[connectingColumn].replace('T', ' ').slice(0, 19)] = row;
 		}
 
 		for(const row of metadata) {
@@ -1582,20 +1600,40 @@ class Transformation {
 
 			for(const originalColumn in row) {
 
+				const connectingCol = row[connectingColumn].replace('T', ' ').slice(0, 19);
+
 				if(originalColumn == connectingColumn) {
 
-					originalDataMapping[row[connectingColumn]][originalColumn] = row[connectingColumn];
+					originalDataMapping[connectingCol][originalColumn] = connectingCol;
 					continue;
 				}
 
 				for (const newColumn in row[originalColumn]) {
 
-					originalDataMapping[row[connectingColumn]][newColumns.get(`${originalColumn}_${newColumn}`)] = row[originalColumn][newColumn];
+					originalDataMapping[connectingCol][newColumns.get(`${originalColumn}_${newColumn}`)] = parseFloat(row[originalColumn][newColumn]);
 				}
 			}
 		}
 
-		return Object.values(originalDataMapping);
+		const response = Object.values(originalDataMapping);
+		//
+		// for(const row of response) {
+		//
+		// 	for(const col in row) {
+		//
+		// 		if(row[col] == parseFloat(row[col])) {
+		//
+		// 			row[col] = parseFloat(row[col]);
+		// 		}
+		//
+		// 		if(col == 'timing') {
+		//
+		// 			row[col] = row[col].slice(0, 10);
+		// 		}
+		// 	}
+		// }
+
+		return response;
 	}
 }
 

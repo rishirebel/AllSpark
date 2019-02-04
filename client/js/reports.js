@@ -8037,10 +8037,9 @@ Visualization.list.set('linear', class Linear extends LinearVisualization {
 						.attr("d", line)
 						.style('stroke', column => this.source.columns.get(column.key).color);
 
-					const sd1 = this.dashedLine(p, 10, 80, true);
-					const sd2 = this.dashedLine(p, 120, 180, true);
-
-					p.attr("stroke-dasharray", sd1[0]+', ' +sd2[0] + ', '+(parseInt(sd1[1]) + parseInt(sd2[1])));
+					// const sd1 = this.dashedLine(p, 700, 10000, true);
+					//
+					// p.attr("stroke-dasharray", sd1[0] + ', ' + (parseInt(sd1[1])));
 				}
 			}
 

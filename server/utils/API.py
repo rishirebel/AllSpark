@@ -19,7 +19,7 @@ class API(Principal):
             }
 
             request_json = {
-                i: dict(self.request.json)[i] if len(dict(self.request.json)[i]) > 1 else dict(self.request.json)[i][0]
+                i: dict(self.request.json)[i] if len(dict(self.request.json)[i]) > 1 else dict(self.request.json)[i]
                 for i in dict(self.request.json or {})
             }
 
