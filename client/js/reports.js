@@ -5773,7 +5773,7 @@ DataSourcePostProcessors.processors.set('RollingSum', class extends DataSourcePo
 
 				for(const [key, value] of newRow) {
 
-					if(!isNaN(parseFloat(value))) {
+					if(!isNaN(parseFloat(value)) && !isNaN(parseFloat(element.get(key)))) {
 						newRow.set(key,  value + parseFloat(element.get(key)));
 					}
 				}
