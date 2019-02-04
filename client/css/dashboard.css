@@ -167,7 +167,6 @@ main #reports.show {
 main #reports > h1.dashboard-name {
 	font-weight: normal;
 	display: flex;
-	justify-content: space-between;
 	max-width: 100%;
 	overflow: auto;
 }
@@ -182,6 +181,7 @@ main #reports > h1.dashboard-name::-webkit-scrollbar {
 	}
 	main #reports > h1.dashboard-name > div {
 			display: flex;
+			margin-left: auto;
 			opacity: 0;
 			transition: opacity var(--transition-duration);
 		}

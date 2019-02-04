@@ -217,3 +217,37 @@ main .documentation-page form .body.preview-mode {
 		overflow: auto;
 		padding: calc(var(--gap) * 2);
 	}
+	main .documentation-page form .body .html-editor {
+		grid-column: 1;
+	}
+
+main #alerts > .list {
+	margin-top: 15px;
+	display: grid;
+	grid-gap: calc(var(--gap) * 3);
+}
+	main #alerts > .list .alert {
+		display: grid;
+		grid-gap: calc(var(--gap) * 2);
+	}
+		main #alerts > .list .alert h2 {
+			margin: 0;
+			padding: 5px 5px 5px 0;
+			font-size: 110%;
+			border-bottom: 1px solid var(--color-border);
+			font-weight: normal;
+			letter-spacing: 0.3px;
+			cursor: pointer;
+			display: flex;
+		}
+			main #alerts > .list .alert h2 .arrow {
+				margin-right: 8px;
+				transition: transform var(--transition-duration);
+			}
+			main #alerts > .list .alert h2 .arrow.rotate {
+				transform: rotate(90deg);
+			}
+		main #alerts > .list .alert .alert-data {
+			max-height: 300px;
+			overflow: auto;
+		}
