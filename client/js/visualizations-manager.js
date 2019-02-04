@@ -50,6 +50,22 @@ class VisualizationsManager extends Map {
 				rowValue: row => row.tags ? row.tags.split(',').map(t => t.trim()) : [],
 			},
 			{
+				key: 'Visualization Description',
+				rowValue: row => row.description ? [row.description] : [],
+			},
+			{
+				key: 'Visualization Dashboard Name',
+				rowValue: row => {
+					return ReportVisualizationDashboards.response.filter(d => d.visualizations.some(v => v.visualization_id == row.id)).map(d => d.name);
+				},
+			},
+			{
+				key: 'Visualization Dashboard ID',
+				rowValue: row => {
+					return ReportVisualizationDashboards.response.filter(d => d.visualizations.some(v => v.visualization_id == row.id)).map(d => d.id);
+				},
+			},
+			{
 				key: 'Visualization Created By',
 				rowValue: row => row.added_by_name ? [row.added_by_name] : [],
 			},
@@ -97,7 +113,9 @@ class VisualizationsManager extends Map {
 
 	async load() {
 
-		const [_, connections] = await this.fetch();
+		const [_, connections, dashboards] = await this.fetch();
+
+		ReportVisualizationDashboards.response = dashboards;
 
 		this.process(connections);
 		this.render();
@@ -114,6 +132,7 @@ class VisualizationsManager extends Map {
 		return Promise.all([
 			DataSource.load(true),
 			API.call('credentials/list'),
+			API.call('dashboards/list'),
 		]);
 	}
 
