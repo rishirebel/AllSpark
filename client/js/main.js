@@ -4269,7 +4269,7 @@ class Documentation {
 	get container() {
 
 		const container = document.createElement('div');
-		container.classList.add('documentation');
+		container.classList.add('body');
 
 		container.appendChild(this.bodyContainer);
 

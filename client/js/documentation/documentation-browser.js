@@ -56,6 +56,7 @@ class DocumentationBrowser extends Page {
 		this.container.innerHTML = `
 			<section class="container">
 				<nav></nav>
+				<div class="documentation"></div>
 			</section>
 		`;
 	}
@@ -182,14 +183,13 @@ class DocumentationBrowserItem extends Documentation {
 
 			history.pushState(null, '', `/documentation/${this.id}`);
 
-			if(this.page.container.querySelector('.documentation')) {
-				this.page.container.querySelector('.documentation').remove();
-			}
+			const documentation = this.page.container.querySelector('.documentation');
+			documentation.textContent = null;
 
 			await this.load();
 			this.headingSize = 1;
 
-			this.page.container.querySelector('.container').appendChild(this.container);
+			documentation.appendChild(this.container);
 		});
 
 		return container;
