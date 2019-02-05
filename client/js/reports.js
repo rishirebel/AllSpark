@@ -12389,7 +12389,7 @@ SpatialMapLayer.types.set('heatmap', class HeatMap extends SpatialMapLayer {
 		this.heatmap = new google.maps.visualization.HeatmapLayer({
 			radius: this.radius || 15,
 			opacity: this.opacity || 0.6,
-			gradient: this.gradient.color_code
+			gradient: this.gradient.color_code,
 		});
 	}
 

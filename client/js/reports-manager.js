@@ -5522,16 +5522,16 @@ SpatialMapOptionsLayer.types.set('heatmap', class HeatMapLayer extends SpatialMa
 		for(const gradient of SpatialMapLayer.types.get('heatmap').gradient) {
 
 			const gradientContainer = document.createElement('div');
-			gradientContainer.classList.add(gradient.name.toLowerCase());
+			gradientContainer.classList.add('gradient');
 
 			gradientContainer.title = gradient.name;
 			gradientContainer.style.background = `-webkit-linear-gradient(left, ${gradient.color_code.join(',')})`;
 
 			gradientContainer.on('click', () => {
 
-				for(const div of container.querySelectorAll('.gradients div')) {
+				for(const element of container.querySelectorAll('.gradients .gradient')) {
 
-					div.classList.remove('selected');
+					element.classList.remove('selected');
 				}
 
 				this.gradient = gradient.name;

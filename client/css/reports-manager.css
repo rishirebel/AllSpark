@@ -803,7 +803,7 @@ main.preview-left #stages {
 				display: grid;
 				grid-gap: calc(var(--gap) * 3);
 			}
-				.visualization-form .layers .form .gradients div {
+				.visualization-form .layers .form .gradients .gradient {
 					height: 15px;
 					cursor: pointer;
 					margin: 4px 0;
