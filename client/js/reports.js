@@ -7637,7 +7637,7 @@ Visualization.list.set('scatter', class Scatter extends LinearVisualization {
 				.on('click', (cell, row) => that.source.columns.get(cell.key).initiateDrilldown(that.rows[row]))
 			;
 
-				if(this.options.showValues) {
+			if(this.options.showValues) {
 				this.svg
 					.selectAll('dot')
 					.data(column)
