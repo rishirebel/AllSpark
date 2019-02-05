@@ -6329,6 +6329,10 @@ class LinearVisualization extends Visualization {
 				</ul>
 			`;
 
+			if(that.container.querySelector('.loading')) {
+				return;
+			}
+
 			Tooltip.show(that.container, mouse, content, row);
 		})
 
