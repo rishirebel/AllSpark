@@ -871,7 +871,7 @@ main.preview-left #stages {
 					display: grid;
 					grid-template-columns: 1fr;
 					grid-gap: calc(var(--gap) * 2);
-					width: max-content;
+					width: 200px;
 				}
 					.visualization-form .transformations .transformation h4 {
 						margin: 0;
