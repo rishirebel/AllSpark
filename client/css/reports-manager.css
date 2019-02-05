@@ -992,10 +992,6 @@ main.preview-left #stages {
 		grid-gap: calc(var(--gap) * 2);
 		display: grid;
 	}
-        .visualization-form .related-visualizations label,
-        .visualization-form .dashboards label {
-            grid-template-rows: max-content max-content;
-        }
 		.visualization-form .related-visualizations .form {
 			grid-template-columns: repeat(6, max-content);
 			grid-gap: calc(var(--gap) * 2);

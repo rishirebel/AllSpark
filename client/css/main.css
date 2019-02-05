@@ -577,6 +577,7 @@ body {
 			grid-gap: var(--gap);
 			max-width: 200px;
 			white-space: nowrap;
+			grid-template-rows: max-content max-content;
 		}
 			.form label > span,
 			.form .label > span {
