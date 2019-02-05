@@ -5496,7 +5496,7 @@ SpatialMapOptionsLayer.types.set('heatmap', class HeatMapLayer extends SpatialMa
 			
 			<label>
 				<span>Gradient</span>
-				<div class="gradient"></div>
+				<div class="gradients"></div>
 			</label>
 		`);
 
@@ -5505,7 +5505,12 @@ SpatialMapOptionsLayer.types.set('heatmap', class HeatMapLayer extends SpatialMa
 			container.querySelector('.opacity .value').textContent = container.querySelector('.opacity input').value;
 		});
 
-		const weight = container.querySelector('select[name=weight]');
+		const
+			weight = container.querySelector('select[name=weight]'),
+			gradients = container.querySelector('.gradients')
+		;
+
+		this.gradient = this.gradient || 'Standard';
 
 		for(const [key, column] of this.layers.stage.page.preview.report.columns) {
 
@@ -5514,39 +5519,29 @@ SpatialMapOptionsLayer.types.set('heatmap', class HeatMapLayer extends SpatialMa
 			`);
 		}
 
-		for(const gradient in SpatialMapLayer.types.get('heatmap').gradient) {
+		for(const gradient of SpatialMapLayer.types.get('heatmap').gradient) {
 
-			this.selectedGradient = this.gradient || 'standard';
+			const gradientContainer = document.createElement('div');
+			gradientContainer.classList.add(gradient.name.toLowerCase());
 
-			const gradDiv = document.createElement('div');
-			gradDiv.classList.add(gradient);
+			gradientContainer.title = gradient.name;
+			gradientContainer.style.background = `-webkit-linear-gradient(left, ${gradient.color_code.join(',')})`;
 
-			gradDiv.title = gradient;
+			gradientContainer.on('click', () => {
 
-			let divBackground = '-webkit-linear-gradient(left';
-
-			for(const rgb of SpatialMapLayer.types.get('heatmap').gradient[gradient])
-				divBackground = divBackground.concat(',', rgb);
-
-			divBackground = divBackground.concat(')');
-
-			gradDiv.style.background = divBackground;
-
-			gradDiv.on('click', () => {
-
-				for(const div of container.querySelectorAll('.gradient div')) {
+				for(const div of container.querySelectorAll('.gradients div')) {
 
 					div.classList.remove('selected');
 				}
 
-				this.selectedGradient = gradDiv.title;
-				gradDiv.classList.add('selected');
+				this.gradient = gradient.name;
+				gradientContainer.classList.add('selected');
 			});
 
-			if(gradient == this.selectedGradient)
-				gradDiv.classList.add('selected');
+			if(gradient.name == this.gradient)
+				gradientContainer.classList.add('selected');
 
-			container.querySelector('.gradient').appendChild(gradDiv);
+			gradients.appendChild(gradientContainer);
 		}
 
 		if(this.weightColumn)
@@ -5565,7 +5560,7 @@ SpatialMapOptionsLayer.types.set('heatmap', class HeatMapLayer extends SpatialMa
 
 		const response = super.json;
 
-		response.gradient = this.selectedGradient || this.gradient;
+		response.gradient = this.gradient;
 
 		return response;
 	}
