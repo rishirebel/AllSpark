@@ -2658,6 +2658,10 @@ class ReportsManagerFilters extends Map {
 			</div>
 		`;
 
+		const documentation = new DocumentationInfos('filters', this.page);
+
+		container.querySelector('#list > h3').appendChild(documentation.infoContainer);
+
 		this.addForm.container.id = 'report-filter-add';
 
 		const addFilterContainer = this.container.querySelector('.add-filter');

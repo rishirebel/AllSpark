@@ -2371,7 +2371,7 @@ class DialogBox {
 			heading.innerHTML = dialogHeading;
 
 		else
-			throw Page.exception('Invalid heading format');
+			throw new Page.exception('Invalid heading format');
 	}
 
 	/**
@@ -4283,7 +4283,7 @@ class Documentation {
 			return;
 		}
 
-		this.initilizeBody = await API.call('documentation/get', {id: this.id});
+		this.initilizeBody = await API.call('documentation/get', {id: this.id, body: true});
 	}
 
 	get container() {
@@ -4303,7 +4303,11 @@ class Documentation {
 	set headingSize(size) {
 
 		this.bodyContainer.querySelector('.heading').innerHTML = `
-			<h${size}>${this.completeChapter} ${this.heading}</h${size}>
+			<h${size}>
+				${this.completeChapter}
+				${this.heading}
+				<span><a href="/documentation/${this.id}" target="_blank">&#182;</a></span>
+			</h${size}>
 		`;
 
 		if(!this.children.size) {
@@ -4357,6 +4361,123 @@ class Documentation {
 		}
 
 		return chapter.reverse().join('.');
+	}
+}
+
+class DocumentationInfos {
+
+	constructor(slug, page) {
+
+		this.slug = slug;
+		this.page = page;
+
+		(async () => {
+			await this.load();
+		})();
+	}
+
+	async load() {
+
+		if(this.documentation) {
+			return;
+		}
+
+		const parameters = {
+			slug: this.slug,
+		}
+
+		const
+			response = await API.call('documentation/get', parameters),
+			root = this.constructTree(response);
+
+		Object.assign(this, root);
+
+		this.documentation = new DocumentationInfo(root, this.page);
+	}
+
+	constructTree(list) {
+
+		const id = list.filter(x => x.slug == this.slug)[0].id;
+
+		const tree = new Map;
+
+		for(const documentation of list) {
+
+			if(!tree.has(documentation.parent)) {
+				tree.set(documentation.parent, []);
+			}
+
+			tree.get(documentation.parent).push(documentation);
+		}
+
+		for(const documentation of tree.values()) {
+
+		    for(const subDocumentation of documentation) {
+				subDocumentation.children = tree.get(subDocumentation.id) || [];
+			}
+		}
+
+		list = new Map(list.map(x => [x.id, x]));
+
+		for(const [key, item] of list) {
+			item.children = tree.get(key) || [];
+		}
+
+		return list.get(id);
+	}
+
+	get infoContainer() {
+
+		if(this.infoContainerElement) {
+			return this.infoContainerElement;
+		}
+
+		const container = this.infoContainerElement = document.createElement('span');
+		container.classList.add('documentation-info');
+
+		container.innerHTML = '<i class="fas fa-question"></i>';
+		container.title = 'Info';
+
+		container.on('click', async () => {
+
+			if(this.dialougeBox) {
+				return this.dialougeBox.show();
+			}
+
+			await this.documentation.load();
+
+			const dialougeBox = this.dialougeBox = new DialogBox();
+
+			dialougeBox.container.querySelector('section').classList.add('documentation')
+
+			dialougeBox.heading = this.heading;
+
+			this.documentation.headingSize = 1;
+
+			dialougeBox.body.appendChild(this.documentation.container);
+
+			this.dialougeBox.show();
+		});
+
+		return container;
+	}
+}
+
+class DocumentationInfo extends Documentation {
+
+	constructor(documentation, page, parent = null) {
+
+		super(documentation, page, parent);
+
+		const children = new Map;
+
+		this.children.sort((a,b) => a.chapter - b.chapter);
+
+		for(const data of this.children) {
+			children.set(data.id, new DocumentationInfo(data, this.page, this));
+		}
+
+		this.children = children;
 	}
 }
 

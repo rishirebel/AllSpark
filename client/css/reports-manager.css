@@ -526,6 +526,8 @@ main.preview-left #stages {
 				background: var(--color-background);
 				color: var(--color-background-text);
 				z-index: 1;
+				display: flex;
+				align-items: center;
 			}
 				#stage-define-report #filters h3 > i {
 					margin: 0 var(--gap);

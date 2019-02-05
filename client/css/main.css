@@ -474,7 +474,12 @@ body {
 				font-size: 90%;
 				margin-top: var(--gap);
 			}
-
+	.dialog-box.documentation {
+		max-width: 50%;
+	}
+		.dialog-box.documentation > .body {
+			padding: 0 15px;
+		}
 	main .section > h1,
 	main .section > h2 {
 		border-bottom: 1px dashed var(--color-border);
@@ -1508,4 +1513,48 @@ body#tinymce table tr {
 
 .tableHeaders {
 	cursor: pointer;
+}
+.documentation a {
+	text-decoration: none;
+}
+.documentation table {
+	background: var(--color-surface);
+	color: var(--color-surface-text);
+	box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+}
+.documentation h1,
+.documentation h2,
+.documentation h3,
+.documentation h4,
+.documentation h5,
+.documentation h6 {
+	display: flex;
+	margin-bottom: 0;
+	border-bottom: 1px dashed #999;
+}
+	.documentation h1 > span,
+	.documentation h2 > span,
+	.documentation h3 > span,
+	.documentation h4 > span,
+	.documentation h5 > span,
+	.documentation h6 > span {
+		margin-left: auto;
+	}
+.documentation .heading a {
+	font-size: 15px;
+	text-decoration: underline;
+	color: #999;
+	padding: 0 var(--gap);
+}
+.documentation-info {
+	padding: 0 5px;
+	color: var(--color-grey);
+	font-size: 80%;
+	transition: font-size var(--transition-duration);
+	position: absolute;
+	right: 0;
+}
+.documentation-info:hover {
+	cursor: pointer;
+	font-size: 90%;
 }

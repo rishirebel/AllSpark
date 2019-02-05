@@ -36,23 +36,6 @@ main {
 				overflow: auto;
 				padding-right: calc(var(--gap) * 2);
 			}
-				.documentation a {
-					text-decoration: none;
-				}
-				.documentation table {
-					background: var(--color-surface);
-					color: var(--color-surface-text);
-					box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-				}
-				.documentation h1,
-				.documentation h2,
-				.documentation h3,
-				.documentation h4,
-				.documentation h5,
-				.documentation h6 {
-					margin-bottom: 0;
-					border-bottom: 1px dashed #999;
-				}
 
 @media(max-width: 750px) {
 	main section.container {
