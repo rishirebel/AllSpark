@@ -287,14 +287,12 @@ class SettingsManagerProfile {
 
 		e.preventDefault();
 
-		const value = this.settings.map(x => {
+		const value = [];
 
-			return {
-				key: x.key,
-				value: x.key == 'external_parameters' ? Array.isArray(x.value) ? x.value : [] : x.value
-			}
-
-		});
+		this.settings.map(x => value.push({
+			key: x.key,
+			value: x.value
+		}));
 
 		const
 			parameters = {

@@ -3,7 +3,7 @@ const account = require('../onServerStart');
 const commonFun = require("../utils/commonFunctions");
 const redis = require("../utils/redis").Redis;
 const getRole = (require('./object_roles')).get;
-const reportHistory = require('../utils/reportLogs');
+const settingHistory = require('../utils/reportLogs');
 
 exports.insert = class extends API {
 
@@ -51,7 +51,7 @@ exports.insert = class extends API {
 			}
 		;
 
-		reportHistory.insert(this, logs);
+		settingHistory.insert(this, logs);
 
 		return insertResponse
 	}
@@ -83,12 +83,20 @@ exports.update = class extends API {
 		this.assert(id, "no id found to update");
 		this.assert(commonFun.isJson(value), "Please send valid JSON");
 
-		const [rowUpdated] = await this.mysql.query('SELECT * FROM tb_settings WHERE id = ?', [id], 'write');
+		const
+			[rowUpdated] = await this.mysql.query('SELECT * FROM tb_settings WHERE id = ?', [id], 'write'),
+			compareJSON = {
+				profile: rowUpdated.profile,
+				value: commonFun.isJson(rowUpdated.value) ? JSON.parse(rowUpdated.value) : []
+			};
 
-		if(JSON.stringify({profile: rowUpdated.profile, value: rowUpdated.value}) == JSON.stringify({profile, value})) {
+		if(JSON.stringify(compareJSON, 0, 4) == JSON.stringify({profile, value: JSON.parse(value)}, 0, 4)) {
 
-			return "0 rows affected";
+			return 'New values are identical to the previous ones.';
 		}
+
+		rowUpdated.profile = profile;
+		rowUpdated.value = value;
 
 		const
 			response = await this.mysql.query(
@@ -103,7 +111,7 @@ exports.update = class extends API {
 				operation: 'update',
 			};
 
-		reportHistory.insert(this, logs);
+		settingHistory.insert(this, logs);
 
 		if(owner == 'account') {
 
@@ -142,7 +150,7 @@ exports.delete = class extends API {
 			deleteResponse = await this.mysql.query("DELETE FROM tb_settings WHERE id = ?", [id], 'write')
 		;
 
-		reportHistory.insert(
+		settingHistory.insert(
 			this,
 			{
 				owner: 'setting',
