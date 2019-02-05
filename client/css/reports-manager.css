@@ -578,6 +578,9 @@ main.preview-left #stages {
 				#stage-define-report #filters .form .label {
 					grid-row: span 2;
 				}
+				#stage-define-report #filters .form .dataset .multi-select .options {
+					z-index: 0;
+				}
 			#stage-define-report #filters #external-parameters,
 			#stage-define-report #filters #suggested-filters {
 				margin-top: 40px;
@@ -650,9 +653,6 @@ main.preview-left #stages {
 	}
 	#stage-configure-visualization .toolbar .right {
 		margin-left: auto;
-	}
-	.visualization-form .multi-select .options {
-		z-index: 0;
 	}
 	.visualization-form h3 {
 		border-bottom: 1px dashed var(--color-border);
@@ -772,6 +772,10 @@ main.preview-left #stages {
 			background: transparent;
 			padding: 0;
 		}
+		.visualization-form .axes .multi-select .options,
+		.visualization-form .transformations .multi-select .options {
+			z-index: 1;
+		}
 			.visualization-form .axes .form .advanced-toggle {
 				font-size: 90%;
 				text-align: center;
@@ -856,9 +860,6 @@ main.preview-left #stages {
 				.visualization-form .transformations fieldset > .actions > div:active {
 					box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.25);
 				}
-			.visualization-form .transformations .title {
-				grid-template-columns: max-content;
-			}
 			.visualization-form .transformations .transformation {
 				display: grid;
 				grid-gap: calc(var(--gap) * 2);
@@ -989,7 +990,7 @@ main.preview-left #stages {
 				margin: 0;
 			}
 
-	.visualization-form .related-visualizations .list {
+	.visualization-form .related-visualizations > .list {
 		grid-gap: calc(var(--gap) * 2);
 		display: grid;
 	}
