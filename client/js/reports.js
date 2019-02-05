@@ -7666,7 +7666,7 @@ Visualization.list.set('scatter', class Scatter extends LinearVisualization {
 			container.selectAll(`svg > g > circle[id='${xpos}'].clips`).attr('r', 6);
 		})
 
-		.on('mouseout.line', () => container.selectAll('svg > g > circle.clips').attr('r', 3))
+		.on('mouseout.line', () => container.selectAll('svg > g > circle.clips').attr('r', 3));
 	}
 });
 
