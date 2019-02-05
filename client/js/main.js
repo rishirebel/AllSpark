@@ -2547,7 +2547,15 @@ class MultiSelect {
 			this.setPlaceholderText();
 		});
 
-		search.on('keyup', () => this.recalculate());
+		search.on('keyup', e => {
+
+			if(e.which == 13 || e.key_code == 13) {
+
+				return this.all();
+			}
+
+			this.recalculate()
+		});
 
 		search.on('focus', () => search.click());
 
