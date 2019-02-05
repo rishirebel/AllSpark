@@ -651,6 +651,9 @@ main.preview-left #stages {
 	#stage-configure-visualization .toolbar .right {
 		margin-left: auto;
 	}
+	.visualization-form .multi-select .options {
+		z-index: 0;
+	}
 	.visualization-form h3 {
 		border-bottom: 1px dashed var(--color-border);
 		cursor: pointer;
@@ -784,9 +787,6 @@ main.preview-left #stages {
 				font-weight: normal;
 				color: #999;
 			}
-		.visualization-form .axes .axis .axis-column .multi-select .options {
-			z-index: 0;
-		}
 		.visualization-form .axes .add-axis .form,
 		.visualization-form .layers .add-layer .form {
 			grid-template-columns: minmax(max-content, 200px) max-content;

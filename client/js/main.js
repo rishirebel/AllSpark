@@ -2563,11 +2563,11 @@ class MultiSelect {
 
 		if(!this.optionsContainer) {
 
-			container.appendChild(this.options);
+			this.container.appendChild(this.options);
 			this.render();
 		}
 
-		if(!container.classList.contains('stretched')) {
+		if(!this.container.classList.contains('stretched')) {
 
 			for(const option of document.querySelectorAll('.multi-select .options')) {
 
