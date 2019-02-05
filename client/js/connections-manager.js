@@ -97,6 +97,10 @@ class Connections extends Page {
 			this.oAuthProviders.set(provider.provider_id, provider);
 		}
 
+		this.container.querySelector('.oauth-heading').classList.toggle('hidden', !this.oAuthProviders.size);
+
+		this.container.querySelector('.oauth-connections').classList.toggle('hidden', !this.oAuthProviders.size);
+
 		for(const connection of response[2] || []) {
 			this.oAuthConnections.set(connection.id, new OAuthConnection(connection, this));
 		}

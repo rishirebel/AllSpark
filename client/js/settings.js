@@ -448,7 +448,7 @@ Settings.list.set('documentation', class Documentations extends SettingPage {
 		this.list.clear();
 
 		for (const data of response) {
-			this.list.set(data.id, new Documentation(data, this));
+			this.list.set(data.id, new DocumentationEdit(data, this));
 		}
 
 		this.parentDatalist = response.map(d => {return {name: d.heading, value: d.id, subtitle: d.slug}});
@@ -2037,7 +2037,7 @@ class GlobalFilter {
 	}
 }
 
-class Documentation {
+class DocumentationEdit {
 
 	constructor(documentation, page) {
 

@@ -1196,7 +1196,7 @@ router.get('/connections-manager/:id?/:type?', API.serve(class extends HTMLAPI {
 
 			<section class="section" id="list">
 
-				<h1>OAuth Connections</h1>
+				<h1 class="oauth-heading">OAuth Connections</h1>
 
 				<div class="oauth-connections">
 
@@ -1691,6 +1691,17 @@ router.get('/tasks/:id?/:define?', API.serve(class extends HTMLAPI {
 				</header>
 			</section>
 		`;
+	}
+}));
+
+router.get('/documentation/:id?', API.serve(class extends HTMLAPI {
+
+	constructor() {
+
+		super();
+
+		this.stylesheets.push('/css/documentation/documentation-browser.css');
+		this.scripts.push('/js/documentation/documentation-browser.js');
 	}
 }));
 

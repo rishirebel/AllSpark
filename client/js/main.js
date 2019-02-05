@@ -1117,8 +1117,9 @@ class Account {
 
 	static async fetch() {
 
-		if(await Storage.has('account'))
+		if(await Storage.has('account')) {
 			return await Storage.get('account');
+		}
 
 		try {
 
@@ -1133,16 +1134,23 @@ class Account {
 
 	constructor(account) {
 
-		for(const key in account)
+		for(const key in account) {
 			this[key] = account[key];
+		}
 
 		this.settings = new Map;
 
-		if(!Array.isArray(account.settings))
+		if(!Array.isArray(account.settings)) {
 			return;
+		}
 
-		for(const setting of account.settings)
+		for(const setting of account.settings) {
 			this.settings.set(setting.key, setting.value);
+		}
+
+		if(this.features && (this.features.length || this.features.size)) {
+			this.features = new Map(this.features.map(f => [f, f]));
+		}
 	}
 }
 
@@ -1331,7 +1339,19 @@ class MetaData {
 		MetaData.visualizations = new Map(metadata.visualizations ? metadata.visualizations.map(v => [v.slug, v]) : []);
 		MetaData.features = new Map(metadata.features ? metadata.features.map(f => [f.feature_id, f]) : []);
 		MetaData.globalFilters = new Map(metadata.globalFilters ? metadata.globalFilters.map(d => [d.id, d]) : []);
+
 		user.settings = new Map(metadata.userSettings ? metadata.userSettings.map(us => [us.key, us.value]) : []);
+
+		const features = new Map;
+
+		for(const [key, feature] of MetaData.features || []) {
+
+			if(account.features && account.features.size && (account.features.has(feature.slug) || account.features.has(key))) {
+				features.set(feature.slug, feature);
+			}
+		}
+
+		account.features = features;
 	}
 }
 
@@ -4245,6 +4265,98 @@ class FormatSQL {
 
 			this.query = result.join('\n');
 		}
+	}
+}
+
+class Documentation {
+
+	constructor(documentation, page, parent) {
+
+		Object.assign(this, documentation);
+		this.parent = parent;
+		this.page = page;
+	}
+
+	async load() {
+
+		if('body' in this) {
+			return;
+		}
+
+		this.initilizeBody = await API.call('documentation/get', {id: this.id});
+	}
+
+	get container() {
+
+		const container = document.createElement('div');
+		container.classList.add('body');
+
+		container.appendChild(this.bodyContainer);
+
+		for(const child of this.children.values()) {
+			container.appendChild(child.container);
+		}
+
+		return container;
+	}
+
+	set headingSize(size) {
+
+		this.bodyContainer.querySelector('.heading').innerHTML = `
+			<h${size}>${this.completeChapter} ${this.heading}</h${size}>
+		`;
+
+		if(!this.children.size) {
+			return;
+		}
+
+		size++;
+
+		for(const child of this.children.values()) {
+			child.headingSize = size;
+		}
+	}
+
+	get bodyContainer() {
+
+		if(this.bodyContainerElement) {
+			return this.bodyContainerElement;
+		}
+
+		const container = this.bodyContainerElement = document.createElement('div');
+
+		container.innerHTML = `
+			<div class="heading"></div>
+			<p>${this.body || '<span class="NA">No content added.</span>'}</p>
+		`;
+
+		return container;
+	}
+
+	set initilizeBody(text) {
+
+		this.body = text.filter(x => x.id == this.id)[0].body;
+
+		if(!this.children.size) {
+			return;
+		}
+
+		for(const child of this.children.values()) {
+			child.initilizeBody = text;
+		}
+	}
+
+	get completeChapter() {
+
+		let parent = this.parent;
+		const chapter = [this.chapter];
+
+		while(parent) {
+			chapter.push(parent.chapter);
+			parent = parent.parent;
+		}
+
+		return chapter.reverse().join('.');
 	}
 }
 

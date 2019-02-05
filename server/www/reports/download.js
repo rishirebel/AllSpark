@@ -7,6 +7,8 @@ exports.pdf = class DownloadPdf extends API {
 
 	async pdf() {
 
+		this.account.features.needs('export_headless-export');
+
 		const chrome = new headlessChrome();
 
 		await chrome.setup();
