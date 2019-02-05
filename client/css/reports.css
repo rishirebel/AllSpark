@@ -6,9 +6,6 @@ main .dataset {
 	main .dataset input[type=date] {
 		width: 100%;
 	}
-	main .dataset .options {
-		border-top: 0;
-	}
 		main .dataset label {
 			display: grid;
 			grid-template-columns: auto 1fr;

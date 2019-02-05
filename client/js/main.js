@@ -2516,24 +2516,7 @@ class MultiSelect {
 
 			e.stopPropagation();
 
-			if(!this.optionsContainer) {
-
-				container.appendChild(this.options);
-				this.render();
-			}
-
-			if(!container.classList.contains('stretched')) {
-
-				for(const option of document.querySelectorAll('.multi-select .options')) {
-
-					if(!option.parentElement.classList.contains('stretched')) {
-
-						option.classList.add('hidden');
-					}
-				}
-			}
-
-			this.options.classList.remove('hidden');
+			this.showHideOptions();
 			this.container.querySelector('input[type=search]').placeholder = 'Search...';
 		});
 
@@ -2549,13 +2532,7 @@ class MultiSelect {
 
 		search.on('keyup', e => {
 
-			if(!this.optionsContainer) {
-
-				container.appendChild(this.options);
-				this.render();
-			}
-
-			this.options.classList.remove('hidden');
+			this.showHideOptions();
 
 			if(e.which == 13 || e.key_code == 13) {
 
@@ -2580,6 +2557,28 @@ class MultiSelect {
 		});
 
 		return container;
+	}
+
+	showHideOptions() {
+
+		if(!this.optionsContainer) {
+
+			container.appendChild(this.options);
+			this.render();
+		}
+
+		if(!container.classList.contains('stretched')) {
+
+			for(const option of document.querySelectorAll('.multi-select .options')) {
+
+				if(!option.parentElement.classList.contains('stretched')) {
+
+					option.classList.add('hidden');
+				}
+			}
+		}
+
+		this.options.classList.remove('hidden');
 	}
 
 	get datalist() {

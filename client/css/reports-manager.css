@@ -864,6 +864,7 @@ main.preview-left #stages {
 				grid-gap: calc(var(--gap) * 2);
 				align-items: flex-start;
 				margin-top: calc(var(--gap) * 2);
+				grid-template-columns: 200px;
 			}
 				.visualization-form .transformations .transformation > div {
 					display: grid;
@@ -933,7 +934,7 @@ main.preview-left #stages {
 			padding-top: 15px;
 		}
 
-	#stage-configure-visualization .dashboards .list {
+	#stage-configure-visualization .dashboards > .list {
 		grid-gap: calc(var(--gap) * 2);
 		display: grid;
 	}
