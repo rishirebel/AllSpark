@@ -7384,12 +7384,17 @@ Visualization.list.set('bubble', class Bubble extends LinearVisualization {
 				.data(column)
 				.enter()
 				.append('circle')
+				.classed('drilldown', cell => that.source.columns.get(cell.key).drilldown)
 				.attr('class', 'bubble')
 				.attr('id', (_, i) => i)
 				.style('fill', column.color)
 				.attr('cx', d => this.x(d.x) + this.axes.left.width)
 				.attr('cy', d => this.y(d.y))
 				.on('mousemove', function(d) {
+
+					if(!that.source.columns.get(d.key).drilldown) {
+						return;
+					}
 
 					const mouse = d3.mouse(this);
 
@@ -7433,6 +7438,10 @@ Visualization.list.set('bubble', class Bubble extends LinearVisualization {
 				})
 				.on('mouseleave', function(d) {
 
+					if(!that.source.columns.get(d.key).drilldown) {
+						return;
+					}
+
 					Tooltip.hide(that.container);
 
 					that.svg.selectAll('circle')
@@ -7442,6 +7451,7 @@ Visualization.list.set('bubble', class Bubble extends LinearVisualization {
 						.attr('fill', 'black')
 						.attr('opacity', 1);
 				})
+				.on('click', (cell, row) => that.source.columns.get(cell.key).initiateDrilldown(that.rows[row]))
 			;
 
 			if(this.options.showValues != 'empty') {
@@ -7617,14 +7627,17 @@ Visualization.list.set('scatter', class Scatter extends LinearVisualization {
 				.data(column)
 				.enter()
 				.append('circle')
+				.classed('drilldown', cell => that.source.columns.get(cell.key).drilldown)
 				.attr('class', 'clips')
 				.attr('id', (_, i) => i)
 				.attr('r', 3)
 				.style('fill', column.color)
 				.attr('cx', d => this.x(d.x) + this.axes.left.width)
 				.attr('cy', d => this.y(d.y))
+				.on('click', (cell, row) => that.source.columns.get(cell.key).initiateDrilldown(that.rows[row]))
+			;
 
-			if(this.options.showValues) {
+				if(this.options.showValues) {
 				this.svg
 					.selectAll('dot')
 					.data(column)
@@ -7653,7 +7666,7 @@ Visualization.list.set('scatter', class Scatter extends LinearVisualization {
 			container.selectAll(`svg > g > circle[id='${xpos}'].clips`).attr('r', 6);
 		})
 
-		.on('mouseout.line', () => container.selectAll('svg > g > circle.clips').attr('r', 3));
+		.on('mouseout.line', () => container.selectAll('svg > g > circle.clips').attr('r', 3))
 	}
 });
 
@@ -9949,13 +9962,13 @@ Visualization.list.set('funnel', class Funnel extends Visualization {
 
 	async render(options = {}) {
 
-		const
-			series = [],
-			rows = await this.source.response();
+		const series = [];
 
-		if(rows.length > 1) {
+		this.rows = await this.source.response();
 
-			for(const [i, row] of rows.entries()) {
+		if(this.rows && this.rows.length > 1) {
+
+			for(const [i, row] of this.rows.entries()) {
 
 				series.push([{
 					date: 0,
@@ -9975,8 +9988,9 @@ Visualization.list.set('funnel', class Funnel extends Visualization {
 				series.push([{
 					date: 0,
 					label: column.name,
+					key: column.key,
 					color: column.color,
-					y: rows[0].get(column.key),
+					y: this.rows[0].get(column.key),
 				}]);
 			}
 		}
@@ -10134,6 +10148,14 @@ Visualization.list.set('funnel', class Funnel extends Visualization {
 
 				Tooltip.show(that.container, [cord[0], cord[1]], content);
 			});
+
+			path.on('click', (cell, row) => {
+
+				if(that.source.columns.has(cell.key)) {
+					that.source.columns.get(cell.key).initiateDrilldown(that.rows[row]);
+				}
+			});
+
 			polygon.on('mouseover', function () {
 				Tooltip.hide(that.container);
 			});
