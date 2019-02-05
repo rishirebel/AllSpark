@@ -613,7 +613,7 @@ class report extends API {
 			if (transformation.backend_transformation && transformations.has(transformation.type)) {
 
 				const st = performance.now();
-
+				let metadata = {};
 
 				const transformationObj = new (transformations.get(transformation.type))(
 					transformation.columns, result.data, columnInfo
@@ -622,11 +622,12 @@ class report extends API {
 
 				this.assert(response.status, response.response);
 
-				result.data = Transformation.merge(result.data, response.response.rows, response.response.connecting_column);
+				[result.data, metadata] = Transformation.merge(result.data, response);
 
 				transformationData.push({
 					name: transformation.type,
-					time_taken: performance.now() - st
+					time_taken: performance.now() - st,
+					...metadata
 				});
 			}
 		}
@@ -1564,10 +1565,13 @@ class Transformation {
 	//originalData = result.data from query engine
 	//metadata = result from transformations
 
-	static merge(originalData, metadata, connectingColumn='timing') {
+	static merge(originalData, response) {
 
-		const originalColumns = Object.keys(originalData[0]);
-		const newColumns = new Map;
+		let
+			metadata = response.response.rows,
+			connectingColumn = response.response.connecting_column || "timing";
+
+		const newColumns = {};
 
 		for(const column in metadata[0]) {
 
@@ -1578,9 +1582,8 @@ class Transformation {
 
 			for (const newColumn in metadata[0][column]) {
 
-				newColumns.set(
-					`${column}_${newColumn}`,
-					`${column}_${newColumn}_${commonFun.hashCode(column + newColumn)}`)
+				newColumns[`${column}_${newColumn}`] = `${column}_${newColumn}_${commonFun.hashCode(column + newColumn)}`;
+
 			}
 		}
 
@@ -1591,10 +1594,13 @@ class Transformation {
 			originalDataMapping[row[connectingColumn].replace('T', ' ').slice(0, 19)] = row;
 		}
 
+		const dashedArray = [];
+
 		for(const row of metadata) {
 
 			if(!originalDataMapping.hasOwnProperty(row[connectingColumn])) {
 
+				dashedArray.push(row[connectingColumn]);
 				originalDataMapping[row[connectingColumn]] = {};
 			}
 
@@ -1610,30 +1616,12 @@ class Transformation {
 
 				for (const newColumn in row[originalColumn]) {
 
-					originalDataMapping[connectingCol][newColumns.get(`${originalColumn}_${newColumn}`)] = parseFloat(row[originalColumn][newColumn]);
+					originalDataMapping[connectingCol][newColumns[`${originalColumn}_${newColumn}`]] = parseFloat(row[originalColumn][newColumn]);
 				}
 			}
 		}
 
-		const response = Object.values(originalDataMapping);
-		//
-		// for(const row of response) {
-		//
-		// 	for(const col in row) {
-		//
-		// 		if(row[col] == parseFloat(row[col])) {
-		//
-		// 			row[col] = parseFloat(row[col]);
-		// 		}
-		//
-		// 		if(col == 'timing') {
-		//
-		// 			row[col] = row[col].slice(0, 10);
-		// 		}
-		// 	}
-		// }
-
-		return response;
+		return [Object.values(originalDataMapping), {dashedArray, newColumns}];
 	}
 }
 

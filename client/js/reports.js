@@ -65,6 +65,7 @@ class DataSource {
 		}
 
 		parameters.set('query_id', this.query_id);
+		parameters.set('visualization_id', this.visualizations.selected.visualization_id);
 
 		if(this.definitionOverride) {
 
@@ -7709,6 +7710,7 @@ Visualization.list.set('linear', class Linear extends LinearVisualization {
 		const rows = await this.source.response();
 
 		if(!rows || !rows.length) {
+
 			return this.source.error();
 		}
 
@@ -7830,6 +7832,14 @@ Visualization.list.set('linear', class Linear extends LinearVisualization {
 		}
 
 		const that = this;
+		const dashedRange = this.dashedInterval;
+		const dashedColumns = new Set(
+			this.source.originalResponse.metadata.transformations.reduce((x, y) => {
+
+				x.push(...Object.values(y.newColumns));
+				return x;
+			}, [])
+		);
 
 		for (const [axisIndex, axis] of this.axes.entries()) {
 
@@ -8037,9 +8047,23 @@ Visualization.list.set('linear', class Linear extends LinearVisualization {
 						.attr("d", line)
 						.style('stroke', column => this.source.columns.get(column.key).color);
 
-					// const sd1 = this.dashedLine(p, 700, 10000, true);
-					//
-					// p.attr("stroke-dasharray", sd1[0] + ', ' + (parseInt(sd1[1])));
+					let sd;
+
+					if(dashedColumns.has(columnsData[i].key)) {
+
+						sd = this.dashedLine(p, 0, null, true);
+					}
+
+					else {
+
+						sd = this.dashedLine(p, dashedRange[0], dashedRange[1], false);
+					}
+
+					// in case of zoom
+					if(dashedRange.length && sd && sd.length) {
+
+						p.attr("stroke-dasharray", sd[0] + ', ' + parseInt(sd[1]));
+					}
 				}
 			}
 
@@ -8431,7 +8455,7 @@ Visualization.list.set('linear', class Linear extends LinearVisualization {
 
 		const xMapping = new Map;
 
-		if(!xStart && !xEnd) {
+		if(!(xStart || xEnd || xStart === 0)) {
 
 			return;
 		}
@@ -8540,6 +8564,39 @@ Visualization.list.set('linear', class Linear extends LinearVisualization {
 		}
 
 		return [sd, totalLen - dashBetweenL[1]];
+	}
+
+	get dashedInterval() {
+
+		let transformations, dashedRange = [];
+
+		try {
+			transformations = Object.values(this.source.originalResponse.metadata.transformations) || [];
+		}
+		catch(e) {
+
+			return [];
+		}
+
+		for(const transformation of transformations) {
+
+			if(transformation.hasOwnProperty('dashedArray')) {
+
+				dashedRange = dashedRange.concat(transformation.dashedArray);
+			}
+		}
+
+		dashedRange.sort((x, y) =>  new Date(x) - new Date(y));
+
+		if(dashedRange.length <= 1) {
+
+			return [];
+		}
+
+		else {
+
+			return [dashedRange[0], dashedRange[dashedRange.length - 1]];
+		}
 	}
 });
 
