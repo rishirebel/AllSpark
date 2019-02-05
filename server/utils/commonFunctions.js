@@ -53,13 +53,13 @@ function makeJWT(obj, expiresIn =  Math.floor(Date.now() / 1000) + (30 * 86400))
 
 async function verifyJWT(token) {
 
-	if(config.has("role_ignore") && config.has("privilege_ignore")) {
-
-		if(config.get("role_ignore") && config.get("privilege_ignore")) {
-
-			return JSON.parse(atob(token.split(".")[1]));
-		}
-	}
+	// if(config.has("role_ignore") && config.has("privilege_ignore")) {
+	//
+	// 	if(config.get("role_ignore") && config.get("privilege_ignore")) {
+	//
+	// 		return JSON.parse(atob(token.split(".")[1]));
+	// 	}
+	// }
 	try {
 
 		const details = await jwtVerifyAsync(token, config.get('secret_key'));
@@ -68,6 +68,8 @@ async function verifyJWT(token) {
 
 			throw new Error('Invalid Token');
 		}
+
+		return details;
 
 	}
 	catch (e) {
