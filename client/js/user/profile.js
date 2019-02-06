@@ -745,6 +745,8 @@ class ProfileInfo {
 			table: this.container.querySelector('table.roles'),
 		});
 
+		this.sortSubPrivilegesTable = new SortTable();
+
 		this.cachedPrivileges = new Map();
 	}
 
@@ -871,6 +873,9 @@ class ProfileInfo {
 
 			tbody.appendChild(row);
 		}
+
+		this.sortSubPrivilegesTable.table = table;
+		this.sortSubPrivilegesTable.sort();
 
 		dialogBox.body.appendChild(table);
 
