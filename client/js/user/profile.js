@@ -744,6 +744,8 @@ class ProfileInfo {
 		this.sortRolesTable = new SortTable({
 			table: this.container.querySelector('table.roles'),
 		});
+
+		this.cachedPrivileges = new Map();
 	}
 
 	render() {
@@ -766,6 +768,7 @@ class ProfileInfo {
 			row.querySelector('.privilege-name').on('click', async() => {
 
 				const response = await this.fetch(privilege.privilege_id);
+
 				this.showDialogBox(privilegeName, response);
 			});
 
@@ -800,24 +803,24 @@ class ProfileInfo {
 
 	async fetch(privilege_id) {
 
-		if(privilege_id == this.privilege_id) {
+		if(this.cachedPrivileges.has(privilege_id)) {
 
-			return this.privilegesList;
+			return this.cachedPrivileges.get(privilege_id);
 		}
 
-		this.privilege_id = privilege_id;
-
 		const
-			 options = {
-				'method': 'POST',
+			options = {
+				method: 'POST',
 			},
 			parameter = {
-				id: this.privilege_id,
+				id: privilege_id,
 			};
 
-		this.privilegesList = await API.call('privileges_manager/list', parameter, options);
+		const response = await API.call('privileges_manager/list', parameter, options);
 
-		return this.privilegesList;
+		this.cachedPrivileges.set(privilege_id, response);
+
+		return response;
 	}
 
 	showDialogBox(name, privileges) {
