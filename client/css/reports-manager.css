@@ -935,7 +935,8 @@ main.preview-left #stages {
 			padding-top: 15px;
 		}
 
-	#stage-configure-visualization .dashboards > .list {
+	#stage-configure-visualization .dashboards .body > .list,
+	.visualization-form .related-visualizations .body > .list {
 		grid-gap: calc(var(--gap) * 2);
 		display: grid;
 	}
@@ -989,11 +990,6 @@ main.preview-left #stages {
 			.visualization-form .filters .delete > i {
 				margin: 0;
 			}
-
-	.visualization-form .related-visualizations > .list {
-		grid-gap: calc(var(--gap) * 2);
-		display: grid;
-	}
 		.visualization-form .related-visualizations .form {
 			grid-template-columns: repeat(6, max-content);
 			grid-gap: calc(var(--gap) * 2);
