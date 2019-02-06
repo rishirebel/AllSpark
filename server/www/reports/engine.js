@@ -608,7 +608,7 @@ class report extends API {
 			columnInfo = [columnInfo];
 		}
 
-		for (const transformation of !this.visualization ? [] : this.visualization.options.transformations) {
+		for (const transformation of !(this.visualization && this.visualization.options) ? [] : this.visualization.options.transformations) {
 
 			if (transformation.backend_transformation && transformations.has(transformation.type)) {
 

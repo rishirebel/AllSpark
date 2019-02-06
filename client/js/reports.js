@@ -7793,7 +7793,6 @@ Visualization.list.set('linear', class Linear extends LinearVisualization {
 
 		container.selectAll('*').remove();
 
-
 		if (!this.rows || !this.rows.length) {
 
 			return;
@@ -7840,6 +7839,7 @@ Visualization.list.set('linear', class Linear extends LinearVisualization {
 				return x;
 			}, [])
 		);
+		debugger
 
 		for (const [axisIndex, axis] of this.axes.entries()) {
 
@@ -8035,7 +8035,7 @@ Visualization.list.set('linear', class Linear extends LinearVisualization {
 			if (axis.type == 'line') {
 
 				const line = d3.svg.line()
-					.x(d => this.x(this.rows[d.x].get(this.x.column)) + this.axes.left.size + (this.x.rangeBand() / 2))
+					.x(d => this.x(this.rows[d.x].getTypedValue(this.x.column)) + this.axes.left.size + (this.x.rangeBand() / 2))
 					.y(d => scale(d.y))
 					.interpolate(axis.curve || 'linear');
 
