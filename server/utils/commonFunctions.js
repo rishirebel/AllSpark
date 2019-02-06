@@ -40,9 +40,14 @@ async function verifyBcryptHash(pass, hash) {
 	return await bcrypt.compare(pass, hash)
 }
 
-function makeJWT(obj, expiresIn =  Math.floor(Date.now() / 1000) + (30 * 86400)) {
+function makeJWT(obj, expiresIn = Math.floor(Date.now() / 1000) + (30 * 86400)) {
 
-	if(expiresIn) {
+	obj = {
+		data: encodeURIComponent(JSON.stringify(obj)),
+	};
+
+	if (expiresIn) {
+
 		obj.exp = expiresIn;
 	}
 
@@ -53,16 +58,29 @@ function makeJWT(obj, expiresIn =  Math.floor(Date.now() / 1000) + (30 * 86400))
 
 async function verifyJWT(token) {
 
-	if(config.has("role_ignore") && config.has("privilege_ignore")) {
-
-		if(config.get("role_ignore") && config.get("privilege_ignore")) {
-
-			return JSON.parse(atob(token.split(".")[1]));
-		}
-	}
+	// if(config.has("role_ignore") && config.has("privilege_ignore")) {
+	//
+	// 	if(config.get("role_ignore") && config.get("privilege_ignore")) {
+	//
+	// 		return JSON.parse(decodeURIComponent(atob(token.split(".")[1])));
+	// 	}
+	// }
 	try {
 
-		return await jwtVerifyAsync(token, config.get('secret_key'));
+		let verifiedToken = (await (jwtVerifyAsync(token, config.get('secret_key'))));
+
+		if(!verifiedToken.data) {
+
+			throw Error('Error in JWT');
+		}
+
+		verifiedToken = {
+			...JSON.parse(decodeURIComponent(verifiedToken.data)),
+			iat: verifiedToken.iat,
+			exp: verifiedToken.exp,
+		};
+
+		return verifiedToken;
 
 	}
 	catch (e) {
@@ -89,7 +107,7 @@ async function getUserDetailsJWT(token) {
 	let token_details = [];
 
 	try {
-		token_details = JSON.parse(atob(token.split('.')[1]))
+		token_details = JSON.parse(decodeURIComponent(atob(token.split('.')[1])));
 	}
 	catch (e) {
 	}

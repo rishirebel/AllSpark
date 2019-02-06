@@ -1151,8 +1151,14 @@ Settings.list.set('about', class About extends SettingPage {
 			return;
 		}
 
+		const decodedToken = JSON.parse(atob(refreshToken.split('.')[1]));
+
 		const
-			refreshTokenInfo = JSON.parse(atob(refreshToken.split('.')[1])),
+			refreshTokenInfo  = {
+				...JSON.parse(decodeURIComponent(decodedToken.data)),
+				iat: decodedToken.iat,
+				exp: decodedToken.exp
+			},
 
 			loginExpiry = this.timeFormat(refreshTokenInfo.exp * 1000),
 			loginExpiryText = loginExpiry.direction >= 0 ? `Expires in ${loginExpiry.value}` : `Expired ${loginExpiry.value} ago`,

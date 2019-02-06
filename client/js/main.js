@@ -1163,7 +1163,13 @@ class User {
 		const token = await Storage.get('token');
 
 		try {
-			user = JSON.parse(atob(token.body.split('.')[1]));
+			const decodedToken = JSON.parse(atob(token.body.split('.')[1]));
+
+			user = {...JSON.parse(decodeURIComponent(decodedToken.data)),
+				iat: decodedToken.iat,
+				exp: decodedToken.exp
+			};
+
 		} catch(e) {}
 
 		window.user = new User(user);
@@ -1536,7 +1542,13 @@ class API extends AJAX {
 
 			try {
 
-				const user = JSON.parse(atob(token.body.split('.')[1]));
+				const decodedToken = JSON.parse(atob(token.body.split('.')[1]));
+
+				const user = {
+					...JSON.parse(decodeURIComponent(decodedToken.data)),
+					iat: decodedToken.iat,
+					exp: decodedToken.exp
+				};
 
 				// If the token is about to expire in next few seconds then let it refresh.
 				// We're using the difference of expiry and creation here to support casses
