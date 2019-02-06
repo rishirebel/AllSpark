@@ -263,9 +263,11 @@ class Filters extends API {
 
 		visited.add(node);
 
-		for(const adj_node of this.filterMap.get(node) || []) {
+		const visitedNew = new Set(visited);
 
-			if(this.hasCycle(adj_node, visited)) {
+		for(const adjNode of this.filterMap.get(node) || []) {
+
+			if(this.hasCycle(adjNode, visitedNew)) {
 
 				return true;
 			}
