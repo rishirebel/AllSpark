@@ -958,8 +958,10 @@ main.preview-left #stages {
 				#stage-configure-visualization .dashboards .view-dashboard > i {
 					margin: 0;
 				}
-			#stage-configure-visualization .dashboards .dashboard_id {
-				width: 200px;
+			#stage-configure-visualization .dashboards .dashboard_id,
+			.visualization-form .related-visualizations .form .visualization {
+				width: 250px;
+				max-width: 250px;
 			}
 			#stage-configure-visualization .dashboards input[type=number] {
 				width: 75px;
@@ -1005,9 +1007,6 @@ main.preview-left #stages {
 		}
 			.visualization-form .related-visualizations .form label input.item {
 				width: 70px;
-			}
-			.visualization-form .related-visualizations .form .visualization {
-				width: 200px;
 			}
 
 	.visualization-form .configuration-section h3 .count {
