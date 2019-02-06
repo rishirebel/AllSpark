@@ -4079,6 +4079,1378 @@ class SortTable {
 	}
 }
 
+class ForkData {
+
+	constructor(name, forkedData, type, status) {
+
+		this.name = name;
+		this.forkedData = forkedData;
+		this.type = type;
+		this.status = status;
+
+		let dialogBox = this.forkDialogBox;
+
+		if(!dialogBox) {
+
+			dialogBox = this.forkDialogBox = new DialogBox();
+			dialogBox.body.classList.add('fork-report');
+		}
+	}
+
+	get container() {
+
+		if(this.containerElement) {
+
+			this.forkDialogBox.show();
+			return this.containerElement;
+		}
+
+		const container = this.containerElement = document.createElement('form');
+		container.classList.add('form');
+
+		container.innerHTML = `
+
+			<div class="forking-options"></div>
+
+			<label class="switch-to-new">
+				<input type="checkbox" name="switchToNew" checked>
+				<span class="switch-new">Switch to the new ${this.type}</span>
+			</label>
+
+			<div class="footer">
+
+				<div class="progress hidden">
+					<span class="NA"></span>
+					<progress></progress>
+				</div>
+
+				<button type="button" class="export">
+					<i class="fas fa-file-export"></i>
+					<span>Export</span>
+				</button>
+
+				<button type="submit">
+					<i class="fas fa-code-branch"></i>
+					<span class="fork">Fork ${this.type}</span>
+					<span class="import-file">Import ${this.type}</span>
+					<i class="fas fa-arrow-right"></i>
+				</button>
+			</div>
+		`;
+
+		this.forkDialogBox.heading = `<i class="fas fa-code-branch"></i> &nbsp; ${this.status == 'Import'? 'Import ': 'Fork '}` + this.name;
+
+		this.openDialogBox();
+
+		container.querySelector('.footer .export').classList.toggle('hidden', this.status == 'Import');
+		container.querySelector('.footer button .fork').classList.toggle('hidden', this.status == 'Import');
+		container.querySelector('.footer button .import-file').classList.toggle('hidden', this.status != 'Import');
+
+		container.querySelector('.footer .export').on('click', () => this.export());
+
+		container.on('submit', async e => {
+
+			if(this.forkInProgress) {
+				return;
+			}
+
+			this.forkInProgress = true;
+
+			e.preventDefault();
+
+			try {
+				await this.fork();
+			}
+			catch(e) {
+
+				new SnackBar({
+					message: 'Failed to fork!',
+					subtitle: e.message,
+					type: 'error',
+				});
+
+				this.forkInProgress = false;
+				throw e;
+			}
+
+			this.forkInProgress = false;
+		});
+
+		return container;
+	}
+
+	openDialogBox() {
+
+		const container = this.container;
+
+		if(!this.forkedData) {
+			return;
+		}
+
+		for(const [key, option] of this.forkedData.entries()) {
+
+			if(option.type == 'input') {
+
+				container.querySelector('.forking-options').insertAdjacentHTML('beforeend',
+					`
+						<label>
+							<span class="title">${option.title}</span>
+							<input type="text" name="${key}" value="${option.value}">
+						</label>
+					`
+				);
+
+				if(option.required) {
+					container.querySelector('.forking-options .title').insertAdjacentHTML('beforeend', '<span class="red">*</span>');
+				}
+			}
+
+			else {
+
+				if(!option.value.size) {
+
+					continue;
+				}
+
+				if(option.type == 'multiselect') {
+
+					option.multiSelect = new MultiSelect({multiple: true, mode: 'stretch'});
+				}
+				else if(option.type == 'select') {
+
+					option.multiSelect = new MultiSelect({multiple: false, mode: 'stretch'});
+				}
+
+				const dataList = [];
+
+				for(const data of option.value.values() || []) {
+
+					dataList.push({
+						name: data.name,
+						value: data.value,
+						subtitle: data.subtitle,
+					});
+				}
+
+				option.multiSelect.datalist = dataList;
+				option.multiSelect.render();
+
+				if(!option.selected) {
+
+					option.multiSelect.all();
+				}
+
+				else if(!option.selected.length) {
+
+					option.multiSelect.clear();
+				}
+
+				else if(option.selected.length) {
+
+					option.multiSelect.value = option.selected;
+
+					if(this.type == 'visualization') {
+
+						option.multiSelect.on('change', () => {
+
+							this.forkDialogBox.body.querySelector('form .switch-to-new').classList.toggle('hidden', option.multiSelect.value.length > 1)
+
+							if(option.multiSelect.value.length > 1) {
+								this.forkDialogBox.body.querySelector('form').switchToNew.checked = false;
+							}
+							else {
+								this.forkDialogBox.body.querySelector('form').switchToNew.checked = true;
+							}
+						});
+					}
+				}
+
+				container.querySelector('.forking-options').insertAdjacentHTML('beforeend',
+					`
+						<label>
+							<span>${option.title}</span>
+						</label>
+					`
+				);
+				container.querySelector('.forking-options').appendChild(option.multiSelect.container);
+			}
+		}
+
+		this.forkDialogBox.show();
+	}
+
+	get json() {
+
+		const
+			options = {},
+			form = this.forkDialogBox.body.querySelector('form'),
+			formData = new FormData(form);
+
+		for(const value of formData.entries()) {
+
+			if(this.forkedData.has(value[0])) {
+
+				options[value[0]] = value[1];
+			}
+		}
+
+		for(const [name, field] of this.forkedData.entries()) {
+
+			if(field.multiSelect) {
+
+				options[name] = field.multiSelect.value;
+			}
+		}
+
+		return options;
+	}
+}
+
+class ForkReport extends ForkData {
+
+	constructor({report, type, name, page} = {}) {
+
+		const
+			filters = new Set(),
+			visualizations = new Set(),
+			forkedData = new Map();
+
+		for(const filter of report.filters) {
+
+			filters.add({
+				name: filter.name,
+				value: filter.filter_id,
+				subtitle: `#${filter.filter_id} &middot; ${filter.type}`,
+			});
+		}
+
+		for(const visualization of report.visualizations) {
+
+			visualizations.add({
+				name: visualization.name,
+				value: visualization.visualization_id,
+				subtitle: `#${visualization.visualization_id} &middot; ${MetaData.visualizations.get(visualization.type).name}`,
+			});
+		}
+
+		forkedData.set('reportHeading', {title: 'New Report\'s Name', value: name, type: 'input', selected: []});
+		forkedData.set('filters', {title: 'Filters', value: filters, type: 'multiselect'});
+		forkedData.set('visualizations', {title: 'Visualizations', value: visualizations, type: 'multiselect'});
+
+		super(name, forkedData, type);
+
+		this.report = report;
+		this.page = page;
+	}
+
+	get json() {
+
+		const
+			customJson = super.json,
+			filters = customJson.filters || [],
+			visualizations = customJson.visualizations || [],
+			reportJson = new DataSource(this.report, this.page).json;
+
+		reportJson.filters = reportJson.filters.filter(f => filters.includes(f.filter_id.toString()));
+		reportJson.visualizations = reportJson.visualizations.filter(v => visualizations.includes(v.visualization_id.toString()));
+
+		return reportJson;
+	}
+
+	export() {
+
+		const
+			customJson = super.json,
+			json = this.json,
+			a = document.createElement('a');
+
+		a.download = `${customJson.reportHeading} - ${Format.dateTime(new Date())}.json`;
+		a.href = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(json));
+
+		a.click();
+	}
+
+	async fork() {
+
+		const
+			form = this.forkDialogBox.body.querySelector('form'),
+			progress = this.forkDialogBox.body.querySelector('.progress progress'),
+			customJson = super.json,
+			json = this.json,
+			filters = json.filters,
+			visualizations = json.visualizations;
+
+		progress.container = this.forkDialogBox.body.querySelector('.progress'),
+		progress.span = this.forkDialogBox.body.querySelector('.progress span');
+
+		function updateProgress({reset = false, max = 0, value = null} = {}) {
+
+			progress.container.classList.remove('hidden');
+
+			if(reset) {
+
+				progress.span.textContent = null;
+				progress.max = max;
+				progress.value = 0;
+
+				progress.span.innerHTML = value;
+
+				return;
+			}
+
+			progress.value++;
+			progress.span.innerHTML = value;
+		}
+
+		updateProgress({
+			reset: true,
+			max: filters.length + visualizations.length + 1,
+		});
+
+		let newReportId = null;
+
+		{
+
+			updateProgress({value: `Adding new report: <em>${customJson.reportHeading}</em>`});
+
+			const options = {
+				method: 'POST',
+				form: new FormData(),
+			};
+
+			for(const key in json) {
+				options.form.set(key, json[key]);
+			}
+
+			options.form.set('name', customJson.reportHeading);
+			options.form.set('format', json.format);
+			options.form.set('definition', json.definition);
+
+			const response = await API.call('reports/report/insert', {}, options);
+
+			newReportId = response.insertId;
+		}
+
+		if(!newReportId)
+			return updateProgress({reset: true, value: 'Could not insert new report!'});
+
+		for(const filter of json.filters) {
+
+			updateProgress({
+
+				value: `
+					Adding new filter:
+					<em>${filter.name} (${filter.type})</em>
+				`,
+			});
+
+			const options = {
+				method: 'POST',
+				form: new FormData(),
+			};
+
+			for(const key in filter) {
+				options.form.set(key, filter[key]);
+			}
+
+			options.form.set('query_id', newReportId);
+
+			await API.call('reports/filters/insert', {}, options);
+		}
+
+		for(const visualization of json.visualizations) {
+
+			updateProgress({
+
+				value: `
+					Adding new visualization:
+					<em>${visualization.name} (${MetaData.visualizations.get(visualization.type).name})</em>
+				`,
+			});
+
+			const options = {
+				method: 'POST',
+				form: new FormData(),
+			};
+
+			for(const key in visualization) {
+
+				if(typeof visualization[key] != 'object') {
+					options.form.set(key, visualization[key]);
+				}
+			}
+
+			options.form.set('options', visualization.options);
+			options.form.set('query_id', newReportId);
+
+			await API.call('reports/visualizations/insert', {}, options);
+		}
+
+		if(!form.switchToNew.checked) {
+
+			await DataSource.load(true);
+			this.forkDialogBox.hide();
+
+			return;
+		}
+
+		updateProgress({value: 'Report Forking Complete! Taking you to the new report.'});
+
+		window.location = `/reports/define-report/${newReportId}`;
+	}
+}
+
+class ForkVisualization extends ForkData {
+
+	constructor({reportList, stage, type, name} = {}) {
+
+		const
+			reports = new Set(),
+			filters = new Set(),
+			relatedVisualizations = new Set(),
+			transformations = new Set(),
+			dashboards = new Set(),
+			forkedData = new Map();
+
+		for(const report of reportList) {
+
+			reports.add({
+				name: report.name,
+				value: report.query_id,
+				subtitle: `#${report.query_id} &middot; ${report.name}`,
+			});
+		}
+
+		for(const filter of stage.visualizationManager.options.filters) {
+
+			for(const stageFilter of stage.report.filters) {
+
+				if(stageFilter.filter_id != filter.filter_id) {
+					continue;
+				}
+
+				filters.add({
+					name: stageFilter.name,
+					value: filter.filter_id,
+					subtitle: `#${filter.filter_id} &middot; ${filter.type}`,
+				});
+			}
+		}
+
+		for(const report of reportList) {
+
+			for(const related_visualization of stage.visualization.related_visualizations) {
+
+				for(const visualization of report.visualizations) {
+
+					if(related_visualization.visualization_id != visualization.visualization_id) {
+						continue;
+					}
+
+					relatedVisualizations.add({
+						name: visualization.name,
+						value: visualization.visualization_id,
+						subtitle: `#${visualization.visualization_id} &middot; ${visualization.type}`
+					});
+				}
+			}
+		}
+
+		for(const dashboard of stage.dashboards.values()) {
+
+			dashboards.add({
+				name: dashboard.name,
+				value: dashboard.id,
+				subtitle: `#${dashboard.id} &middot; ${dashboard.name}`,
+			})
+		}
+
+		forkedData.set('visualizationHeading', {title: `New Visualizations's Name`, value: name, type: 'input', selected: []});
+		forkedData.set('reports', {title: 'Reports', value: reports, type: 'multiselect', selected: [stage.report.query_id]});
+		forkedData.set('filters', {title: 'Filters', value: filters, type: 'multiselect'});
+		forkedData.set('relatedVisualizations', {title: 'Related Visualizations', value: relatedVisualizations, type: 'multiselect'});
+		forkedData.set('dashboards', {title: 'Dashboards', value: dashboards, type: 'multiselect', selected: []});
+
+		super(name, forkedData, type);
+
+		this.report = stage.report;
+		this.page = stage.page;
+		this.stage = stage;
+	}
+
+	get json() {
+
+		const
+			customJson = super.json,
+			filters = customJson.filters || [],
+			visualizations = [this.stage.visualization.visualization_id.toString()],
+			reportJson = new DataSource(this.report, this.page).json;
+
+		reportJson.filters = reportJson.filters.filter(f => filters.includes(f.filter_id.toString()));
+		reportJson.visualizations = reportJson.visualizations.filter(v => visualizations.includes(v.visualization_id.toString()));
+
+		return reportJson;
+	}
+
+	export() {
+
+		const
+			customJson = super.json,
+			json = this.json,
+			a = document.createElement('a');
+
+		a.download = `${customJson.visualizationHeading} - ${Format.dateTime(new Date())}.json`;
+		a.href = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(json));
+
+		a.click();
+	}
+
+	async fork() {
+
+		const
+			form = this.forkDialogBox.body.querySelector('form'),
+			progress = this.forkDialogBox.body.querySelector('.progress progress'),
+			// transformations = this.forkDialogBox.multiSelect.transformations.value,
+			customJson = super.json,
+			json = this.json,
+			filters = json.filters || [],
+			relatedVisualizations = customJson.relatedVisualizations || [],
+			reports = customJson.reports || [],
+			dashboards = customJson.dashboards || [];
+
+		progress.container = this.forkDialogBox.body.querySelector('.progress'),
+		progress.span = this.forkDialogBox.body.querySelector('.progress span');
+
+		function updateProgress({reset = false, max = 0, value = null} = {}) {
+
+			progress.container.classList.remove('hidden');
+
+			if(reset) {
+
+				progress.span.textContent = null;
+				progress.max = max;
+				progress.value = 0;
+
+				progress.span.innerHTML = value;
+
+				return;
+			}
+
+			progress.value++;
+			progress.span.innerHTML = value;
+		}
+
+		updateProgress({
+			reset: true,
+			max: reports.length + dashboards.length + relatedVisualizations.length + filters.length + 1,
+		});
+
+		let newVisualizationId = null;
+
+		if(!reports.length) {
+
+			return new SnackBar({
+				message: 'Please select atleast one report !',
+				type: 'error',
+			});
+		}
+
+		for(const query_id of reports) {
+
+			updateProgress({
+
+				value: `
+					Adding new visualization:
+					<em>${customJson.visualizationHeading} (${MetaData.visualizations.get(this.stage.visualization.type).name})</em>
+				`,
+			});
+
+			const options = {
+				method: 'POST',
+				form: new FormData(),
+			};
+
+			try {
+
+				this.stage.visualization.options = JSON.parse(this.stage.visualization.options);
+
+				const selectedFilters = [];
+
+				for(const filter of filters) {
+
+					if(!customJson.filters.includes(filter.filter_id.toString())) {
+						continue;
+					}
+
+					updateProgress({
+
+						value: `
+							Adding new filter:
+							<em>${filter.name} (${filter.type})</em>
+						`,
+					});
+
+					selectedFilters.push(filter);
+				}
+
+				this.stage.visualization.options.filters = selectedFilters;
+			}
+			catch(e){}
+
+			for(const key in this.stage.visualization) {
+
+				if(typeof this.stage.visualization[key] != 'object') {
+					options.form.set(key, this.stage.visualization[key]);
+				}
+			}
+
+			options.form.set('options', JSON.stringify(this.stage.visualization.options));
+			options.form.set('name', customJson.visualizationHeading);
+			options.form.set('query_id', query_id);
+
+			const response = await API.call('reports/visualizations/insert', {}, options);
+			newVisualizationId = response.insertId;
+
+			if(!newVisualizationId) {
+				return updateProgress({reset: true, value: 'Could not insert new report!'});
+			}
+
+			for(const visualization of this.stage.visualization.related_visualizations) {
+
+				if(!relatedVisualizations.includes(JSON.stringify(visualization.visualization_id))) {
+					continue;
+				}
+
+				const related_visualization = relatedVisualizations.find(x => x == visualization.visualization_id);
+
+				updateProgress({
+
+					value: `
+						Adding new related visualization:
+						<em>${related_visualization.name}</em>
+					`,
+				});
+
+				try {
+					visualization.format = JSON.parse(visualization.format);
+				}
+				catch(e){}
+
+				const
+					option = {
+						method: 'POST',
+					},
+					parameters = {
+						owner: 'visualization',
+						owner_id: newVisualizationId,
+						visualization_id: visualization.visualization_id,
+						format: JSON.stringify({
+							position: parseInt(visualization.format.position) || 1,
+							width: parseInt(visualization.format.width) || 32,
+							height: parseInt(visualization.format.height) || 10
+						}),
+					};
+
+				await API.call('reports/dashboard/insert', parameters, option);
+			}
+
+			for(const dashboard of this.stage.dashboards.values()) {
+
+				if(!dashboards.includes(JSON.stringify(dashboard.id)))
+					continue;
+
+				updateProgress({
+
+					value: `
+						Adding new dashboard:
+						<em>${dashboard.name}</em>
+					`,
+				});
+
+				const
+					option = {
+						method: 'POST',
+					},
+					parameters = {
+						owner: 'dashboard',
+						owner_id: dashboard.id,
+						visualization_id: newVisualizationId,
+						format: JSON.stringify({
+							position: dashboard.format.position,
+							width: dashboard.format.width,
+							height: dashboard.format.height,
+						}),
+					};
+
+				await API.call('reports/dashboard/insert', parameters, option);
+			}
+		}
+
+		if(!form.switchToNew.checked) {
+
+			await DataSource.load(true);
+			this.forkDialogBox.hide();
+
+			return;
+		}
+
+		updateProgress({value: 'Report Forking Complete! Taking you to the new report.'});
+
+		window.location = `/reports/configure-visualization/${newVisualizationId}`;
+	}
+}
+
+class ForkPartialDashboard extends ForkData {
+
+	constructor({currentDashboard, type, dashboards, name} = {}) {
+
+		const
+			visualizations = new Set(),
+			dashboardList = new Set(),
+			forkedData = new Map();
+
+		for(const visualization of currentDashboard.visualizations) {
+
+			for(const visibleVisuliaztion of currentDashboard.visibleVisuliaztions.values()) {
+
+				if(visibleVisuliaztion.selectedVisualization.visualization_id != visualization.visualization_id) {
+					continue;
+				}
+
+				visualizations.add({
+					name: visibleVisuliaztion.selectedVisualization.name,
+					value: visualization.visualization_id,
+					subtitle: `#${visualization.visualization_id} &middot; ${MetaData.visualizations.get(visibleVisuliaztion.selectedVisualization.type).name}`,
+				});
+			}
+		}
+
+		for(const dashboard of dashboards) {
+
+			dashboardList.add({
+				name: dashboard.name,
+				value: dashboard.id,
+				subtitle: `#${dashboard.id} &middot; ${dashboard.visibilityReason}`,
+			});
+		}
+
+		forkedData.set('dashboardHeading', {title: 'New Dashboard\'s Name', value: name, type: 'input', selected: []});
+		forkedData.set('visualizations', {title: 'Visualizations', value: visualizations, type: 'multiselect'});
+		forkedData.set('parent', {title: 'Parent', value: dashboardList, type: 'select', selected: currentDashboard.parent ? [currentDashboard.parent] : []});
+
+		super(name, forkedData, type);
+
+		this.dashboard = currentDashboard;
+	}
+
+	get json() {
+
+		const
+			customJson = super.json,
+			dashboardJson = {}
+			dashboardJson.visualizations = [];
+
+			for(const visualization of this.dashboard.visualizations) {
+
+				if(!customJson.visualizations.includes(visualization.visualization_id.toString())) {
+
+					continue;
+				}
+
+				for(const visibleVisuliaztion of this.dashboard.visibleVisuliaztions.values()) {
+
+					if(visibleVisuliaztion.selectedVisualization.visualization_id != visualization.visualization_id) {
+
+						continue;
+					}
+
+					dashboardJson.title = customJson.dashboardHeading;
+
+					dashboardJson.visualizations.push({
+						visualization_id: visualization.visualization_id,
+						height: visualization.format.height,
+						width: visualization.format.width,
+						position: visualization.format.position,
+						name: visibleVisuliaztion.selectedVisualization.name,
+					});
+				}
+			}
+
+		return dashboardJson;
+	}
+
+	export() {
+
+		const
+			customJson = super.json,
+			json = this.json,
+			a = document.createElement('a');
+
+		a.download = `${customJson.dashboardHeading} - ${Format.dateTime(new Date())}.json`;
+		a.href = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(json));
+
+		a.click();
+	}
+
+	async fork() {
+
+		const
+			form = this.forkDialogBox.body.querySelector('form'),
+			progress = this.forkDialogBox.body.querySelector('.progress progress'),
+			customJson = super.json,
+			visualizations = customJson.visualizations,
+			json = this.json;
+
+		progress.container = this.forkDialogBox.body.querySelector('.progress'),
+		progress.span = this.forkDialogBox.body.querySelector('.progress span');
+
+		function updateProgress({reset = false, max = 0, value = null} = {}) {
+
+			progress.container.classList.remove('hidden');
+
+			if(reset) {
+
+				progress.span.textContent = null;
+				progress.max = max;
+				progress.value = 0;
+
+				progress.span.innerHTML = value;
+
+				return;
+			}
+
+			progress.value++;
+			progress.span.innerHTML = value;
+		}
+
+		updateProgress({
+			reset: true,
+			max: visualizations.length + 1,
+		});
+
+		let newDashboardId = null;
+
+		if(!visualizations.length) {
+
+			return new SnackBar({
+				message: 'Please select atleast one visualization !',
+				type: 'error',
+			});
+		}
+
+		const options = {
+			method: 'POST',
+		};
+
+		const parameters = {
+			name: customJson.dashboardHeading,
+			icon: this.dashboard.icon,
+			order: this.dashboard.order,
+			format: JSON.stringify(this.dashboard.format),
+			parent: customJson.parent || '',
+		};
+
+		const response = await API.call('dashboards/insert', parameters, options);
+
+		newDashboardId = response.insertId;
+
+		if(!newDashboardId) {
+			return updateProgress({reset: true, value: 'Could not insert new dashboard!'});
+		}
+
+		for(const visualization of json.visualizations) {
+
+			if(!visualizations.includes(JSON.stringify(visualization.visualization_id))) {
+				continue;
+			}
+
+			updateProgress({
+
+				value: `
+					Adding new visualization:
+					<em>${visualization.name}</em>
+				`,
+			});
+
+			const
+				option = {
+					method: 'POST',
+				},
+				parameters = {
+					owner: 'dashboard',
+					owner_id: newDashboardId,
+					visualization_id: visualization.visualization_id,
+					format: JSON.stringify({
+						position: visualization.position,
+						width: visualization.width,
+						height: visualization.height,
+					}),
+				};
+
+			await API.call('reports/dashboard/insert', parameters, option);
+		}
+
+		if(!form.switchToNew.checked) {
+
+			await page.load();
+			this.forkDialogBox.hide();
+
+			return;
+		}
+
+		updateProgress({value: 'Dashboard Forking Complete! Taking you to the new dashboard.'});
+
+		window.location = `/dashboard/${newDashboardId}`;
+	}
+}
+
+class ForkCompleteDashboard extends ForkData {
+
+	constructor({currentDashboard, type, dashboards, name} = {}) {
+
+		const
+			visualizations = new Set(),
+			dashboardList = new Set(),
+			forkedData = new Map();
+
+		for(const visualization of currentDashboard.visualizations || []) {
+
+			for(const visibleVisuliaztion of currentDashboard.visibleVisuliaztions.values()) {
+
+				if(visibleVisuliaztion.selectedVisualization.visualization_id != visualization.visualization_id) {
+					continue;
+				}
+
+				visualizations.add({
+					name: visibleVisuliaztion.selectedVisualization.name,
+					value: visualization.visualization_id,
+					subtitle: `#${visualization.visualization_id} &middot; ${MetaData.visualizations.get(visibleVisuliaztion.selectedVisualization.type).name}`,
+				});
+			}
+		}
+
+		for(const dashboard of dashboards || []) {
+
+			dashboardList.add({
+				name: dashboard.name,
+				value: dashboard.id,
+				subtitle: `#${dashboard.id} &middot; ${dashboard.visibilityReason}`,
+			});
+		}
+
+		forkedData.set('dashboardHeading', {title: `New Dashboard's Name`, value: name, type: 'input', selected: [], required: true});
+		forkedData.set('prefix', {title: `Report's Prefix`, value: '', type: 'input', selected: [], required: false});
+		forkedData.set('visualizations', {title: 'Visualizations', value: visualizations, type: 'multiselect'});
+		forkedData.set('parent', {title: 'Parent', value: dashboardList, type: 'select', selected: currentDashboard.parent ? [currentDashboard.parent] : []});
+
+		super(name, forkedData, type);
+
+		this.dashboard = currentDashboard || {};
+	}
+
+	get json() {
+
+		if(this.importedFile) {
+			return JSON.parse(this.importedFile);
+		}
+
+		const
+			customJson = super.json,
+			dashboardJson = {},
+			reportsList = {};
+
+		dashboardJson.title = customJson.dashboardHeading;
+		dashboardJson.parent = customJson.parent[0] || '';
+		dashboardJson.prefix = customJson.prefix || '';
+		dashboardJson.icon = this.dashboard.icon || '';
+		dashboardJson.order = this.dashboard.order || '';
+		dashboardJson.format = this.dashboard.format || '{}';
+		dashboardJson.visualizations = [];
+
+		for(const visibleVisuliaztion of this.dashboard.visibleVisuliaztions.values()) {
+
+			const selectedVisualizationId = visibleVisuliaztion.selectedVisualization.visualization_id;
+
+			if(!customJson.visualizations.includes(selectedVisualizationId.toString())) {
+
+				continue;
+			}
+
+			const
+				reportJson = JSON.parse(JSON.stringify(DataSource.list.get(visibleVisuliaztion.query_id))),
+				originalReportJson = DataSource.list.get(visibleVisuliaztion.query_id);
+
+			for(const key in reportJson) {
+
+				if(reportJson[key] == null) {
+					reportJson[key] = '';
+				}
+			}
+
+			if(!reportsList[reportJson.query_id]) {
+
+				reportsList[reportJson.query_id] = reportJson;
+				reportJson.visualizations = [];
+			}
+
+			reportsList[reportJson.query_id].visualizations = reportsList[reportJson.query_id].visualizations.concat(originalReportJson.visualizations.filter(v => v.visualization_id == selectedVisualizationId));
+
+			const selectedVisualization = this.dashboard.visualizations.filter(f => f.visualization_id == selectedVisualizationId);
+
+			dashboardJson.visualizations.push({
+				visualization_id: selectedVisualizationId,
+				height: selectedVisualization[0].format.height,
+				width: selectedVisualization[0].format.width,
+				position: selectedVisualization[0].format.position,
+				name: visibleVisuliaztion.selectedVisualization.name,
+				type: MetaData.visualizations.get(visibleVisuliaztion.selectedVisualization.type).name,
+			});
+		}
+
+		dashboardJson.reports = reportsList;
+
+		return dashboardJson;
+	}
+
+	export() {
+
+		const
+			json = this.json,
+			a = document.createElement('a');
+
+		if(!json.title) {
+
+			return new SnackBar({
+				message: 'Please enter dashboard name.',
+				type: 'error',
+			});
+		}
+
+		if(!json.visualizations.length) {
+
+			return new SnackBar({
+				message: 'Please select at least one visualization.',
+				type: 'error',
+			});
+		}
+
+		delete json.parent;
+
+		a.download = `${json.title} - ${Format.dateTime(new Date())}.json`;
+		a.href = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(json));
+
+		a.click();
+	}
+
+	async fork() {
+
+		const
+			progress = this.forkDialogBox.body.querySelector('.progress progress'),
+			form = this.forkDialogBox.body.querySelector('form'),
+			json = this.json,
+			visualizations = json.visualizations,
+			reports = json.reports;
+
+		progress.container = this.forkDialogBox.body.querySelector('.progress'),
+		progress.span = this.forkDialogBox.body.querySelector('.progress span');
+
+		function updateProgress({reset = false, max = 0, value = null} = {}) {
+
+			progress.container.classList.remove('hidden');
+
+			if(reset) {
+
+				progress.span.textContent = null;
+				progress.max = max;
+				progress.value = 0;
+
+				progress.span.innerHTML = value;
+
+				return;
+			}
+
+			progress.value++;
+			progress.span.innerHTML = value;
+		}
+
+		updateProgress({
+			reset: true,
+			max: visualizations.length + Object.keys(reports).length + 1,
+		});
+
+		if(this.importedFile && !visualizations) {
+
+			return new SnackBar({
+				message: 'Please upload the json of a complete forked dashboard.',
+				type: 'error',
+			});
+		}
+
+		let newDashboardId = null;
+
+		{
+			if(!visualizations.length) {
+
+				return new SnackBar({
+					message: 'Please select atleast one visualization.',
+					type: 'error',
+				});
+			}
+
+			const
+				options = {
+					method: 'POST',
+				},
+				parameters = {
+					name: form.dashboardHeading.value,
+					icon: json.icon || '',
+					order: json.order || '',
+					format: JSON.stringify(json.format) || '{}',
+					parent: json.parent || '',
+				},
+				response = await API.call('dashboards/insert', parameters, options);
+
+			newDashboardId = response.insertId;
+
+			if(!newDashboardId) {
+
+				return new SnackBar({
+					message: 'Could not insert new dashboard.',
+					type: 'error',
+				});
+			}
+		}
+
+		for(const query_id in reports) {
+
+			const report = reports[query_id];
+
+			let newReportId = null;
+
+			{
+
+				updateProgress({value: `Adding new report: <em>${json.prefix} - ${report.name}</em>`});
+
+				const options = {
+					method: 'POST',
+					form: new FormData(),
+				};
+
+				for(const key in report) {
+
+					options.form.set(key, report[key]);
+				}
+
+				options.form.set('name', `${json.prefix + report.name}`);
+				options.form.set('format', JSON.stringify(report.format));
+				options.form.set('definition', JSON.stringify(report.definition));
+
+				const response = await API.call('reports/report/insert', {}, options);
+
+				newReportId = response.insertId;
+			}
+
+			if(!newReportId) {
+				return updateProgress({reset: true, value: 'Could not insert new report.'});
+			}
+
+			for(const filter of report.filters) {
+
+				updateProgress({
+
+					value: `
+						Adding new filter:
+						<em>${filter.name} (${filter.type})</em>
+					`,
+				});
+
+				const options = {
+					method: 'POST',
+					form: new FormData(),
+				};
+
+				for(const key in filter) {
+
+					if(filter[key] != null && typeof filter[key] == 'object') {
+						filter[key] = JSON.stringify(filter[key]);
+					}
+
+					options.form.set(key, filter[key]);
+				}
+
+				options.form.set('query_id', newReportId);
+
+				await API.call('reports/filters/insert', {}, options);
+			}
+
+			for(const visualization of report.visualizations) {
+
+				updateProgress({
+
+					value: `
+						Adding new visualization:
+						<em>${visualization.name} (${MetaData.visualizations.get(visualization.type).name})</em>
+					`,
+				});
+
+				const options = {
+					method: 'POST',
+					form: new FormData(),
+				};
+
+				for(const key in visualization) {
+
+					if(typeof visualization[key] != 'object') {
+						options.form.set(key, visualization[key]);
+					}
+				}
+
+				options.form.set('options', visualization.options);
+				options.form.set('query_id', newReportId);
+
+				const
+					response = await API.call('reports/visualizations/insert', {}, options),
+					newVisualizationId = response.insertId;
+
+				let visualizationOptions = {};
+
+				try {
+					visualizationOptions = JSON.parse(visualization.options);
+				}
+				catch(e) {
+					visualizationOptions = {};
+				}
+
+				for(const transformation of visualizationOptions.transformations || []) {
+
+					const
+						option = {
+							method: 'POST',
+						},
+						parameters = {
+							owner: transformation.owner,
+							owner_id: newVisualizationId,
+							options: JSON.stringify(transformation.options),
+							type: transformation.type,
+							order: transformation.order,
+							title: transformation.title,
+						};
+
+					await API.call('reports/transformations/insert', parameters, option);
+				}
+
+				for(const related_visualization of visualization.related_visualizations) {
+
+					const
+						option = {
+							method: 'POST',
+						},
+						parameters = {
+							owner: related_visualization.owner,
+							owner_id: newVisualizationId,
+							visualization_id: related_visualization.visualization_id,
+							format: related_visualization.format,
+						};
+
+					await API.call('reports/dashboard/insert', parameters, option);
+				}
+
+				for(const jsonVisualization of visualizations) {
+
+					if(visualization.visualization_id != jsonVisualization.visualization_id) {
+						continue;
+					}
+
+					const
+						option = {
+							method: 'POST',
+						},
+						parameters = {
+							owner: 'dashboard',
+							owner_id: newDashboardId,
+							visualization_id: newVisualizationId,
+							format: JSON.stringify({
+								position: jsonVisualization.position,
+								width: jsonVisualization.width,
+								height: jsonVisualization.height,
+							}),
+						};
+
+					await API.call('reports/dashboard/insert', parameters, option);
+				}
+			}
+		}
+
+		if(form && !form.switchToNew.checked) {
+
+			await page.load();
+			this.forkDialogBox.hide();
+
+			return;
+		}
+
+		updateProgress({value: 'Dashboard Forking Complete! Taking you to the new dashboard.'});
+
+		window.location = `/dashboard/${newDashboardId}`;
+	}
+}
+
+class ImportDashboard extends ForkData {
+
+	constructor({uploadedFile} = {}) {
+
+		super('','','','Import');
+
+		this.forkCompleteDashboard = new ForkCompleteDashboard({
+			currentDashboard: {},
+			dashboards: [],
+			type: '',
+			name: '',
+		});
+	}
+
+	createForkedData() {
+
+		let uploadedFile;
+
+		try {
+			uploadedFile = JSON.parse(this.uploadedFile);
+		}
+
+		catch(e) {
+			uploadedFile = {};
+		}
+
+		const
+			visualizations = new Set(),
+			forkedData = new Map();
+
+		for(const visualization of uploadedFile.visualizations || []) {
+
+			visualizations.add({
+				name: visualization.name,
+				value: visualization.visualization_id,
+				subtitle: visualization.type,
+			});
+		}
+
+		forkedData.set('dashboardHeading', {title: `New Dashboard's Name`, value: uploadedFile.title, type: 'input', selected: [], required: true});
+		forkedData.set('prefix', {title: `Report's Prefix`, value: uploadedFile.prefix, type: 'input', selected: [], required: false});
+		forkedData.set('visualizations', {title: 'Visualizations', value: visualizations, type: 'multiselect'});
+
+		this.forkedData = forkedData;
+		this.type = 'Dashboard';
+		this.name = uploadedFile.title;
+	}
+
+	fork() {
+
+		this.forkCompleteDashboard.importedFile = this.uploadedFile;
+		this.forkCompleteDashboard.forkDialogBox = this.forkDialogBox;
+		this.forkCompleteDashboard.fork();
+	}
+}
+
 class FormatSQL {
 
 	constructor(query) {

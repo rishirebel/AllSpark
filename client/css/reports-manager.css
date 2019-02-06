@@ -241,59 +241,6 @@ main.preview-left #stages {
 			background: var(--color-surface);
 			color: var(--color-surface-text);
 		}
-		.dialog-box .fork-report {
-			padding: 10px;
-		}
-			.dialog-box .fork-report h2 {
-				margin: 0;
-				font-size: 120%;
-			}
-			.dialog-box .fork-report .separator {
-				margin: 0;
-				border-top: 1px dashed var(--color-border);
-				padding-top: 20px;
-			}
-			.dialog-box .fork-report .filters,
-			.dialog-box .fork-report .visualizations {
-				max-width: 100%;
-			}
-			.dialog-box .fork-report .switch-to-new {
-				display: grid;
-				grid-template-columns: max-content max-content;
-				grid-gap: var(--gap);
-				align-items: center;
-			}
-			.dialog-box .fork-report .form .footer {
-				display: grid;
-				grid-template-columns: 1fr max-content max-content;
-				grid-gap: calc(var(--gap) * 2);
-				align-items: flex-end;
-			}
-				.dialog-box .fork-report .footer .progress {
-					display: grid;
-					grid-gap: var(--gap);
-				}
-					.dialog-box .fork-report .footer .progress span em {
-						font-weight: bold;
-					}
-					.dialog-box .fork-report .footer .progress progress {
-						width: 100%;
-						height: var(--gap);
-					}
-				.dialog-box .fork-report .footer button {
-					height: auto;
-					padding: 8px 18px;
-					font-size: 100%;
-				}
-				.dialog-box .fork-report .footer button[type=submit] {
-					grid-column: 3;
-				}
-				.dialog-box .fork-report .footer .export {
-					grid-column: 2;
-				}
-					.dialog-box .fork-report i:last-child {
-						margin: 0 0 0 var(--gap);
-					}
 
 	#stage-define-report #api {
 		grid-column: 1 / 3;
@@ -644,11 +591,33 @@ main.preview-left #stages {
 				#stage-define-report .edit-report-data table tfoot:active {
 					box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.2);
 				}
+
 #stage-pick-visualization table {
 	background: var(--color-surface);
 	box-shadow: 0 0 25px rgba(0, 0, 0, 0.1);
 }
 
+#stage-configure-visualization #save-container {
+	display: flex;
+	position: relative;
+}
+	#stage-configure-visualization #save-container #save-more {
+		border-left: 1px solid var(--color-border);
+		padding-right: 8px;
+		padding-left: 8px;
+	}
+		#stage-configure-visualization #save-container #save-more i {
+			margin: 0;
+		}
+	#stage-configure-visualization #save-container #save-menu {
+		position: absolute;
+		top: 100%;
+		right: 0;
+		z-index: 5;
+		background: var(--color-surface);
+		color: var(--color-surface-text);
+		background-color: white
+	}
 #stage-configure-visualization.show {
 	display: grid;
 	grid-template-rows: repeat(4, max-content);
@@ -1116,6 +1085,7 @@ main.preview-left #stages {
 					width: 250px;
 					margin-left: -65px;
 				}
+
 
 #add-visualization-picker {
 	grid-column: 1 / 3;

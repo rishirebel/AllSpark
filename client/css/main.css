@@ -1509,3 +1509,65 @@ body#tinymce table tr {
 .tableHeaders {
 	cursor: pointer;
 }
+
+.dialog-box .fork-report {
+	padding: 10px;
+}
+	.dialog-box .fork-report h2 {
+		margin: 0;
+		font-size: 120%;
+	}
+	.dialog-box .fork-report .separator {
+		margin: 0;
+		border-top: 1px dashed var(--color-border);
+		padding-top: 20px;
+	}
+	.dialog-box .fork-report .filters,
+	.dialog-box .fork-report .visualizations,
+	.dialog-box .fork-report .transformations,
+	.dialog-box .fork-report .dashboards,
+	.dialog-box .fork-report .reports-list,
+	.dialog-box .fork-report .related-visualizations {
+		max-width: 100%;
+	}
+	.dialog-box .fork-report .switch-to-new {
+		display: grid;
+		grid-template-columns: max-content max-content;
+		grid-gap: var(--gap);
+		align-items: center;
+	}
+	.dialog-box .fork-report .form .forking-options {
+		grid-gap: calc(var(--gap) * 2);
+		display: grid;
+	}
+	.dialog-box .fork-report .form .footer {
+		display: grid;
+		grid-template-columns: 1fr max-content max-content;
+		grid-gap: calc(var(--gap) * 2);
+		align-items: flex-end;
+	}
+		.dialog-box .fork-report .footer .progress {
+			display: grid;
+			grid-gap: var(--gap);
+		}
+			.dialog-box .fork-report .footer .progress span em {
+				font-weight: bold;
+			}
+			.dialog-box .fork-report .footer .progress progress {
+				width: 100%;
+				height: var(--gap);
+			}
+		.dialog-box .fork-report .footer button {
+			height: auto;
+			padding: 8px 18px;
+			font-size: 100%;
+		}
+		.dialog-box .fork-report .footer button[type=submit] {
+			grid-column: 3;
+		}
+		.dialog-box .fork-report .footer .export {
+			grid-column: 2;
+		}
+			.dialog-box .fork-report i:last-child {
+				margin: 0 0 0 var(--gap);
+			}

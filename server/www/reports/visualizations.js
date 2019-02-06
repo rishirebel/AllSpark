@@ -15,7 +15,7 @@ exports.insert = class extends API {
 
 	    this.assert(!authResponse.error, authResponse.message);
 
-        let values = {query_id, name, type, description, options, added_by: this.user.user_id};
+        let values = {query_id, name, type, description, options, tags, added_by: this.user.user_id};
 
         const
             insertResponse = await this.mysql.query('INSERT INTO tb_query_visualizations SET  ?', [values], 'write'),

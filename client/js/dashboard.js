@@ -118,8 +118,7 @@ Page.class = class Dashboards extends Page {
 		this.searchBarFilter = new SearchColumnFilters({
 			data: [],
 			filters: filters,
-			advanceSearch: true,
-			page,
+			advancedSearch: true,
 		});
 
 		this.container.querySelector('.section#list').insertBefore(this.searchBarFilter.container, this.container.querySelector('.section#list .block'));
@@ -462,6 +461,8 @@ Page.class = class Dashboards extends Page {
 			]),
 			currentId = state ? state.filter : parseInt(window.location.pathname.split('/').pop());
 
+		this.dashboardList = dashboardList;
+
 		for (const dashboard of dashboardList) {
 
 			dashboard.children = new Set;
@@ -680,6 +681,20 @@ class Dashboard {
 
 			dataSource.container.appendChild(dataSource.selectedVisualization.container);
 		}
+
+		this.forkPartialDashboard = new ForkPartialDashboard({
+			currentDashboard: this,
+			dashboards: page.dashboardList,
+			type: 'Partial Dashboard',
+			name: this.name,
+		});
+
+		this.forkCompleteDashboard = new ForkCompleteDashboard({
+			currentDashboard: this,
+			dashboards: page.dashboardList,
+			type: 'Complete Dashboard',
+			name: this.name,
+		});
 	}
 
 	static setup(page) {
@@ -794,6 +809,22 @@ class Dashboard {
 			dialougeBox.show();
 
 			dialougeBox.body.querySelector('.share-url input').select();
+		});
+
+		// const partiallyFork = page.container.querySelector('#partially-fork');
+
+		// partiallyFork.on('click', () => {
+
+		// 	const dashboard = page.list.get(page.currentDashboard);
+		// 	dashboard.forkPartialDashboard.forkDialogBox.body.appendChild(dashboard.forkPartialDashboard.container);
+		// });
+
+		const completeFork = page.container.querySelector('#complete-fork');
+
+		completeFork.on('click', () => {
+
+			const dashboard = page.list.get(page.currentDashboard);
+			dashboard.forkCompleteDashboard.forkDialogBox.body.appendChild(dashboard.forkCompleteDashboard.container);
 		});
 
 		const

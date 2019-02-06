@@ -1246,20 +1246,29 @@ ReportsManger.stages.set('define-report', class DefineReport extends ReportsMang
 			});
 		}
 
-		this.container.querySelector('#save-container #save-more').on('click', e => {
+		const saveMore = this.container.querySelector('#save-container #save-more');
+
+		saveMore.on('click', e => {
 
 			e.stopPropagation();
 
-			this.container.querySelector('#save-container #save-more').classList.toggle('selected');
+			saveMore.classList.toggle('selected');
 			this.container.querySelector('#save-container #save-menu').classList.toggle('hidden');
 		});
 
 		document.body.on('click', () => {
-			this.container.querySelector('#save-container #save-more').classList.remove('selected');
+			saveMore.classList.remove('selected');
 			this.container.querySelector('#save-container #save-menu').classList.add('hidden');
 		});
 
-		this.container.querySelector('#save-container #fork').on('click', () => this.initializeFork());
+		this.container.querySelector('#save-container #fork').on('click', () => {
+
+			if(!this.saveReportConfirm()) {
+				return;
+			}
+
+			this.forkReport.forkDialogBox.body.appendChild(this.forkReport.container);
+		});
 
 		this.container.querySelector('#run').on('click', () => this.preview());
 	}
@@ -1297,6 +1306,13 @@ ReportsManger.stages.set('define-report', class DefineReport extends ReportsMang
 	async load() {
 
 		this.report = this.selectedReport;
+
+		this.forkReport = new ForkReport({
+			report: this.report,
+			page: this.page,
+			type: 'report',
+			name: this.report.name,
+		});
 
 		if(!this.page.stages.get('configure-visualization').lastSelectedVisualizationId)
 			this.page.stages.get('configure-visualization').disabled = true;
@@ -1704,273 +1720,6 @@ ReportsManger.stages.set('define-report', class DefineReport extends ReportsMang
 
 		return container;
 	}
-
-	initializeFork() {
-
-		if(!this.saveReportConfirm())
-			return;
-
-		this.load();
-
-		let dialogBox = this.forkDialogBox;
-
-		if(!dialogBox) {
-
-			dialogBox = this.forkDialogBox = new DialogBox();
-			dialogBox.body.classList.add('fork-report');
-
-			dialogBox.multiSelect = {
-				filters: new MultiSelect({multiple: true, mode: 'stretch'}),
-				visualizations: new MultiSelect({multiple: true, mode: 'stretch'}),
-			};
-		}
-
-		dialogBox.heading = `<i class="fas fa-code-branch"></i> &nbsp; Fork ${this.report.name}`;
-
-		dialogBox.body.textContent = null;
-
-		dialogBox.body.innerHTML = `
-
-			<form class="form">
-
-				<label>
-					<span>New Report's Name <span class="red">*</span></span>
-					<input type="text" name="name" value="${this.report.name}" required>
-				</label>
-
-				<label class="filters ${!this.report.filters.length ? 'hidden' : ''}">
-					<span>Filters</span>
-				</label>
-
-				<label class="visualizations ${!this.report.visualizations.length ? 'hidden' : ''}">
-					<span>Visualizations</span>
-				</label>
-
-				<label class="switch-to-new">
-					<input type="checkbox" name="switchToNew" checked> Switch to the new report
-				</label>
-
-				<div class="footer">
-
-					<div class="progress hidden">
-						<span class="NA"></span>
-						<progress>
-					</div>
-
-					<button type="button" class="export">
-						<i class="fas fa-file-export"></i>
-						Export
-					</button>
-
-					<button type="submit" class="selected">
-						<i class="fas fa-code-branch"></i>
-						Fork Report
-						<i class="fas fa-arrow-right"></i>
-					</button>
-				</div>
-			</form>
-		`;
-
-		dialogBox.body.querySelector('.filters').appendChild(dialogBox.multiSelect.filters.container);
-		dialogBox.body.querySelector('.visualizations').appendChild(dialogBox.multiSelect.visualizations.container);
-
-		dialogBox.multiSelect.filters.datalist = this.report.filters.map(filter => {
-
-			return {
-				name: filter.name,
-				value: filter.filter_id,
-				subtitle: `#${filter.filter_id} &middot; ${filter.type}`,
-			}
-		});
-		dialogBox.multiSelect.filters.render();
-		dialogBox.multiSelect.filters.all();
-
-		dialogBox.multiSelect.visualizations.datalist = this.report.visualizations.map(visualization => {
-
-			return {
-				name: visualization.name,
-				value: visualization.visualization_id,
-				subtitle: `#${visualization.visualization_id} &middot; ${MetaData.visualizations.get(visualization.type).name}`,
-			}
-		});
-		dialogBox.multiSelect.visualizations.render();
-		dialogBox.multiSelect.visualizations.all();
-
-		dialogBox.body.querySelector('.footer .export').on('click', () => {
-
-			const
-				form = this.forkDialogBox.body.querySelector('form'),
-				filters = this.forkDialogBox.multiSelect.filters.value,
-				visualizations = this.forkDialogBox.multiSelect.visualizations.value,
-				json = new DataSource(this.report, this.page).json,
-				a = document.createElement('a');
-
-			json.filters = json.filters.filter(f => filters.includes(f.filter_id.toString()))
-			json.visualizations = json.visualizations.filter(v => visualizations.includes(v.visualization_id.toString()))
-
-			a.download = `${form.name.value} - ${Format.dateTime(new Date())}.json`;
-			a.href = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(json));
-
-			a.click();
-		});
-
-		dialogBox.body.querySelector('form').on('submit', async e => {
-
-			if(this.forkInProgress)
-				return console.log('forkInProgress');
-
-			this.forkInProgress = true;
-
-			e.preventDefault();
-
-			try {
-				await this.fork();
-			}
-			catch(e) {
-
-				new SnackBar({
-					message: 'Failed to fork!',
-					subtitle: e.message,
-					type: 'error',
-				});
-
-				this.forkInProgress = false;
-				throw e;
-			}
-
-			this.forkInProgress = false;
-		});
-
-		dialogBox.show();
-	}
-
-	async fork() {
-
-		const
-			form = this.forkDialogBox.body.querySelector('form'),
-			progress = this.forkDialogBox.body.querySelector('.progress progress'),
-			filters = this.forkDialogBox.multiSelect.filters.value,
-			visualizations = this.forkDialogBox.multiSelect.visualizations.value,
-			json = new DataSource(this.report, this.page).json;
-
-		json.filters = json.filters.filter(f => filters.includes(f.filter_id.toString()))
-		json.visualizations = json.visualizations.filter(v => visualizations.includes(v.visualization_id.toString()))
-
-		progress.container = this.forkDialogBox.body.querySelector('.progress'),
-		progress.span = this.forkDialogBox.body.querySelector('.progress span');
-
-		function updateProgress({reset = false, max = 0, value = null} = {}) {
-
-			progress.container.classList.remove('hidden');
-
-			if(reset) {
-
-				progress.span.textContent = null;
-				progress.max = max;
-				progress.value = 0;
-
-				progress.span.innerHTML = value;
-
-				return;
-			}
-
-			progress.value++;
-			progress.span.innerHTML = value;
-		}
-
-		updateProgress({
-			reset: true,
-			max: filters.length + visualizations.length + 1,
-		});
-
-		let newReportId = null;
-
-		{
-
-			updateProgress({value: `Adding new report: <em>${form.name.value}</em>`});
-
-			const options = {
-				method: 'POST',
-				form: new FormData(),
-			};
-
-			for(const key in json)
-				options.form.set(key, json[key]);
-
-			options.form.set('name', form.name.value);
-			options.form.set('format', json.format);
-			options.form.set('definition', json.definition);
-
-			const response = await API.call('reports/report/insert', {}, options);
-
-			newReportId = response.insertId;
-		}
-
-		if(!newReportId)
-			return updateProgress({reset: true, value: 'Could not insert new report!'});
-
-		for(const filter of json.filters) {
-
-			updateProgress({
-
-				value: `
-					Adding new filter:
-					<em>${filter.name} (${filter.type})</em>
-				`,
-			});
-
-			const options = {
-				method: 'POST',
-				form: new FormData(),
-			};
-
-			for(const key in filter)
-				options.form.set(key, filter[key]);
-
-			options.form.set('query_id', newReportId);
-
-			await API.call('reports/filters/insert', {}, options);
-		}
-
-		for(const visualization of json.visualizations) {
-
-			updateProgress({
-
-				value: `
-					Adding new visualization:
-					<em>${visualization.name} (${MetaData.visualizations.get(visualization.type).name})</em>
-				`,
-			});
-
-			const options = {
-				method: 'POST',
-				form: new FormData(),
-			};
-
-			for(const key in visualization) {
-
-				if(typeof visualization[key] != 'object')
-					options.form.set(key, visualization[key]);
-			}
-
-			options.form.set('options', visualization.options);
-			options.form.set('query_id', newReportId);
-
-			await API.call('reports/visualizations/insert', {}, options);
-		}
-
-		if(!form.switchToNew.checked) {
-
-			await DataSource.load(true);
-			this.forkDialogBox.hide();
-
-			return;
-		}
-
-		updateProgress({value: 'Report Forking Complete! Taking you to the new report.'});
-
-		window.location = `/reports/define-report/${newReportId}`;
-	}
 });
 
 ReportsManger.stages.set('pick-visualization', class PickVisualization extends ReportsMangerStage {
@@ -2353,6 +2102,25 @@ ReportsManger.stages.set('configure-visualization', class ConfigureVisualization
 			this.visualizationManager.preview();
 		});
 
+		// const saveMore = this.container.querySelector('#save-container #save-more');
+
+		// saveMore.on('click', e => {
+
+		// 	e.stopPropagation();
+
+		// 	saveMore.classList.toggle('selected');
+		// 	this.container.querySelector('#save-container #save-menu').classList.toggle('hidden');
+		// });
+
+		// document.body.on('click', () => {
+		// 	saveMore.classList.remove('selected');
+		// 	this.container.querySelector('#save-container #save-menu').classList.add('hidden');
+		// });
+
+		// this.container.querySelector('#save-container #fork').on('click', () => {
+		// 	this.forkVisualization.forkDialogBox.body.appendChild(this.forkVisualization.container)
+		// });
+
 		const historyToggle = this.container.querySelector('#history-configure-visualization');
 
 		historyToggle.on('click',async () => {
@@ -2444,6 +2212,13 @@ ReportsManger.stages.set('configure-visualization', class ConfigureVisualization
 
 		this.container.appendChild(this.visualizationLogs.container);
 
+		// this.forkVisualization = new ForkVisualization({
+		// 	reportList: Array.from(DataSource.list.values()),
+		// 	stage: this,
+		// 	type: 'visualization',
+		// 	name: this.visualizationManager.name,
+		// });
+
 		this.page.stages.get('pick-report').switcher.querySelector('small').textContent = this.report.name + ` #${this.report.query_id}`;
 	}
 
@@ -2473,7 +2248,7 @@ ReportsManger.stages.set('configure-visualization', class ConfigureVisualization
 		this.dashboards.clear();
 		await this.page.preview.position('right');
 
-		this.dashboards.load();
+		await this.dashboards.load();
 
 		this.visualizationManager.load();
 
