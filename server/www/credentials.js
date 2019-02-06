@@ -291,7 +291,7 @@ exports.update = class extends API {
 
 		if(JSON.stringify(values) == JSON.stringify(compareJson)) {
 
-			return "0 rows affected";
+			return 'New values are identical to the previous ones.';
 		}
 
 		const response = await this.mysql.query(

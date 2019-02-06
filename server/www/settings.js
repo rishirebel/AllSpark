@@ -3,6 +3,7 @@ const account = require('../onServerStart');
 const commonFun = require("../utils/commonFunctions");
 const redis = require("../utils/redis").Redis;
 const getRole = (require('./object_roles')).get;
+const settingHistory = require('../utils/reportLogs');
 
 exports.insert = class extends API {
 
@@ -22,10 +23,11 @@ exports.insert = class extends API {
 		this.assert(profile, "profile not found");
 		this.assert(owner, "owner not found");
 		this.assert(owner_id, `${owner} not found`);
-		this.assert(commonFun.isJson(value), "Please send valid JSON");
+		this.assert(commonFun.isJson(value), 'Please send valid JSON');
 
-		return await this.mysql.query(`
-				INSERT INTO
+		const
+			insertResponse = await this.mysql.query(
+				`INSERT INTO
 					tb_settings
 					(
 						account_id,
@@ -37,8 +39,21 @@ exports.insert = class extends API {
 				VALUES
 					(?, ?, ?, ?, ?)
 				`,
-			[account_id, profile, owner, owner_id, value],
-			"write");
+				[account_id, profile, owner, owner_id, value],
+				'write'
+			),
+			[loggedRow] = await this.mysql.query('SELECT * FROM tb_settings WHERE id = ?', [insertResponse.insertId]),
+			logs = {
+				owner: 'setting',
+				owner_id: insertResponse.insertId,
+				state: JSON.stringify(loggedRow),
+				operation: 'insert',
+			}
+		;
+
+		settingHistory.insert(this, logs);
+
+		return insertResponse
 	}
 };
 
@@ -68,11 +83,35 @@ exports.update = class extends API {
 		this.assert(id, "no id found to update");
 		this.assert(commonFun.isJson(value), "Please send valid JSON");
 
-		const response = await this.mysql.query(
-			"UPDATE tb_settings SET profile = ?, value = ? WHERE id = ?",
-			[profile || null, value, id],
-			"write"
-		);
+		const
+			[rowUpdated] = await this.mysql.query('SELECT * FROM tb_settings WHERE id = ?', [id], 'write'),
+			compareJSON = {
+				profile: rowUpdated.profile,
+				value: commonFun.isJson(rowUpdated.value) ? JSON.parse(rowUpdated.value) : []
+			};
+
+		if(JSON.stringify(compareJSON, 0, 4) == JSON.stringify({profile, value: JSON.parse(value)}, 0, 4)) {
+
+			return 'New values are identical to the previous ones.';
+		}
+
+		rowUpdated.profile = profile;
+		rowUpdated.value = value;
+
+		const
+			response = await this.mysql.query(
+				"UPDATE tb_settings SET profile = ?, value = ? WHERE id = ?",
+				[profile || null, value, id],
+				"write"
+			),
+			logs = {
+				owner: 'setting',
+				owner_id: id,
+				state: JSON.stringify(rowUpdated),
+				operation: 'update',
+			};
+
+		settingHistory.insert(this, logs);
 
 		if(owner == 'account') {
 
@@ -106,7 +145,22 @@ exports.delete = class extends API {
 
 		await account.loadAccounts();
 
-		return await this.mysql.query("DELETE FROM tb_settings WHERE id = ?", [id], "write");
+		const
+			[rowDeleted] = await this.mysql.query('SELECT * FROM tb_settings WHERE id = ?', [id], 'write'),
+			deleteResponse = await this.mysql.query("DELETE FROM tb_settings WHERE id = ?", [id], 'write')
+		;
+
+		settingHistory.insert(
+			this,
+			{
+				owner: 'setting',
+				owner_id: id,
+				state: JSON.stringify(rowDeleted),
+				operation: 'delete',
+			}
+		);
+
+		return deleteResponse;
 	}
 };
 

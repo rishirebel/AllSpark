@@ -808,7 +808,7 @@ exports.update = class extends API {
 
 		if (JSON.stringify(compareJson) == JSON.stringify(values)) {
 
-			return "0 rows affected";
+			return 'New values are identical to the previous ones.';
 		}
 
 		if("refresh_rate" in values) {
