@@ -7839,7 +7839,6 @@ Visualization.list.set('linear', class Linear extends LinearVisualization {
 				return x;
 			}, [])
 		);
-		debugger
 
 		for (const [axisIndex, axis] of this.axes.entries()) {
 
