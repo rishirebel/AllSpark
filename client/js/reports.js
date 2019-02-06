@@ -12384,10 +12384,54 @@ SpatialMapLayer.types.set('heatmap', class HeatMap extends SpatialMapLayer {
 
 		super(layer, layers);
 
+		[this.gradient] = HeatMap.gradient.filter(x => x.name == (this.gradient || 'Standard'));
+
 		this.heatmap = new google.maps.visualization.HeatmapLayer({
 			radius: this.radius || 15,
-			opacity: this.opacity || 0.6
+			opacity: this.opacity || 0.6,
+			gradient: this.gradient.color_code,
 		});
+	}
+
+	static get gradient() {
+
+		return [
+			{
+				name: 'Standard',
+				color_code: [
+					'rgba(102, 255, 0, 0)',
+					'rgba(102, 255, 0, 1)',
+					'rgba(147, 255, 0, 1)',
+					'rgba(193, 255, 0, 1)',
+					'rgba(238, 255, 0, 1)',
+					'rgba(244, 227, 0, 1)',
+					'rgba(249, 198, 0, 1)',
+					'rgba(255, 170, 0, 1)',
+					'rgba(255, 113, 0, 1)',
+					'rgba(255, 57, 0, 1)',
+					'rgba(255, 0, 0, 1)',
+				],
+			},
+			{
+				name: 'Blue',
+				color_code: [
+					'rgba(0, 255, 255, 0)',
+					'rgba(0, 255, 255, 1)',
+					'rgba(0, 191, 255, 1)',
+					'rgba(0, 127, 255, 1)',
+					'rgba(0, 63, 255, 1)',
+					'rgba(0, 0, 255, 1)',
+					'rgba(0, 0, 223, 1)',
+					'rgba(0, 0, 191, 1)',
+					'rgba(0, 0, 159, 1)',
+					'rgba(0, 0, 127, 1)',
+					'rgba(63, 0, 91, 1)',
+					'rgba(127, 0, 63, 1)',
+					'rgba(191, 0, 31, 1)',
+					'rgba(255, 0, 0, 1)',
+				],
+			},
+		];
 	}
 
 	plot() {
@@ -12546,7 +12590,10 @@ SpatialMapLayer.types.set('scattermap', class ScatterMap extends SpatialMapLayer
 
 			markerObj.addListener('mouseout', () => {
 
-				infoPopUp.close();
+				if(infoPopUp) {
+
+					infoPopUp.close();
+				}
 			});
 
 			markers.push(markerObj);

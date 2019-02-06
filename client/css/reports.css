@@ -1029,7 +1029,7 @@ button[disabled] {
 			height: 40px;
 			width: 40px;
 			position: absolute;
-			bottom: 175px;
+			bottom: 200px;
 			right: 10px;
 			border-radius: 2px;
 			box-shadow: 0 0 25px rgba(0, 0, 0, 0.15);
@@ -1042,7 +1042,7 @@ button[disabled] {
 				align-items: center;
 				justify-content: center;
 				color: #666;
-				font-size: 22px;
+				font-size: 25px;
 			}
 			.visualization.spatial-map .columns-toggle .columns {
 				bottom: 100%;
@@ -1065,9 +1065,10 @@ button[disabled] {
 						display: flex;
 						flex-direction: column;
 						width: 100%;
+						color: var(--color-background);
 					}
 					.visualization.spatial-map .columns-toggle .columns .column .type {
-						color: #aaa;
+						color: var(--color-grey);
 					}
 				.visualization.spatial-map .columns-toggle .columns .column:hover {
 					background-color: #eee;

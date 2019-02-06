@@ -798,6 +798,17 @@ main.preview-left #stages {
 				font-weight: normal;
 				color: #999;
 			}
+			.visualization-form .layers .form .gradients {
+				grid-template-columns: 230px 230px;
+				display: grid;
+				grid-gap: calc(var(--gap) * 3);
+			}
+				.visualization-form .layers .form .gradients .gradient {
+					height: 15px;
+					cursor: pointer;
+					margin: 4px 0;
+					box-shadow: 0 0 25px rgba(0, 0, 0, 0.1);
+				}
 		.visualization-form .axes .axis .axis-column .multi-select .options {
 			z-index: 0;
 		}
@@ -1081,12 +1092,14 @@ main.preview-left #stages {
 			width: 160px;
 			box-shadow: 0 0 25px rgba(0, 0, 0, 0.1);
 		}
-		.visualization-form .configuration-section .theme-list .theme:hover {
+		.visualization-form .configuration-section .theme-list .theme:hover,
+		.visualization-form .layers .form .gradients .gradient:hover {
 			box-shadow: 0 0 25px rgba(0, 0, 0, 0.1);
 			transform: perspective(500px) translatez(30px)
 		}
-		.visualization-form .configuration-section .theme-list .theme.selected {
-			border: 1px solid #80b7fa;
+		.visualization-form .configuration-section .theme-list .theme.selected,
+		.visualization-form .layers .form .gradients .gradient.selected {
+			border: 2px solid var(--color-secondary);
 			box-shadow: 0 0 25px rgba(0, 0, 0, 0.15);
 		}
 			.visualization-form .configuration-section .theme-list .theme .name {

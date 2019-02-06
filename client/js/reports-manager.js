@@ -5493,6 +5493,11 @@ SpatialMapOptionsLayer.types.set('heatmap', class HeatMapLayer extends SpatialMa
 				<span>Opacity <span class="value">${this.opacity || 0.6}</span></span>
 				<input type="range" name="opacity" min="0" max="1" step="0.01">
 			</label>
+			
+			<label>
+				<span>Gradient</span>
+				<div class="gradients"></div>
+			</label>
 		`);
 
 		container.querySelector('.opacity input').on('input', () => {
@@ -5500,13 +5505,43 @@ SpatialMapOptionsLayer.types.set('heatmap', class HeatMapLayer extends SpatialMa
 			container.querySelector('.opacity .value').textContent = container.querySelector('.opacity input').value;
 		});
 
-		const weight = container.querySelector('select[name=weight]');
+		const
+			weight = container.querySelector('select[name=weight]'),
+			gradients = container.querySelector('.gradients')
+		;
+
+		this.gradient = this.gradient || 'Standard';
 
 		for(const [key, column] of this.layers.stage.page.preview.report.columns) {
 
 			weight.insertAdjacentHTML('beforeend', `
 				<option value="${key}">${column.name}</option>
 			`);
+		}
+
+		for(const gradient of SpatialMapLayer.types.get('heatmap').gradient) {
+
+			const gradientContainer = document.createElement('div');
+			gradientContainer.classList.add('gradient');
+
+			gradientContainer.title = gradient.name;
+			gradientContainer.style.background = `-webkit-linear-gradient(left, ${gradient.color_code.join(',')})`;
+
+			gradientContainer.on('click', () => {
+
+				for(const element of container.querySelectorAll('.gradients .gradient')) {
+
+					element.classList.remove('selected');
+				}
+
+				this.gradient = gradient.name;
+				gradientContainer.classList.add('selected');
+			});
+
+			if(gradient.name == this.gradient)
+				gradientContainer.classList.add('selected');
+
+			gradients.appendChild(gradientContainer);
 		}
 
 		if(this.weightColumn)
@@ -5519,6 +5554,15 @@ SpatialMapOptionsLayer.types.set('heatmap', class HeatMapLayer extends SpatialMa
 			container.querySelector('input[name=radius]').value = this.radius;
 
 		return container;
+	}
+
+	get json() {
+
+		const response = super.json;
+
+		response.gradient = this.gradient;
+
+		return response;
 	}
 });
 
@@ -6145,12 +6189,12 @@ ConfigureVisualization.types.set('spatialmap', class SpatialMapOptions extends R
 
 						<label>
 							<span>Center Latitude</span>
-							<input type="number" name="centerLatitude">
+							<input type="number" name="centerLatitude" step="0.00001" min="-90" max="90">
 						</label>
 
 						<label>
 							<span>Center Longitude</span>
-							<input type="number" name="centerLongitude">
+							<input type="number" name="centerLongitude" step="0.00001" min="-180" max="180">
 						</label>
 
 						<label>
