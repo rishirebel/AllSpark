@@ -7735,7 +7735,9 @@ ReportTransformation.types.set('forecast', class ReportTransformationRestrictCol
 
 		this.extrapolateUnits = `<input class="extrapolate-units" type="number" step="1" min="0" value=${this.columns.extrapolate || 0}>`;
 		this.timingOffset = `<input class="timing-offset" type="number" step="1" max="0" value=${this.columns.timingOffset || 0}>`;
-		this.mergeExtrapolation = `<input class="merge-extrapolation" type="checkbox" checked>`;
+		this.mergeExtrapolation = `<input class="merge-extrapolation" type="checkbox" ${this.columns.mergeExtrapolation ? 'checked' : ''}>`;
+		this.hideUpperLimit = `<input class="hide-upper" type="checkbox" ${this.columns.hideUpperLimit ? 'checked' : ''}>`;
+		this.hideLowerLimit = `<input class="hide-lower" type="checkbox" ${this.columns.hideLowerLimit ? 'checked' : ''}>`;
 
 		columns.insertAdjacentHTML('beforeend', `<span>Extrapolate X By Units</span>`);
 		columns.insertAdjacentHTML('beforeend', this.extrapolateUnits);
@@ -7743,16 +7745,31 @@ ReportTransformation.types.set('forecast', class ReportTransformationRestrictCol
 		columns.insertAdjacentHTML('beforeend', `<span>X offset</span>`);
 		columns.insertAdjacentHTML('beforeend', this.timingOffset);
 
-		const div = document.createElement('div');
+		const mergeExtrapolationSpan = document.createElement('span');
+		mergeExtrapolationSpan.insertAdjacentHTML('beforeend', this.mergeExtrapolation);
+		mergeExtrapolationSpan.insertAdjacentHTML('beforeend', `<span>Merge Forecast Column</span>`);
 
-		div.style.display = 'flex';
-		div.style.justifyContent = 'space-between';
+		if(this.columns.mergeExtrapolation) {
 
-		div.insertAdjacentHTML('beforeend', `<span>Merge Forecast Column</span>`);
-		div.insertAdjacentHTML('beforeend', this.mergeExtrapolation);
-		columns.appendChild(div);
+			mergeExtrapolationSpan.querySelector('.merge-extrapolation').checked = true;
+		}
 
-		// columns.insertAdjacentHTML('beforeend', );
+		const hideUpperLimitSpan = document.createElement('span');
+		hideUpperLimitSpan.insertAdjacentHTML('beforeend', this.hideUpperLimit);
+		hideUpperLimitSpan.insertAdjacentHTML('beforeend', `<span>Hide Lower Limit Column</span>`);
+
+		if(this.columns.hideUpperLimit) {
+
+			hideUpperLimitSpan.querySelector('.merge-extrapolation').checked = true;
+		}
+
+		const hideLowerLimitSpan = document.createElement('span');
+		hideLowerLimitSpan.insertAdjacentHTML('beforeend', this.hideLowerLimit);
+		hideLowerLimitSpan.insertAdjacentHTML('beforeend', `<span>Hide Upper LimitColumn</span>`);
+
+		columns.appendChild(mergeExtrapolationSpan);
+		columns.appendChild(hideUpperLimitSpan);
+		columns.appendChild(hideLowerLimitSpan);
 
 		label.appendChild(columns);
 		container.appendChild(label);
@@ -7813,6 +7830,8 @@ ReportTransformation.types.set('forecast', class ReportTransformationRestrictCol
 				extrapolate: (this.container.querySelector('.extrapolate-units') || {value: 0}).value,
 				offset: (this.container.querySelector('.timing-offset') || {value: 0}).value,
 				mergeExtrapolation: (this.container.querySelector('.merge-extrapolation') || {checked: 0}).checked || 0,
+				hideUpperLimit: (this.container.querySelector('.hide-upper') || {checked: 0}).checked,
+				hideLowerLimit: (this.container.querySelector('.hide-lower') || {checked: 0}).checked,
 			},
 			backend_transformation: true
 		};

@@ -1570,19 +1570,20 @@ class Transformation {
 		let
 			metadata = response.response.rows,
 			connectingColumn = response.response.connecting_column || "timing",
-			mergeColumn = []
+			mergeColumn = [],
+			deleteColumn = []
 		;
 
-		if(!metadata) {
+		if (!metadata) {
 
 			return [originalData, {}];
 		}
 
 		const newColumns = {};
 
-		for(const column in metadata[0]) {
+		for (const column in metadata[0]) {
 
-			if(column == connectingColumn) {
+			if (column == connectingColumn) {
 
 				continue;
 			}
@@ -1593,35 +1594,45 @@ class Transformation {
 
 				newColumns[`${column}_${newColumn}`] = hashedName;
 
-				if(columnInfo.mergeExtrapolation && newColumn == 'forecast') {
+				if (columnInfo.mergeExtrapolation && newColumn == "forecast") {
 
 					mergeColumn.push([column, hashedName]);
+				}
+
+				if (columnInfo.hideUpperLimit && newColumn == "upper") {
+
+					deleteColumn.push(hashedName);
+				}
+
+				if (columnInfo.hideLowerLimit && newColumn == "lower") {
+
+					deleteColumn.push(hashedName);
 				}
 			}
 		}
 
 		const originalDataMapping = {};
 
-		for(const row of originalData) {
+		for (const row of originalData) {
 
 			originalDataMapping[row[connectingColumn].replace('T', ' ').slice(0, 19)] = row;
 		}
 
 		const dashedArray = [];
 
-		for(const row of metadata) {
+		for (const row of metadata) {
 
-			if(!originalDataMapping.hasOwnProperty(row[connectingColumn])) {
+			if (!originalDataMapping.hasOwnProperty(row[connectingColumn])) {
 
 				dashedArray.push(row[connectingColumn]);
 				originalDataMapping[row[connectingColumn]] = {};
 			}
 
-			for(const originalColumn in row) {
+			for (const originalColumn in row) {
 
 				const connectingCol = row[connectingColumn].replace('T', ' ').slice(0, 19);
 
-				if(originalColumn == connectingColumn) {
+				if (originalColumn == connectingColumn) {
 
 					originalDataMapping[connectingCol][originalColumn] = connectingCol;
 					continue;
@@ -1636,18 +1647,23 @@ class Transformation {
 
 		const result = Object.values(originalDataMapping);
 
-		if(columnInfo.mergeExtrapolation && mergeColumn) {
+		if (columnInfo.mergeExtrapolation && mergeColumn) {
 
-			for(const columnPair of mergeColumn) {
+			for (const row of result) {
 
-				for(const row of result) {
+				for (const columnPair of mergeColumn) {
 
-					if(!row.hasOwnProperty(columnPair[0])) {
+					if (!row.hasOwnProperty(columnPair[0])) {
 
 						row[columnPair[0]] = row[columnPair[1]];
 					}
 
 					delete row[columnPair[1]];
+				}
+
+				for(const column of deleteColumn) {
+
+					delete row[column];
 				}
 			}
 		}
