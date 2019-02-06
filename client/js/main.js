@@ -4283,7 +4283,19 @@ class Documentation {
 			return;
 		}
 
-		this.initilizeBody = await API.call('documentation/get', {id: this.id, body: true});
+		const parameters = {};
+
+		if(this.slug) {
+			parameters.slug = this.slug;
+		}
+
+		if(this.id) {
+			parameters.id = this.id
+		}
+
+		return await API.call('documentation/get', parameters);
+
+		// this.initilizeBody = await API.call('documentation/get', parameters);
 	}
 
 	get container() {
@@ -4364,35 +4376,88 @@ class Documentation {
 	}
 }
 
-class DocumentationInfos {
+class DocumentationInfo extends Documentation {
 
-	constructor(slug, page) {
+	constructor(documentation, page, parent = null) {
 
-		this.slug = slug;
-		this.page = page;
+		super(documentation, page, parent);
 
-		(async () => {
-			await this.load();
-		})();
-	}
-
-	async load() {
-
-		if(this.documentation) {
+		if(!('children' in this)) {
 			return;
 		}
 
-		const parameters = {
-			slug: this.slug,
+		DocumentationInfo.list.set(this.slug, this);
+
+		const children = new Map;
+
+		this.children.sort((a,b) => a.chapter - b.chapter);
+
+		for(const data of this.children) {
+			children.set(data.id, new DocumentationInfo(data, this.page, this));
 		}
 
-		const
-			response = await API.call('documentation/get', parameters),
-			root = this.constructTree(response);
+		this.children = children;
+	}
 
-		Object.assign(this, root);
+	get infoContainer() {
 
-		this.documentation = new DocumentationInfo(root, this.page);
+		if(this.infoContainerElement) {
+			return this.infoContainerElement;
+		}
+
+		const container = this.infoContainerElement = document.createElement('span');
+		container.classList.add('documentation-info');
+
+		container.innerHTML = '<i class="fas fa-question"></i>';
+		container.title = 'Info';
+
+		container.on('click', async (e) => {
+
+			e.stopPropagation();
+
+			if(!DocumentationInfo.list.get(this.slug)) {
+
+				const response = await this.load();
+
+				const root = this.constructTree(response);
+
+				Object.assign(this, root);
+
+				this.parent = null;
+
+				const children = new Map;
+
+				this.children.sort((a,b) => a.chapter - b.chapter);
+
+				for(const data of this.children) {
+					children.set(data.id, new DocumentationInfo(data, this.page, this));
+				}
+
+				this.children = children;
+
+				DocumentationInfo.list.set(this.slug, this);
+			}
+
+			if(this.dialougeBox) {
+				return this.dialougeBox.show();
+			}
+
+			const _this = DocumentationInfo.list.get(this.slug);
+
+			const dialougeBox = this.dialougeBox = new DialogBox();
+
+			dialougeBox.container.querySelector('section').classList.add('documentation')
+
+			dialougeBox.heading = _this.heading;
+
+			_this.headingSize = 1;
+
+			dialougeBox.body.appendChild(_this.container);
+
+			this.dialougeBox.show();
+		});
+
+		return container;
 	}
 
 	constructTree(list) {
@@ -4425,61 +4490,9 @@ class DocumentationInfos {
 
 		return list.get(id);
 	}
-
-	get infoContainer() {
-
-		if(this.infoContainerElement) {
-			return this.infoContainerElement;
-		}
-
-		const container = this.infoContainerElement = document.createElement('span');
-		container.classList.add('documentation-info');
-
-		container.innerHTML = '<i class="fas fa-question"></i>';
-		container.title = 'Info';
-
-		container.on('click', async () => {
-
-			if(this.dialougeBox) {
-				return this.dialougeBox.show();
-			}
-
-			await this.documentation.load();
-
-			const dialougeBox = this.dialougeBox = new DialogBox();
-
-			dialougeBox.container.querySelector('section').classList.add('documentation')
-
-			dialougeBox.heading = this.heading;
-
-			this.documentation.headingSize = 1;
-
-			dialougeBox.body.appendChild(this.documentation.container);
-
-			this.dialougeBox.show();
-		});
-
-		return container;
-	}
 }
 
-class DocumentationInfo extends Documentation {
-
-	constructor(documentation, page, parent = null) {
-
-		super(documentation, page, parent);
-
-		const children = new Map;
-
-		this.children.sort((a,b) => a.chapter - b.chapter);
-
-		for(const data of this.children) {
-			children.set(data.id, new DocumentationInfo(data, this.page, this));
-		}
-
-		this.children = children;
-	}
-}
+DocumentationInfo.list = new Map;
 
 if(typeof Node != 'undefined') {
 	Node.prototype.on = window.on = function(name, fn) {

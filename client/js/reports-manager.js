@@ -2658,7 +2658,7 @@ class ReportsManagerFilters extends Map {
 			</div>
 		`;
 
-		const documentation = new DocumentationInfos('filters', this.page);
+		const documentation = new DocumentationInfo({slug: 'filters'}, this.page);
 
 		container.querySelector('#list > h3').appendChild(documentation.infoContainer);
 

@@ -107,7 +107,7 @@ class Documentation extends API {
 		);
 	}
 
-	async get({id, body = false, slug = null} = {}) {
+	async get({id, slug = null} = {}) {
 
 		if(slug) {
 			const [_id] = await this.mysql.query('SELECT id FROM tb_documentation WHERE slug = ?', [slug]);
@@ -148,10 +148,6 @@ class Documentation extends API {
 		}
 
 		requiredIds = requiredIds.filter(x => x);
-
-		if(!body) {
-			return await this.mysql.query('SELECT id, parent, chapter, heading, slug FROM tb_documentation WHERE id in (?)',[requiredIds]);
-		}
 
 		return await this.mysql.query('SELECT * FROM tb_documentation WHERE id in (?)',[requiredIds]);
 	}
