@@ -6189,12 +6189,12 @@ ConfigureVisualization.types.set('spatialmap', class SpatialMapOptions extends R
 
 						<label>
 							<span>Center Latitude</span>
-							<input type="number" name="centerLatitude" step="0.00000001" min="-90" max="90">
+							<input type="number" name="centerLatitude" step="0.00001" min="-90" max="90">
 						</label>
 
 						<label>
 							<span>Center Longitude</span>
-							<input type="number" name="centerLongitude" step="0.00000001" min="-180" max="180">
+							<input type="number" name="centerLongitude" step="0.00001" min="-180" max="180">
 						</label>
 
 						<label>
