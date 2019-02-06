@@ -434,6 +434,7 @@ exports.refresh = class extends cycleDetection {
 					user_id = ?
 					AND u.account_id = ?
 					and u.status = 1
+					and p.status = 1
 
 				UNION ALL
 
