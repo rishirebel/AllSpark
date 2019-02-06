@@ -6329,6 +6329,10 @@ class LinearVisualization extends Visualization {
 				</ul>
 			`;
 
+			if(that.container.querySelector('.loading')) {
+				return;
+			}
+
 			Tooltip.show(that.container, mouse, content, row);
 		})
 
@@ -7428,6 +7432,10 @@ Visualization.list.set('bubble', class Bubble extends LinearVisualization {
 						.filter(x => x && x.row && x.row.get(that.bubbleColumn) != d.row.get(that.bubbleColumn))
 						.attr('fill', 'grey')
 						.attr('opacity', 0.2);
+
+					if(that.container.querySelector('.loading')) {
+						return;
+					}
 
 					Tooltip.show(that.container, mouse, content);
 				})
@@ -8698,6 +8706,10 @@ Visualization.list.set('linear', class Linear extends LinearVisualization {
 				</ul>
 			`;
 
+			if(this.container.querySelector('.loading')) {
+				return;
+			}
+
 			Tooltip.show(this.container, mouse, content, row);
 		})
 
@@ -9343,6 +9355,10 @@ Visualization.list.set('dualaxisbar', class DualAxisBar extends LinearVisualizat
 					${tooltip.reverse().join('')}
 				</ul>
 			`;
+
+			if(that.container.querySelector('.loading')) {
+				return;
+			}
 
 			Tooltip.show(that.container, mouse, content, row);
 		})
@@ -10449,6 +10465,10 @@ Visualization.list.set('pie', class Pie extends Visualization {
 						${row.data.value} (${row.data.percentage}%)
 					</ul>
 				`;
+
+				if(that.container.querySelector('.loading')) {
+					return;
+				}
 
 				Tooltip.show(that.container, mouse, content, row);
 
@@ -11795,7 +11815,11 @@ Visualization.list.set('sankey', class Sankey extends Visualization {
 
 				mouse = d3.mouse(this);
 
-				const contentContainer = `<div class="sankey-tooltip">${content}</div>`
+				const contentContainer = `<div class="sankey-tooltip">${content}</div>`;
+
+				if(that.container.querySelector('.loading')) {
+					return;
+				}
 
 				Tooltip.show(that.container, mouse, contentContainer);
 			})
