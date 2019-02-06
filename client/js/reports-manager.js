@@ -7749,19 +7749,9 @@ ReportTransformation.types.set('forecast', class ReportTransformationRestrictCol
 		mergeExtrapolationSpan.insertAdjacentHTML('beforeend', this.mergeExtrapolation);
 		mergeExtrapolationSpan.insertAdjacentHTML('beforeend', `<span>Merge Forecast Column</span>`);
 
-		if(this.columns.mergeExtrapolation) {
-
-			mergeExtrapolationSpan.querySelector('.merge-extrapolation').checked = true;
-		}
-
 		const hideUpperLimitSpan = document.createElement('span');
 		hideUpperLimitSpan.insertAdjacentHTML('beforeend', this.hideUpperLimit);
 		hideUpperLimitSpan.insertAdjacentHTML('beforeend', `<span>Hide Lower Limit Column</span>`);
-
-		if(this.columns.hideUpperLimit) {
-
-			hideUpperLimitSpan.querySelector('.merge-extrapolation').checked = true;
-		}
 
 		const hideLowerLimitSpan = document.createElement('span');
 		hideLowerLimitSpan.insertAdjacentHTML('beforeend', this.hideLowerLimit);
