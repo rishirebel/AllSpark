@@ -782,6 +782,7 @@ body {
 			grid-gap: calc(var(--gap) * 2);
 			justify-content: flex-start;
 			color: #999;
+			position: relative;
 		}
 			.multi-select .options header .mode {
 				margin-left: auto;
@@ -863,7 +864,9 @@ body {
 			background: var(--color-background);
 			box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
 			right: 0;
+			top: 0;
 			margin-right: var(--gap);
+			color: var(--color-background-text);
 		}
 			.multi-select .modes-drop-down span {
 				padding: 5px 10px;

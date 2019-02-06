@@ -2764,17 +2764,17 @@ class MultiSelect {
 
 		options.innerHTML = `
 			<header>
-					<a class="all">All</a>
-					<a class="clear">Clear</a>
-					<a class="mode">${this.mode == 'stretch' ? 'Stretch' : 'Collapse'}</a>
-				</header>
-				<div class="list"></div>
-				<div class="no-matches NA hidden">No data found</div>
-				<footer class="hidden"></footer>
+				<a class="all">All</a>
+				<a class="clear">Clear</a>
+				<a class="mode">${this.mode == 'stretch' ? 'Stretch' : 'Collapse'}</a>
 				<div class="modes-drop-down hidden">
 					<span class="dual">${this.mode == 'stretch' ? 'Collapse' : 'Stretch'}</span>
 					<span class="expand">Expand</span>
 				</div>
+			</header>
+			<div class="list"></div>
+			<div class="no-matches NA hidden">No data found</div>
+			<footer class="hidden"></footer>
 		`;
 
 		options.on('click', e => e.stopPropagation());
