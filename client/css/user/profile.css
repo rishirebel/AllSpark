@@ -55,6 +55,9 @@ main .roles {
 	table-layout: fixed;
 	overflow: hidden;
 }
+	main .privileges .privilege-name {
+		cursor: pointer;
+	}
 main .profile-details {
 	display: grid;
 	padding: calc(var(--gap) * 2);
@@ -252,3 +255,12 @@ main .switch {
 .dialog-box-blanket.logs .dialog-box {
 	max-width: 80%;
 }
+
+.privilege-list-popup {
+	padding: 10px;
+}
+
+	.privilege-list-popup .privilege-list-empty {
+		display: flex;
+		justify-content: center;
+	}

@@ -753,12 +753,23 @@ class ProfileInfo {
 		privileges.textContent = null;
 
 		for(const privilege of this.data.privileges || []) {
-			privileges.insertAdjacentHTML('beforeend', `
-				<tr>
-					<td>${MetaData.categories.has(privilege.category_id) ? MetaData.categories.get(privilege.category_id).name : ''}</td>
-					<td>${MetaData.privileges.has(privilege.privilege_id) ? MetaData.privileges.get(privilege.privilege_id).name : ''}</td>
-				</tr>
-			`);
+
+			const
+				row = document.createElement('tr'),
+				privilegeName = MetaData.privileges.has(privilege.privilege_id) ? MetaData.privileges.get(privilege.privilege_id).name : '';
+
+			row.innerHTML =  `
+				<td>${MetaData.categories.has(privilege.category_id) ? MetaData.categories.get(privilege.category_id).name : ''}</td>
+				<td class="privilege-name">${privilegeName}</td>
+			`;
+
+			row.querySelector('.privilege-name').on('click', async() => {
+
+				const response = await this.fetch(privilege.privilege_id);
+				this.showDialogBox(privilegeName, response);
+			});
+
+			privileges.insertAdjacentElement('beforeend', row);
 		}
 
 		if(!this.data.privileges || !this.data.privileges.length) {
@@ -785,5 +796,72 @@ class ProfileInfo {
 		}
 
 		this.sortRolesTable.sort();
+	}
+
+	async fetch(privilege_id) {
+
+		const
+			 options = {
+				'method': 'POST',
+			},
+			parameter = {
+				id: privilege_id,
+			};
+
+		return await API.call('privileges_manager/list', parameter, options);
+	}
+
+	showDialogBox(name, privileges) {
+
+		const dialogBox = new DialogBox();
+
+		dialogBox.heading = name + ' Sub Privileges List';
+
+		dialogBox.body.classList.add('privilege-list-popup');
+
+		if(!privileges || !privileges.length) {
+
+			const element = document.createElement('span');
+
+			element.classList.add('privilege-list-empty')
+
+			element.innerHTML = 'No sub privileges exist';
+
+			dialogBox.body.appendChild(element);
+
+			dialogBox.show();
+
+			return;
+		}
+
+		const table = document.createElement('table');
+
+		table.innerHTML = `
+			<thead>
+				<tr>
+					<th>Privilege ID</th>
+					<th>Privilege Name</th>
+				</tr>
+			</thead>
+			<tbody></tbody>
+		`;
+
+		const tbody = table.querySelector('tbody');
+
+		for(const privilege of privileges || []) {
+
+			const row = document.createElement('tr');
+
+			row.innerHTML =  `
+				<td>${privilege.privilege_id || ''}</td>
+				<td class="privilege">${privilege.name || ''}</td>
+			`;
+
+			tbody.appendChild(row);
+		}
+
+		dialogBox.body.appendChild(table);
+
+		dialogBox.show();
 	}
 }
