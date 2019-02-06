@@ -5080,7 +5080,7 @@ DataSourceTransformation.types.set('sort', class DataSourceTransformationRestric
 				}
 
 				else {
-					a[column.column].toString().localeCompare(b[column.column].toString(), undefined, column.options);
+					result = a[column.column].toString().localeCompare(b[column.column].toString(), undefined, column.options);
 				}
 
 				if(!result) {
