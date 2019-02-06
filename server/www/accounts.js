@@ -5,6 +5,9 @@ const redis = require("../utils/redis").Redis;
 const config = require('config');
 const constants = require("../utils/constants");
 const syncServer = require('../utils/sync-server');
+const SettingInsert = require('./settings').insert;
+const CategoryInsert = require('./category').insert;
+const RoleInsert = require('./roles').insert;
 
 exports.list = class extends API {
 
@@ -138,20 +141,29 @@ exports.insert = class extends API {
 
 		this.assert(result.insertId, 'Account not inserted');
 
-		const [category, role] = await Promise.all([
-
-			this.mysql.query(
-				'INSERT INTO tb_categories (account_id, name, slug, is_admin) VALUES(?, "Main", "main", 1)',
-				[result.insertId],
-				'write'
-			),
-
-			this.mysql.query(
-				'INSERT INTO tb_roles (account_id, name, is_admin) VALUES (?, "Main", 1)',
-				[result.insertId],
-				'write'
-			)
-		]);
+		const
+			defaultValues = {
+				setting: {
+					profile: 'main',
+					owner: 'account',
+					owner_id: result.insertId,
+					value: []
+				},
+				category: {
+					name: 'Main',
+					slug: 'main',
+					is_admin: 1
+				},
+				role: {
+					name: 'Main',
+					is_admin: 1
+				}
+			},
+			[category, role, setting] = await Promise.all([
+				(new CategoryInsert(this)).insert(defaultValues.category),
+				(new RoleInsert(this)).insert(defaultValues.role)
+				(new SettingInsert(this)).insert(defaultValues.setting),
+			]);
 
 		await syncServer.set(`${constants.lastUpdatedKeys.account}`);
 
