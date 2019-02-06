@@ -23,8 +23,12 @@ class Forecast(API, object):
             df[first_pri] = df.apply(lambda row: row[second_pri] if not row[first_pri] else row[second_pri], axis=1)
 
         if drop_both:
-            del df[first_pri]
-            del df[second_pri]
+
+            if new_col != first_pri:
+                del df[first_pri]
+
+            if new_col != second_pri:
+                del df[second_pri]
 
     def format_data_pre(self):
 

@@ -622,7 +622,7 @@ class report extends API {
 
 				this.assert(response.status, response.response);
 
-				[result.data, metadata] = Transformation.merge(result.data, response);
+				[result.data, metadata] = Transformation.merge(result.data, response, transformation.columns);
 
 				transformationData.push({
 					name: transformation.type,
@@ -1565,11 +1565,18 @@ class Transformation {
 	//originalData = result.data from query engine
 	//metadata = result from transformations
 
-	static merge(originalData, response) {
+	static merge(originalData, response, columnInfo) {
 
 		let
 			metadata = response.response.rows,
-			connectingColumn = response.response.connecting_column || "timing";
+			connectingColumn = response.response.connecting_column || "timing",
+			mergeColumn = []
+		;
+
+		if(!metadata) {
+
+			return [originalData, {}];
+		}
 
 		const newColumns = {};
 
@@ -1582,8 +1589,14 @@ class Transformation {
 
 			for (const newColumn in metadata[0][column]) {
 
-				newColumns[`${column}_${newColumn}`] = `${column}_${newColumn}_${commonFun.hashCode(column + newColumn)}`;
+				const hashedName = `${column}_${newColumn}_${commonFun.hashCode(column + newColumn)}`
 
+				newColumns[`${column}_${newColumn}`] = hashedName;
+
+				if(columnInfo.mergeExtrapolation && newColumn == 'forecast') {
+
+					mergeColumn.push([column, hashedName]);
+				}
 			}
 		}
 
@@ -1621,7 +1634,25 @@ class Transformation {
 			}
 		}
 
-		return [Object.values(originalDataMapping), {dashedArray, newColumns}];
+		const result = Object.values(originalDataMapping);
+
+		if(columnInfo.mergeExtrapolation && mergeColumn) {
+
+			for(const columnPair of mergeColumn) {
+
+				for(const row of result) {
+
+					if(!row.hasOwnProperty(columnPair[0])) {
+
+						row[columnPair[0]] = row[columnPair[1]];
+					}
+
+					delete row[columnPair[1]];
+				}
+			}
+		}
+
+		return [result, {dashedArray, newColumns}];
 	}
 }
 

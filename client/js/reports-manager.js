@@ -7733,20 +7733,26 @@ ReportTransformation.types.set('forecast', class ReportTransformationRestrictCol
 		columns.appendChild(spanForecastColumns);
 		columns.appendChild(this.multiSelectOtherColumns.container);
 
-		this.extrapolateUnits = document.createElement('input');
-		this.extrapolateUnits.type = 'number';
-		this.extrapolateUnits.step = 1;
-		this.extrapolateUnits.min = 0;
-		this.extrapolateUnits.value = this.columns.extrapolate || 0;
+		this.extrapolateUnits = `<input class="extrapolate-units" type="number" step="1" min="0" value=${this.columns.extrapolate || 0}>`;
+		this.timingOffset = `<input class="timing-offset" type="number" step="1" max="0" value=${this.columns.timingOffset || 0}>`;
+		this.mergeExtrapolation = `<input class="merge-extrapolation" type="checkbox" checked>`;
 
-		this.timingOffset = document.createElement('input');
-		this.timingOffset.type = 'number';
-		this.timingOffset.step = 1;
-		this.timingOffset.max = 0;
-		this.timingOffset.value = this.columns.offset || 0;
+		columns.insertAdjacentHTML('beforeend', `<span>Extrapolate X By Units</span>`);
+		columns.insertAdjacentHTML('beforeend', this.extrapolateUnits);
 
-		columns.appendChild(this.extrapolateUnits);
-		columns.appendChild(this.timingOffset);
+		columns.insertAdjacentHTML('beforeend', `<span>X offset</span>`);
+		columns.insertAdjacentHTML('beforeend', this.timingOffset);
+
+		const div = document.createElement('div');
+
+		div.style.display = 'flex';
+		div.style.justifyContent = 'space-between';
+
+		div.insertAdjacentHTML('beforeend', `<span>Merge Forecast Column</span>`);
+		div.insertAdjacentHTML('beforeend', this.mergeExtrapolation);
+		columns.appendChild(div);
+
+		// columns.insertAdjacentHTML('beforeend', );
 
 		label.appendChild(columns);
 		container.appendChild(label);
@@ -7804,8 +7810,9 @@ ReportTransformation.types.set('forecast', class ReportTransformationRestrictCol
 			columns: {
 				timing: this.multiSelectTiming.value[0],
 				data: this.multiSelectOtherColumns.value,
-				extrapolate: (this.extrapolateUnits || {value: 0}).value,
-				offset: (this.timingOffset || {value: 0}).value
+				extrapolate: (this.container.querySelector('.extrapolate-units') || {value: 0}).value,
+				offset: (this.container.querySelector('.timing-offset') || {value: 0}).value,
+				mergeExtrapolation: (this.container.querySelector('.merge-extrapolation') || {checked: 0}).checked || 0,
 			},
 			backend_transformation: true
 		};
