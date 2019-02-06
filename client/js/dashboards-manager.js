@@ -112,52 +112,52 @@ class DashboardManager extends Page {
 			importInput = heading.querySelector('.import-input'),
 			importDashboard = heading.querySelector('#import-dashboard');
 
-		importInput.on('change', e => {
+		// importInput.on('change', e => {
 
-			if(e.target.files.length) {
-				this.upload(e.target.files[0]);
-			}
-		});
-
-		importDashboard.on('click', () => importInput.click());
-		// importDashboard.on('click', () => {
-		// 	this.importNewDashboard.forkDialogBox.body.appendChild(this.importNewDashboard.container);
+		// 	if(e.target.files.length) {
+		// 		this.upload(e.target.files[0]);
+		// 	}
 		// });
-	}
 
-	upload(file) {
-
-		if(file.type != 'application/json') {
-
-			return new SnackBar({
-				message: 'Please upload JSON file',
-				type: 'error',
-			});
-		}
-
-		const fileReader = new FileReader();
-
-		fileReader.readAsText(file);
-
-		fileReader.onload = async e => {
-
-			if(!e.target.result.trim()) {
-
-				return new SnackBar({
-					message: 'Uploaded file is empty',
-					type: 'warning',
-				});
-			}
-
-			this.importNewDashboard.uploadedFile = fileReader.result;
-
-			this.importNewDashboard.createForkedData();
-
+		// importDashboard.on('click', () => importInput.click());
+		importDashboard.on('click', () => {
 			this.importNewDashboard.forkDialogBox.body.appendChild(this.importNewDashboard.container);
-
-			this.container.querySelector('.section .heading .import-input').value = '';
-		}
+		});
 	}
+
+	// upload(file) {
+
+	// 	if(file.type != 'application/json') {
+
+	// 		return new SnackBar({
+	// 			message: 'Please upload JSON file',
+	// 			type: 'error',
+	// 		});
+	// 	}
+
+	// 	const fileReader = new FileReader();
+
+	// 	fileReader.readAsText(file);
+
+	// 	fileReader.onload = async e => {
+
+	// 		if(!e.target.result.trim()) {
+
+	// 			return new SnackBar({
+	// 				message: 'Uploaded file is empty',
+	// 				type: 'warning',
+	// 			});
+	// 		}
+
+	// 		this.importNewDashboard.uploadedFile = fileReader.result;
+
+	// 		this.importNewDashboard.createForkedData();
+
+	// 		this.importNewDashboard.forkDialogBox.body.appendChild(this.importNewDashboard.container);
+
+	// 		this.container.querySelector('.section .heading .import-input').value = '';
+	// 	}
+	// }
 
 	process() {
 

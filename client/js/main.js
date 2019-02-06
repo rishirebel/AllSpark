@@ -4112,6 +4112,13 @@ class ForkData {
 
 			<div class="forking-options"></div>
 
+			<div class="dragDrop-and-upload">
+				<input type="file" accept=".json" class="hidden">
+				<h2>Drop File Here</h2>
+				<span>Or click to upload&hellip;</span>
+				<div class="message hidden"></div>
+			</div>
+
 			<label class="switch-to-new">
 				<input type="checkbox" name="switchToNew" checked>
 				<span class="switch-new">Switch to the new ${this.type}</span>
@@ -4124,29 +4131,98 @@ class ForkData {
 					<progress></progress>
 				</div>
 
-				<button type="button" class="export">
-					<i class="fas fa-file-export"></i>
-					<span>Export</span>
-				</button>
+				<div class="export-footer">
+					<button type="button" class="export">
+						<i class="fas fa-file-export"></i>
+						<span>Export</span>
+					</button>
 
-				<button type="submit">
-					<i class="fas fa-code-branch"></i>
-					<span class="fork">Fork ${this.type}</span>
-					<span class="import-file">Import ${this.type}</span>
-					<i class="fas fa-arrow-right"></i>
-				</button>
+					<button type="submit">
+						<i class="fas fa-code-branch"></i>
+						<span class="fork">Fork ${this.type}</span>
+						<i class="fas fa-arrow-right"></i>
+					</button>
+				</div>
+
+				<div class="import-footer">
+
+					<button type="submit">
+						<i class="fas fa-code-branch"></i>
+						<span class="import-file">Import ${this.type}</span>
+						<i class="fas fa-arrow-right"></i>
+					</button>
+				</div>
 			</div>
 		`;
 
-		this.forkDialogBox.heading = `<i class="fas fa-code-branch"></i> &nbsp; ${this.status == 'Import'? 'Import ': 'Fork '}` + this.name;
+		this.forkDialogBox.heading = `<i class="fas fa-code-branch"></i> &nbsp; ${this.status == 'Import'? 'Import': 'Fork ' + this.name}`;
 
 		this.openDialogBox();
 
-		container.querySelector('.footer .export').classList.toggle('hidden', this.status == 'Import');
-		container.querySelector('.footer button .fork').classList.toggle('hidden', this.status == 'Import');
-		container.querySelector('.footer button .import-file').classList.toggle('hidden', this.status != 'Import');
+		container.querySelector('.forking-options').classList.toggle('hidden', this.status == 'Import');
+		container.querySelector('.switch-to-new').classList.toggle('hidden', this.status == 'Import');
+		container.querySelector('.export-footer').classList.toggle('hidden', this.status == 'Import');
+		container.querySelector('.import-footer').classList.toggle('hidden', this.status != 'Import');
+		container.querySelector('.dragDrop-and-upload').classList.toggle('hidden', this.status != 'Import');
 
 		container.querySelector('.footer .export').on('click', () => this.export());
+
+		const
+			dragInput = container.querySelector('.dragDrop-and-upload input'),
+			dragContainer = container.querySelector('.dragDrop-and-upload');
+
+		dragInput.on('change', e => {
+
+			if(e.target.files.length) {
+				this.upload(e.target.files[0]);
+			}
+		});
+
+		dragContainer.on('click', () => dragInput.click());
+
+		dragContainer.on('dragenter', e => e.preventDefault());
+
+		dragContainer.on('dragover', e => {
+
+			e.preventDefault();
+
+			if(!e.dataTransfer.types || !e.dataTransfer.types.includes('Files')) {
+				return this.message('Please upload a valid file.', 'warning');
+			}
+
+			if(e.dataTransfer.items.length > 1) {
+				return this.message('Please upload only one file.', 'warning');
+			}
+
+			dragContainer.classList.add('drag-over');
+
+			this.message('Drop to upload one file.', 'notice');
+		});
+
+		dragContainer.on('dragleave', () => {
+
+			this.message();
+			dragContainer.classList.remove('drag-over');
+		});
+
+		dragContainer.on('drop', e => {
+
+			e.preventDefault();
+
+			if(!e.dataTransfer.types || !e.dataTransfer.types.includes('Files')) {
+				return this.message('Please upload a valid file', 'warning');
+			}
+
+			if(e.dataTransfer.items.length > 1) {
+				return this.message('Please upload only one file', 'warning');
+			}
+
+			dragContainer.classList.remove('drag-over');
+
+			const [file] = e.dataTransfer.files;
+
+			this.upload(file);
+		});
 
 		container.on('submit', async e => {
 
@@ -4277,6 +4353,52 @@ class ForkData {
 		}
 
 		this.forkDialogBox.show();
+	}
+
+	upload(file) {
+
+		if(file.type != 'application/json') {
+
+			return this.message('Please upload JSON file', 'warning');
+		}
+
+		this.message(`Uploading ${file.name}`, 'notice');
+
+		const fileReader = new FileReader();
+
+		fileReader.readAsText(file);
+
+		fileReader.onload = async e => {
+
+			if(!e.target.result.trim()) {
+
+				return this.message('Uploaded file is empty', 'warning');
+			}
+
+			this.uploadedFile = fileReader.result;
+
+			this.createForkedData();
+
+			this.container.querySelector('.dragDrop-and-upload input').value = '';
+
+			this.message('Upload Complete', 'notice');
+		}
+	}
+
+	message(body = '', type = null) {
+
+		const message = this.container.querySelector('.dragDrop-and-upload .message');
+
+		message.classList.remove('notice', 'warning');
+		message.classList.toggle('hidden', !body);
+		this.container.querySelector('h2').classList.toggle('hidden', body);
+		this.container.querySelector('span').classList.toggle('hidden', body);
+
+		if(type) {
+			message.classList.add(type);
+		}
+
+		message.innerHTML = body;
 	}
 
 	get json() {
@@ -5046,6 +5168,16 @@ class ForkCompleteDashboard extends ForkData {
 		super(name, forkedData, type);
 
 		this.dashboard = currentDashboard || {};
+
+		this.fetch();
+	}
+
+	async fetch() {
+
+		[this.connections] = await Promise.all([
+			API.call('credentials/list'),
+			DataSource.load(true),
+		]);
 	}
 
 	get json() {
@@ -5086,6 +5218,8 @@ class ForkCompleteDashboard extends ForkData {
 					reportJson[key] = '';
 				}
 			}
+
+			reportJson.connectionName = this.connections.filter(f => f.id == reportJson.connection_name)[0].connection_name;
 
 			if(!reportsList[reportJson.query_id]) {
 
@@ -5202,7 +5336,7 @@ class ForkCompleteDashboard extends ForkData {
 					method: 'POST',
 				},
 				parameters = {
-					name: form.dashboardHeading.value,
+					name: json.title,
 					icon: json.icon || '',
 					order: json.order || '',
 					format: JSON.stringify(json.format) || '{}',
@@ -5400,6 +5534,8 @@ class ImportDashboard extends ForkData {
 	constructor({uploadedFile} = {}) {
 
 		super('','','','Import');
+
+		this.type = 'Dashboard';
 
 		this.forkCompleteDashboard = new ForkCompleteDashboard({
 			currentDashboard: {},
