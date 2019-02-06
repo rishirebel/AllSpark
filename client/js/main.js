@@ -2573,7 +2573,7 @@ class MultiSelect {
 
 	set datalist(datalist) {
 
-		if(Array.isArray(datalist)) {
+		if(Array.isArray(datalist) && datalist.length) {
 
 			this.datalistMap = new Map(datalist.map(x => [x.value.toString(), x]));
 		}
@@ -2583,7 +2583,7 @@ class MultiSelect {
 		}
 		else {
 
-			throw new Error('Datalist must be an array or map' );
+			this.datalistMap = new Map();
 		}
 	}
 

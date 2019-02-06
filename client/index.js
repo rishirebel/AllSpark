@@ -1276,13 +1276,13 @@ router.get('/settings/:tab?/:id?', API.serve(class extends HTMLAPI {
 
 		this.stylesheets.push('/css/settings.css', '/css/settings-manager.css', 'css/reports.css');
 
-		this.scripts = this.scripts.concat([
+		this.scripts.push(
 			'/js/reports.js',
 			'/js/settings.js',
 			'/js/settings-manager.js',
 			'https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js',
 			'https://devpreview.tiny.cloud/demo/tinymce.min.js'
-		]);
+		);
 	}
 
 	async main() {

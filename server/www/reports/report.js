@@ -192,7 +192,7 @@ exports.list = class extends API {
 				SELECT
 					qv.*,
 					id,
-					owner,
+					owner as owner_type,
 					owner_id,
 					vc.visualization_id AS sub_visualization_id,
 					vc.format as sub_visualization_format,
@@ -319,7 +319,7 @@ exports.list = class extends API {
 						...visualizationMapping[visualization.sub_visualization_id],
 						owner_id: visualization.visualization_id,
 						format: visualization.sub_visualization_format,
-						owner: visualization.owner,
+						owner: visualization.owner_type,
 						id: visualization.id,
 						related: 1,
 					}
@@ -597,7 +597,7 @@ exports.list = class extends API {
 	                    id: visualization.id,
 	                    query_id: visualization.query_id,
 	                    owner_id: visualization.owner_id,
-	                    owner: visualization.owner,
+	                    owner_type: visualization.owner_type,
 	                    visualization_id: visualization.visualization_id,
 	                    format: visualization.format
                     });

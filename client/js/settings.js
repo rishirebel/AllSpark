@@ -955,7 +955,7 @@ Settings.list.set('internalAnalytics', class InternalAnalytics extends SettingPa
 			});
 		}
 
-		this.visualizationCanvas = new VisualizationsCanvas(canvasVisualizations, this);
+		this.visualizationCanvas = new DataSourceCanvas(canvasVisualizations, this);
 
 		await this.render()
 	}
@@ -971,6 +971,7 @@ Settings.list.set('internalAnalytics', class InternalAnalytics extends SettingPa
 		container.innerHTML = `
 			<section class="section show" id="analytics">
 				<h1>Analytics</h1>
+				<div class="list"></div>
 			</section>
 		`;
 
@@ -979,7 +980,7 @@ Settings.list.set('internalAnalytics', class InternalAnalytics extends SettingPa
 
 	async render() {
 
-		const container = this.container.querySelector('#analytics');
+		const container = this.container.querySelector('.list');
 		container.textContent = null;
 
 		container.appendChild(this.visualizationCanvas.container);

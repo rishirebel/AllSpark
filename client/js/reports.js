@@ -697,6 +697,11 @@ class DataSource {
 
 		relatedVisualizations.on('click', async () => {
 
+			if(document.isFullScreen || document.webkitIsFullScreen || document.mozIsFullScreen) {
+
+				return;
+			}
+
 			await this.visualizations.selected.showSubVisualizations();
 		});
 
@@ -6004,7 +6009,7 @@ class Visualization {
 
 		this.subReportDialogBox.body.textContent = null;
 
-		const visualizationCanvas =  new Canvas(this.related_visualizations, page, this);
+		const visualizationCanvas =  new VisualizationsCanvas(this.related_visualizations, page, this);
 		this.subReportDialogBox.body.appendChild(visualizationCanvas.container);
 
 		await visualizationCanvas.load();
@@ -13736,21 +13741,21 @@ class Tooltip {
 	}
 }
 
-class VisualizationsCanvas {
+class DataSourceCanvas {
 
 	constructor(visualizations, page) {
 
 		this.page = page;
-		this.visualizations = visualizations;
+		this.visualizations = [...visualizations];
 		this.loadedVisualizations = new Map();
 
-		VisualizationsCanvas.grid = {
+		DataSourceCanvas.grid = {
 			columns: 32,
 			rows: 10,
 			rowHeight: 50,
 		};
 
-		VisualizationsCanvas.screenHeightOffset = 1.5 * screen.availHeight;
+		DataSourceCanvas.screenHeightOffset = 1.5 * screen.availHeight;
 		this.editing = false;
 	}
 
@@ -13773,12 +13778,13 @@ class VisualizationsCanvas {
 		`;
 
 		this.list = container.querySelector('.list');
+		this.menu = container.querySelector('.menu');
 
-		const fullScreen = container.querySelector('.full-screen');
+		const fullScreen = this.menu.querySelector('.full-screen');
 
 		fullScreen.on('click', () => {
 
-			if(document.isFullScreen || document.webkitIsFullScreen || document.mozIsFullScreen) {
+			if(document.isFullScreen || document.webkitIsFullScreen || document.mozFullScreen) {
 
 				if(document.exitFullscreen) {
 
@@ -13796,15 +13802,15 @@ class VisualizationsCanvas {
 
 			else {
 
-				if(this.list.requestFullscreen) {
+				if(container.requestFullscreen) {
 
 					container.requestFullscreen();
 				}
-				else if(this.list.webkitRequestFullscreen) {
+				else if(container.webkitRequestFullscreen) {
 
 					container.webkitRequestFullscreen();
 				}
-				else if(this.list.mozRequestFullscreen) {
+				else if(container.mozRequestFullscreen) {
 
 					container.mozRequestFullscreen();
 				}
@@ -13816,12 +13822,13 @@ class VisualizationsCanvas {
 		document.on('fullscreenchange', this.keyUpListener = e => {
 
 			fullScreen.classList.toggle('selected');
+			container.classList.toggle('full-screen');
 		});
 
 		return container;
 	}
 
-	lazyLoad(resize, offset = VisualizationsCanvas.screenHeightOffset) {
+	lazyLoad(resize, offset = DataSourceCanvas.screenHeightOffset) {
 
 		const visitedVisualizations = new Set;
 
@@ -13872,8 +13879,8 @@ class VisualizationsCanvas {
 
 			row.report.container.setAttribute('style', `
 				order: ${row.format.position || 0};
-				grid-column: auto / span ${row.format.width || VisualizationsCanvas.grid.columns};
-				grid-row: auto / span ${row.format.height || VisualizationsCanvas.grid.rows};
+				grid-column: auto / span ${row.format.width || DataSourceCanvas.grid.columns};
+				grid-row: auto / span ${row.format.height || DataSourceCanvas.grid.rows};
 			`);
 
 			this.list.appendChild(row.report.container);
@@ -13892,11 +13899,11 @@ class VisualizationsCanvas {
 
 		const main = document.querySelector('main');
 
-		this.maxScrollHeightAchieved = Math.max(VisualizationsCanvas.screenHeightOffset, main.scrollTop);
+		this.maxScrollHeightAchieved = Math.max(DataSourceCanvas.screenHeightOffset, main.scrollTop);
 
 		this.lazyLoad(this.maxScrollHeightAchieved, resize);
 
-		document.addEventListener(
+		this.container.parentElement.addEventListener(
 			'scroll',
 			() => {
 				for (const row of this.visualizations) {
@@ -13916,7 +13923,7 @@ class VisualizationsCanvas {
 
 		if (!this.loadedVisualizations.size) {
 
-			this.container.innerHTML = '<div class="NA no-reports">No visualizations found!</div>';
+			this.list.innerHTML = '<div class="NA no-reports">No visualizations found!</div>';
 		}
 	}
 
@@ -13926,7 +13933,7 @@ class VisualizationsCanvas {
 	}
 }
 
-class Canvas extends VisualizationsCanvas {
+class VisualizationsCanvas extends DataSourceCanvas {
 
 	constructor(visualizations, page, owner) {
 
@@ -13937,94 +13944,107 @@ class Canvas extends VisualizationsCanvas {
 
 	get container() {
 
-		if(this.containerElement) {
+		if(this.visualizationContainer) {
 
-			return this.containerElement;
+			return this.visualizationContainer;
 		}
 
-		const container = this.containerElement = super.container;
+		const container = super.container;
 
-		if (this.page.user.privileges.has('report')) {
+		if(!this.page.user.privileges.has('report')) {
 
-			const menu = container.querySelector('.menu');
-
-			menu.insertAdjacentHTML('afterbegin', `
-				<button type="button" class="edit"><i class="far fa-edit"></i> Edit</button>
-				<button type="button" class="reorder hidden"><i class="fas fa-random"></i> Reorder</button>
-				<button type="button" class="add-new hidden"><i class="fas fa-plus"></i> Add</button>
-			`);
-
-			container.querySelector('.edit').on('click', () => this.edit());
-			container.querySelector('.reorder').on('click', () => this.reorder());
-			const add = container.querySelector('.add-new');
-
-			add.on('click', () => {
-
-				add.classList.toggle('selected');
-
-				if(this.addVisualizationForm) {
-
-					this.addVisualizationForm.reset();
-					this.addVisualizationsMultiselect.clear();
-					this.addVisualizationsMultiselect.container.querySelector('.options').classList.add('hidden');
-
-					this.addVisualizationForm.classList.toggle('hidden');
-					return;
-				}
-
-				const datalist = this.possibleVisualizations.map(v => ({
-					value: v.visualization_id,
-					name: v.name,
-					subtitle: `${v.type} &nbsp;&middot;&nbsp; ${DataSource.list.get(v.query_id).name} #${v.query_id}`,
-				}));
-
-				this.addVisualizationsMultiselect = new MultiSelect({datalist, multiple: false});
-
-				this.addVisualizationForm = document.createElement('form');
-				this.addVisualizationForm.classList.add('form');
-
-				this.addVisualizationForm.innerHTML = `
-					<label class="visualization">
-						<span>Visualization <span class="red">*</span></span>
-					</label>
-					
-					<label>
-						<span>Position</span>
-						<input type="number" name="position" placeholder="1" min="1" max="10">
-					</label>
-					
-					<label>
-						<span>Height</span>
-						<input type="number" name="height" placeholder="10" min="1" max="10">
-					</label>
-					
-					<label>
-						<span>Width</span>
-						<input type="number" name="width" placeholder="32" min="2" max="32">
-					</label>
-					
-					<label>
-						<span>&nbsp;</span>
-						<button type="submit"><i class="fa fa-plus"></i> Add New Visualization</button>
-					</label>
-					
-				`;
-
-				this.addVisualizationForm.on('submit', async e => {
-
-					e.preventDefault();
-
-					await this.add();
-				});
-
-				this.addVisualizationForm.querySelector('label').appendChild(this.addVisualizationsMultiselect.container);
-				this.addVisualizationsMultiselect.render();
-
-				container.insertBefore(this.addVisualizationForm, this.list);
-			});
+			return container;
 		}
+
+		const menu = container.querySelector('.menu');
+
+		menu.insertAdjacentHTML('afterbegin', `
+			<button type="button" class="edit"><i class="far fa-edit"></i> Edit</button>
+			<button type="button" class="reorder hidden"><i class="fas fa-random"></i> Reorder</button>
+			<button type="button" class="add-new hidden"><i class="fas fa-plus"></i> Add</button>
+		`);
+
+		container.querySelector('.edit').on('click', () => this.edit());
+		container.querySelector('.reorder').on('click', () => this.reorder());
+		const add = container.querySelector('.add-new');
+
+		add.on('click', () => {
+
+			add.classList.toggle('selected');
+
+			if(this.addVisualizationsForm) {
+
+				return this.addVisualizationsForm.classList.toggle('hidden');
+			}
+
+			container.insertBefore(this.addVisualizations, this.list);
+		});
+
+		document.on('fullscreenchange', this.keyUpListener = e => {
+
+			container.querySelector('.edit').classList.toggle('hidden');
+		});
 
 		return container;
+	}
+
+	get addVisualizations() {
+
+		if(this.addVisualizationsForm) {
+
+			return this.addVisualizationsForm;
+		}
+
+		const
+			form = this.addVisualizationsForm = document.createElement('form'),
+			datalist = this.possibleVisualizations.map(v => ({
+			value: v.visualization_id,
+			name: v.name,
+			subtitle: `${v.type} &nbsp;&middot;&nbsp; ${DataSource.list.get(v.query_id).name} #${v.query_id}`,
+		}))
+		;
+
+		form.classList.add('form');
+		this.addVisualizationsMultiselect = new MultiSelect({datalist, multiple: false});
+
+		form.innerHTML = `
+			<label class="visualization">
+				<span>Visualization <span class="red">*</span></span>
+			</label>
+			
+			<label>
+				<span>Position</span>
+				<input type="number" name="position" placeholder="1">
+			</label>
+			
+			<label>
+				<span>Height</span>
+				<input type="number" name="height" placeholder="10" min="1" max="10">
+			</label>
+			
+			<label>
+				<span>Width</span>
+				<input type="number" name="width" placeholder="32" min="2" max="32">
+			</label>
+			
+			<label>
+				<span>&nbsp;</span>
+				<button type="submit"><i class="fa fa-plus"></i> Add New Visualization</button>
+			</label>
+			
+		`;
+
+		form.on('submit', e => {
+
+			e.preventDefault();
+
+			this.insert();
+		});
+
+		form.querySelector('.visualization').appendChild(this.addVisualizationsMultiselect.container);
+		this.addVisualizationsMultiselect.render();
+
+		return form;
 	}
 
 	async load() {
@@ -14103,10 +14123,10 @@ class Canvas extends VisualizationsCanvas {
 			format = report.selectedVisualizationProperties.format;
 
 		if (!format.width)
-			format.width = VisualizationsCanvas.grid.columns;
+			format.width = DataSourceCanvas.grid.columns;
 
 		if (!format.height)
-			format.height = VisualizationsCanvas.grid.rows;
+			format.height = DataSourceCanvas.grid.rows;
 
 		header.insertAdjacentHTML('beforeend', `
 			<a class="show move-up" title="Move visualization up"><i class="fas fa-angle-double-up"></i></a>
@@ -14230,6 +14250,11 @@ class Canvas extends VisualizationsCanvas {
 
 		header.querySelector('.remove').on('click', async () => {
 
+			if(!confirm('Are you sure?')) {
+
+				return;
+			}
+
 			const
 				parameters = {
 					id: report.selectedVisualizationProperties.id,
@@ -14244,6 +14269,8 @@ class Canvas extends VisualizationsCanvas {
 
 			this.visualizations = this.visualizations.filter(x => x.visualization_id != report.selectedVisualizationProperties.visualization_id);
 			this.loadedVisualizations.delete(report.selectedVisualizationProperties.visualization_id);
+
+			await DataSource.load(true);
 
 			this.render();
 		});
@@ -14279,15 +14306,15 @@ class Canvas extends VisualizationsCanvas {
 		this.container.querySelector('.add-new').classList.toggle('hidden', !this.editing);
 		this.container.querySelector('.full-screen').classList.toggle('hidden', this.editing);
 
-		if(this.addVisualizationForm) {
+		if(this.addVisualizationsForm) {
 
-			this.addVisualizationForm.classList.add('hidden');
+			this.addVisualizationsForm.classList.add('hidden');
 			this.container.querySelector('.add-new').classList.remove('selected');
 		}
 
-		for (let {query: report} of this.loadedVisualizations.values()) {
+		for (let row of this.visualizations) {
 
-			this.setReportEditMode(report);
+			this.setReportEditMode(row.report);
 		}
 
 		this.container.parentElement.on('dragover', e => {
@@ -14305,13 +14332,13 @@ class Canvas extends VisualizationsCanvas {
 				columnStart = this.getColumn(report.container.offsetLeft),
 				newColumn = this.getColumn(e.pageX - this.list.getBoundingClientRect().left) + 1,
 				rowStart = this.getRow(report.container.offsetTop),
-				newRow = this.getRow(e.pageY - this.list.getBoundingClientRect().top) + 1;
+				newRow = this.getRow(e.pageY - this.menu.getBoundingClientRect().bottom) + 1;
 
 			if (newRow > rowStart) {
 				visualizationFormat.height = newRow - rowStart;
 			}
 
-			if (newColumn > columnStart && newColumn <= VisualizationsCanvas.grid.columns) {
+			if (newColumn > columnStart && newColumn <= DataSourceCanvas.grid.columns) {
 				visualizationFormat.width = newColumn - columnStart;
 			}
 
@@ -14398,6 +14425,11 @@ class Canvas extends VisualizationsCanvas {
 			this.possibleVisualizations.push(...x.visualizations.filter(v => v.visualization_id)
 			)
 		);
+
+		if(this.owner.owner_type == 'visualization') {
+
+			this.possibleVisualizations = this.possibleVisualizations.filter(x => x.visualization_id != this.owner.visualization_id);
+		}
 	}
 
 	async save(report) {
@@ -14477,18 +14509,18 @@ class Canvas extends VisualizationsCanvas {
 
 		return Math.max(Math.floor(
 			(position - this.list.offsetLeft) /
-			((this.list.clientWidth / VisualizationsCanvas.grid.columns))
+			((this.list.clientWidth / DataSourceCanvas.grid.columns))
 		), 0);
 	}
 
 	getRow(position) {
 
 		return Math.max(Math.floor(
-			(position - this.list.offsetTop) / VisualizationsCanvas.grid.rowHeight), 0
+			(position - this.list.offsetTop) / DataSourceCanvas.grid.rowHeight), 0
 		);
 	}
 
-	async add() {
+	async insert() {
 
 		const visualization_id = parseInt(this.addVisualizationsMultiselect.value[0]);
 
@@ -14513,13 +14545,13 @@ class Canvas extends VisualizationsCanvas {
 
 		const
 			parameters = {
-				owner: this.owner.owner,
+				owner: this.owner.owner_type,
 				owner_id: this.owner.visualization_id,
 				visualization_id: visualization_id,
 				format: JSON.stringify({
-					position: parseInt(this.addVisualizationForm.position.value) || 1,
-					width: parseInt(this.addVisualizationForm.width.value) || 32,
-					height: parseInt(this.addVisualizationForm.height.value) || 10
+					position: parseInt(this.addVisualizationsForm.position.value) || 1,
+					width: parseInt(this.addVisualizationsForm.width.value) || 32,
+					height: parseInt(this.addVisualizationsForm.height.value) || 10
 				})
 			};
 
@@ -14546,18 +14578,19 @@ class Canvas extends VisualizationsCanvas {
 			throw e;
 		}
 
-		this.addVisualizationForm.reset();
+		this.addVisualizationsForm.reset();
 		this.addVisualizationsMultiselect.clear();
 	}
 
 	async loadVisualizations() {
 
-		if(this.owner.owner == 'visualization') {
+		if(this.owner.owner_type == 'visualization') {
 
 			await DataSource.load(true);
 
 			[this.owner] = DataSource.list.get(this.owner.query_id).visualizations.filter(x => x.visualization_id == this.owner.visualization_id);
 			this.visualizations = this.owner.related_visualizations;
+			this.loadedVisualizations = new Map();
 		}
 
 		await this.load();

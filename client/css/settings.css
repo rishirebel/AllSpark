@@ -251,3 +251,6 @@ main #alerts > .list {
 			max-height: 300px;
 			overflow: auto;
 		}
+main #analytics .visualization-canvas {
+	padding: calc(var(--gap) * 2) 0;
+}
