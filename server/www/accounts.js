@@ -142,27 +142,27 @@ exports.insert = class extends API {
 		this.assert(result.insertId, 'Account not inserted');
 
 		const
-			defaultValues = {
-				setting: {
-					profile: 'main',
+			defaultSetting = {
+				profile: 'main',
 					owner: 'account',
 					owner_id: result.insertId,
-					value: []
-				},
-				category: {
-					name: 'Main',
-					slug: 'main',
-					is_admin: 1
-				},
-				role: {
-					name: 'Main',
-					is_admin: 1
-				}
+					value: null
 			},
 			[category, role, setting] = await Promise.all([
-				(new CategoryInsert(this)).insert(defaultValues.category),
-				(new RoleInsert(this)).insert(defaultValues.role)
-				(new SettingInsert(this)).insert(defaultValues.setting),
+
+				this.mysql.query(
+					'INSERT INTO tb_categories (account_id, name, slug, is_admin) VALUES(?, "Main", "main", 1)',
+					[result.insertId],
+					'write'
+				),
+
+				this.mysql.query(
+					'INSERT INTO tb_roles (account_id, name, is_admin) VALUES (?, "Main", 1)',
+					[result.insertId],
+					'write'
+				),
+
+				(new SettingInsert(this)).insert(defaultSetting),
 			]);
 
 		await syncServer.set(`${constants.lastUpdatedKeys.account}`);
@@ -173,6 +173,7 @@ exports.insert = class extends API {
 			account_id: result.insertId,
 			category_id: category.insertId,
 			role_id: role.insertId,
+			setting_id: setting.insertId
 		};
 	}
 }

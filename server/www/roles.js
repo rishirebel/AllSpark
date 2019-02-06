@@ -8,6 +8,7 @@ exports.list = class extends API {
 			((this.user.privilege.has('user.list', "ignore")) || (this.user.privilege.has('visualization.list', "ignore")) || (this.user.privilege.has('report.insert', "ignore")) || (this.user.privilege.has('report.update', "ignore"))),
 			"User does not have privilege to view role list."
 		);
+
 		return await this.mysql.query('SELECT * FROM tb_roles WHERE account_id = ? ', [this.account.account_id]);
 	}
 }
