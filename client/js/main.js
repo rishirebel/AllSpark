@@ -4277,7 +4277,7 @@ class Documentation {
 		this.page = page;
 	}
 
-	async load() {
+	async load(options = {}) {
 
 		if('body' in this) {
 			return;
@@ -4293,9 +4293,15 @@ class Documentation {
 			parameters.id = this.id
 		}
 
-		return await API.call('documentation/get', parameters);
+		const response = await API.call('documentation/get', parameters);
 
-		// this.initilizeBody = await API.call('documentation/get', parameters);
+		if(options.set_body) {
+			this.initilizeBody = response;
+		}
+		else {
+			return response;
+		}
+
 	}
 
 	get container() {

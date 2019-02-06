@@ -186,7 +186,8 @@ class DocumentationBrowserItem extends Documentation {
 			const documentation = this.page.container.querySelector('.documentation');
 			documentation.textContent = null;
 
-			await this.load();
+			await this.load({set_body: true});
+
 			this.headingSize = 1;
 
 			documentation.appendChild(this.container);
