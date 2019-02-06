@@ -800,15 +800,24 @@ class ProfileInfo {
 
 	async fetch(privilege_id) {
 
+		if(privilege_id == this.privilege_id) {
+
+			return this.privilegesList;
+		}
+
+		this.privilege_id = privilege_id;
+
 		const
 			 options = {
 				'method': 'POST',
 			},
 			parameter = {
-				id: privilege_id,
+				id: this.privilege_id,
 			};
 
-		return await API.call('privileges_manager/list', parameter, options);
+		this.privilegesList = await API.call('privileges_manager/list', parameter, options);
+
+		return this.privilegesList;
 	}
 
 	showDialogBox(name, privileges) {
